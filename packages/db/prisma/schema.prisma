@@ -1,14 +1,213 @@
-// The data model for the entire app. Boilerplate — empty schema with no models.
-// Example branches add their own models, enums, and migrations here.
+// The data model for the customer and appointment management app.
 
 generator client {
-  provider        = "prisma-client-js"
-  engineType      = "library"
-  previewFeatures = ["driverAdapters"]
-  output          = "../src/generated/prisma"
+  provider   = "prisma-client-js"
+  engineType = "library"
+  output     = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id                       String              @id @default(cuid())
+  first_name               String
+  last_name                String
+  phone_number             String              @unique
+  email                    String              @unique
+  address                  String              @unique
+  preferred_contact_method ContactMethod
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @default(now())
+  notes                    Note[]
+  appointments             Appointment[]
+  tasks                    Task[]
+  payments                 Payment[]
+  interactions             Interaction[]
+  businesses               Customer_Business[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  customer_id String
+  employee_id String
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  due_date    DateTime
+  created_at  DateTime
+  updated_at  DateTime @updatedAt
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  customer_id String
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  employee_id String
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  note_date   DateTime @default(now())
+  content     String
+  created_at  DateTime @updatedAt
+}
+
+model Employee {
+  id           String        @id @default(cuid())
+  first_name   String
+  last_name    String
+  email        String
+  phone_number String
+  role_id      String
+  role         Employee_role @relation(fields: [role_id], references: [id])
+  is_active    Boolean       @default(false)
+  hire_date    String
+  create_at    DateTime      @default(now())
+  appointments Appointment[]
+  interactions Interaction[]
+  tasks        Task[]
+  notes        Note[]
+}
+
+model Employee_role {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  employees   Employee[]
+}
+
+model Appointment {
+  id                   String                @id @default(cuid())
+  customer_id          String
+  employee_id          String
+  customer             Customer              @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  employee             Employee              @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  appointment_date     DateTime
+  start_time           DateTime
+  end_time             DateTime
+  status_id            String
+  notes                String
+  created_at           DateTime              @default(now())
+  updated_at           DateTime              @updatedAt
+  appointment_services Appointment_Service[]
+  payments             Payment[]
+}
+
+model Appointment_Service {
+  id               String      @id @default(cuid())
+  appointment_id   String
+  appointment      Appointment @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+  service_id       String
+  service          Service     @relation(fields: [service_id], references: [id])
+  quantity         Int
+  price_at_booking Decimal
+}
+
+model Service {
+  id                   String                @id @default(cuid())
+  name                 String
+  category             String
+  description          String
+  duration_minutes     Int
+  base_price           Decimal
+  is_Active            Boolean               @default(false)
+  appointment_services Appointment_Service[]
+}
+
+model Interaction {
+  id               String           @id @default(cuid())
+  customer_id      String
+  customer         Customer         @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  employee_id      String
+  employee         Employee         @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  type_id          String
+  type             Interaction_type @relation(fields: [type_id], references: [id])
+  subject          String
+  content          String
+  interaction_date DateTime         @default(now())
+  created_at       DateTime         @default(now())
+}
+
+model Interaction_type {
+  id           String        @id @default(cuid())
+  name         String
+  description  String
+  interactions Interaction[]
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  appointment_id        String
+  customer_id           String
+  appointment           Appointment   @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+  customer              Customer      @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  payment_method        PaymentMethod
+  payment_date          DateTime      @default(now())
+  status                PaymentStatus
+  transaction_reference String?
+}
+
+model Company_or_Location {
+  id            String       @id @default(cuid())
+  name          String       @unique
+  business_type BusinessType
+  phone_number  String       @unique
+  email         String       @unique
+  address       String       @unique
+  created_at    DateTime     @default(now())
+}
+
+model Customer_Business {
+  id          String   @id @default(cuid())
+  customer_id String
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  createdAt DateTime @default(now())
+}
+
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum InteractionType {
+  CALL
+  TEXT
+  EMAIL
+  DM
+}
+
+enum ContactMethod {
+  PHONE
+  EMAIL
+  TEXT
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum BusinessType {
+  SPA
+  SALON
+  CLINIC
+  BARBERSHOP
+  OTHER
 }
