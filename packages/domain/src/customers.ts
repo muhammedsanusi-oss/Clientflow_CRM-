@@ -31,29 +31,37 @@ export type CreateCustomerNoteInput = z.infer<
   typeof createCustomerNoteInputSchema
 >;
 
-export async function listCustomersForUser(userId: string) {
-  return prisma.customer.findMany({
+export async function getCustomerCollectionForUser(userId: string) {
+  const employee = await prisma.employee.findFirst({
     where: {
+      user_id: userId,
+      is_active: true,
+    },
+    select: {
       business: {
-        employees: {
-          some: {
-            user_id: userId,
-            is_active: true,
+        select: {
+          customers: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              phone_number: true,
+              email: true,
+              address: true,
+              preferred_contact_method: true,
+            },
+            orderBy: [{ last_name: "asc" }, { first_name: "asc" }],
           },
         },
       },
     },
-    select: {
-      id: true,
-      first_name: true,
-      last_name: true,
-      phone_number: true,
-      email: true,
-      address: true,
-      preferred_contact_method: true,
-    },
-    orderBy: [{ last_name: "asc" }, { first_name: "asc" }],
   });
+
+  return employee?.business.customers ?? null;
+}
+
+export async function listCustomersForUser(userId: string) {
+  return (await getCustomerCollectionForUser(userId)) ?? [];
 }
 
 export async function createCustomerForUser(

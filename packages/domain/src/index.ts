@@ -15,6 +15,7 @@ export {
   createCustomerNoteInputSchema,
   createCustomerForUser,
   createCustomerInputSchema,
+  getCustomerCollectionForUser,
   getCustomerWithNotesForUser,
   listCustomersForUser,
 } from "./customers";
