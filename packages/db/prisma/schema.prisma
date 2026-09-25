@@ -12,21 +12,26 @@ datasource db {
 }
 
 model Customer {
-  id                       String              @id @default(cuid())
+  id                       String        @id @default(cuid())
+  business_id              String
+  business                 Business      @relation(fields: [business_id], references: [id])
   first_name               String
   last_name                String
-  phone_number             String              @unique
-  email                    String              @unique
-  address                  String              @unique
+  phone_number             String
+  email                    String
+  address                  String
   preferred_contact_method ContactMethod
-  createdAt                DateTime            @default(now())
-  updatedAt                DateTime            @default(now())
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
   notes                    Note[]
   appointments             Appointment[]
   tasks                    Task[]
   payments                 Payment[]
   interactions             Interaction[]
-  businesses               Customer_Business[]
+
+  @@unique([business_id, phone_number])
+  @@unique([business_id, email])
+  @@index([business_id, last_name, first_name])
 }
 
 model Task {
@@ -55,6 +60,10 @@ model Note {
 
 model Employee {
   id           String        @id @default(cuid())
+  business_id  String
+  user_id      String        @unique
+  business     Business      @relation(fields: [business_id], references: [id])
+  user         User          @relation(fields: [user_id], references: [id])
   first_name   String
   last_name    String
   email        String
@@ -68,6 +77,9 @@ model Employee {
   interactions Interaction[]
   tasks        Task[]
   notes        Note[]
+
+  @@unique([business_id, email])
+  @@index([business_id])
 }
 
 model Employee_role {
@@ -81,8 +93,10 @@ model Appointment {
   id                   String                @id @default(cuid())
   customer_id          String
   employee_id          String
+  location_id          String
   customer             Customer              @relation(fields: [customer_id], references: [id], onDelete: Cascade)
   employee             Employee              @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  location             Location              @relation(fields: [location_id], references: [id])
   appointment_date     DateTime
   start_time           DateTime
   end_time             DateTime
@@ -106,6 +120,8 @@ model Appointment_Service {
 
 model Service {
   id                   String                @id @default(cuid())
+  business_id          String
+  business             Business              @relation(fields: [business_id], references: [id])
   name                 String
   category             String
   description          String
@@ -113,6 +129,9 @@ model Service {
   base_price           Decimal
   is_Active            Boolean               @default(false)
   appointment_services Appointment_Service[]
+
+  @@unique([business_id, name])
+  @@index([business_id])
 }
 
 model Interaction {
@@ -148,28 +167,44 @@ model Payment {
   transaction_reference String?
 }
 
-model Company_or_Location {
+model Business {
   id            String       @id @default(cuid())
-  name          String       @unique
+  name          String
   business_type BusinessType
-  phone_number  String       @unique
-  email         String       @unique
-  address       String       @unique
+  phone_number  String
+  email         String
   created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  locations     Location[]
+  employees     Employee[]
+  customers     Customer[]
+  services      Service[]
 }
 
-model Customer_Business {
-  id          String   @id @default(cuid())
-  customer_id String
-  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+model Location {
+  id           String        @id @default(cuid())
+  business_id  String
+  business     Business      @relation(fields: [business_id], references: [id])
+  name         String
+  phone_number String?
+  email        String?
+  address      String
+  is_active    Boolean       @default(true)
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@unique([business_id, name])
+  @@unique([business_id, address])
+  @@index([business_id])
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  username  String    @unique
+  createdAt DateTime  @default(now())
+  employee  Employee?
 }
-
 
 enum TaskStatus {
   PENDING
