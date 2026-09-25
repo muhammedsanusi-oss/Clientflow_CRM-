@@ -6,7 +6,7 @@ End-to-end tests against a real Postgres engine running in-process via PGlite
 | File | What it tests |
 |---|---|
 | `smoke.test.ts` | Boilerplate — verifies the PGlite door connects, inherited from `main` |
-| `items.test.ts` | Items example — creates items, verifies `CREATED` events, scoping, soft-delete filtering |
+| `customers.test.ts` | Add-customer validation, business scoping, cross-business uniqueness, and inactive-employee rejection |
 
 **Note**: PGlite does not support `pg_notify`. SSE tests require a real
 Postgres connection or mocking.

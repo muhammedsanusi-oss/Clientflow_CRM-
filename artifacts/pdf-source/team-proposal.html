@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ClientFlow CRM — Business-Scoped Customer Access Proposal</title>
+  <link rel="stylesheet" href="report.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <div class="cover-band"></div>
+      <div class="eyebrow">Architecture & feature proposal</div>
+      <h1>Business-Scoped Customer Access</h1>
+      <p class="subtitle">A multi-location foundation for ClientFlow CRM where every employee can assist the same customers without exposing data between unrelated businesses.</p>
+      <div style="margin-top:24px">
+        <span class="pill proposed">Proposed for team review</span>
+        <span class="pill local">Local prototype</span>
+        <span class="pill done">Working customer-list demo</span>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <div><strong>Prepared for</strong>ClientFlow CRM project team</div>
+      <div><strong>Prototype branch</strong><code>learning/company-customers</code></div>
+      <div><strong>Scope</strong>Tenant model, seed data, scoped query, read-only UI</div>
+      <div><strong>Status</strong>Not pushed or merged; decision requested</div>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Executive summary</div>
+    <h2>The proposal in one sentence</h2>
+    <p class="lead">Treat each subscribing <strong>Business</strong> as the security boundary, let it own multiple <strong>Locations</strong>, and share its <strong>Customers</strong> with every active employee in that business.</p>
+
+    <div class="grid-3">
+      <div class="card blue"><div class="metric">1</div><strong>Business tenant</strong><p class="small">The ownership and authorization boundary.</p></div>
+      <div class="card teal"><div class="metric">N</div><strong>Locations</strong><p class="small">Physical branches under the same business.</p></div>
+      <div class="card"><div class="metric">1</div><strong>Shared customer list</strong><p class="small">Available to active employees across locations.</p></div>
+    </div>
+
+    <h3>Business rule</h3>
+    <div class="callout">
+      An employee of Business A can see Business A’s customers, regardless of location. The same employee cannot discover or access Business B’s customers. The server determines the business from the signed-in user; the browser does not choose a trusted business ID.
+    </div>
+
+    <h3>Why this fits the product</h3>
+    <ul>
+      <li>Salons, stores, grooming businesses, and clinics commonly operate more than one location.</li>
+      <li>A returning customer should not need a separate profile at every branch of the same business.</li>
+      <li>Front-desk and service employees need the same customer context to provide consistent assistance.</li>
+      <li>Unrelated businesses must remain strictly isolated even when their customers share an email or phone number.</li>
+    </ul>
+
+    <h3>Current prototype status</h3>
+    <table>
+      <tr><th>Area</th><th>Status</th><th>Evidence</th></tr>
+      <tr><td>Architecture decision</td><td>Proposed</td><td>Draft ADR 0012 on the local branch</td></tr>
+      <tr><td>Database structure</td><td>Implemented locally</td><td>Append-only migration 0002 applied to local PostgreSQL</td></tr>
+      <tr><td>Demo data</td><td>Working</td><td>Seed succeeds repeatedly without duplicate rows</td></tr>
+      <tr><td>Scoped read</td><td>Working</td><td>Query derives customers through user → employee → business</td></tr>
+      <tr><td>Frontend</td><td>Working prototype</td><td><code>/customers</code> displays three seeded customers</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Problem & model</div>
+    <h2>What the existing design could not express safely</h2>
+
+    <div class="grid-2">
+      <div class="card red">
+        <h3>Before</h3>
+        <ul>
+          <li><code>Company_or_Location</code> mixed a tenant with a physical branch.</li>
+          <li>Customers had no complete ownership path to the signed-in user.</li>
+          <li><code>Customer_Business</code> lacked a business foreign key.</li>
+          <li>Customer email, phone, and address were globally unique.</li>
+          <li>Appointments could not identify their location.</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <h3>Proposed</h3>
+        <ul>
+          <li><code>Business</code> is the tenant and data boundary.</li>
+          <li><code>Location</code> belongs to a business.</li>
+          <li><code>Employee</code> links a user to a business.</li>
+          <li><code>Customer</code> belongs directly to one business.</li>
+          <li><code>Appointment</code> identifies a location.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Proposed relationship map</h3>
+    <div class="tree">Business
+├── Locations (one or many)
+├── Employees
+│   └── User account
+├── Customers (shared across locations)
+└── Appointments
+    ├── Customer
+    ├── Employee
+    └── Location</div>
+
+    <h3>Authorization path</h3>
+    <div class="flow">
+      <div class="node">Signed-in<br>User ID</div><div class="arrow">→</div>
+      <div class="node">Active<br>Employee</div><div class="arrow">→</div>
+      <div class="node">Employee’s<br>Business</div><div class="arrow">→</div>
+      <div class="node">Business<br>Customers</div>
+    </div>
+    <p class="small">The customer query never accepts a client-provided business identifier. This follows the repository rule that every query is scoped by the current user.</p>
+
+    <h3>Uniqueness becomes tenant-aware</h3>
+    <table>
+      <tr><th>Field</th><th>Old behavior</th><th>Proposed behavior</th></tr>
+      <tr><td>Customer email</td><td>Unique across the entire platform</td><td>Unique within one business</td></tr>
+      <tr><td>Customer phone</td><td>Unique across the entire platform</td><td>Unique within one business</td></tr>
+      <tr><td>Customer address</td><td>Globally unique</td><td>Not unique; households may share it</td></tr>
+      <tr><td>Location name/address</td><td>No separate location</td><td>Unique within its business</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Prototype changes</div>
+    <h2>What has been implemented locally</h2>
+
+    <table>
+      <tr><th>File / area</th><th>Change</th><th>Purpose</th></tr>
+      <tr><td><code>schema.prisma</code></td><td>Business and Location models; tenant foreign keys; appointment location</td><td>Express ownership and multi-location operation</td></tr>
+      <tr><td><code>0002_business_tenancy.sql</code></td><td>Append-only SQL migration</td><td>Apply the model without altering migration 0001</td></tr>
+      <tr><td><code>seed.ts</code></td><td>Repeatable upserts for business, two locations, employee, and three customers</td><td>Provide a deterministic demo</td></tr>
+      <tr><td><code>package.json</code></td><td>Added <code>pnpm db:seed</code></td><td>Expose the documented seed command</td></tr>
+      <tr><td><code>packages/domain</code></td><td>Added <code>listCustomersForUser(userId)</code></td><td>Centralize the secure customer query</td></tr>
+      <tr><td><code>apps/web/app/customers</code></td><td>List page plus loading and error states</td><td>Show the database result through the UI</td></tr>
+      <tr><td><code>ADR-0012</code></td><td>Proposed tenant-boundary decision</td><td>Give the team a durable decision record to review</td></tr>
+    </table>
+
+    <h3>Demo dataset</h3>
+    <div class="grid-2">
+      <div class="card blue">
+        <strong>Happy Paws Pet Care</strong>
+        <ul>
+          <li>Downtown location</li>
+          <li>North Side location</li>
+          <li>One active demo employee</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <strong>Shared customers</strong>
+        <ul>
+          <li>Aisha Brown</li>
+          <li>Maria Lopez</li>
+          <li>James Wilson</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>What the demo proves</h3>
+    <ul class="checklist">
+      <li>The new migration applies to local PostgreSQL.</li>
+      <li>The seed can run twice without creating duplicates.</li>
+      <li>Customer results are ordered and scoped through employee membership.</li>
+      <li>The Next.js page reads the records through the domain layer.</li>
+      <li>Loading, empty, and recoverable error UI paths are represented.</li>
+    </ul>
+
+    <div class="callout warning">
+      <strong>Prototype boundary:</strong> this is a read-only customer-list slice. Customer creation, full access-control integration tests, real authentication, editing, deletion, search, pagination, and appointments remain follow-up work.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Value & tradeoffs</div>
+    <h2>Why adopt this direction</h2>
+
+    <div class="grid-2">
+      <div class="card"><h3>Customer experience</h3><p>A customer can visit another branch of the same business without recreating their profile or history.</p></div>
+      <div class="card"><h3>Employee workflow</h3><p>Any authorized employee can find the customer and continue service with consistent context.</p></div>
+      <div class="card"><h3>Data isolation</h3><p>Tenant-scoped queries prevent unrelated businesses from observing one another’s customer records.</p></div>
+      <div class="card"><h3>Future growth</h3><p>Locations become a clean foundation for appointment capacity, staff assignment, hours, and reporting.</p></div>
+    </div>
+
+    <h3>Tradeoffs and open questions</h3>
+    <table>
+      <tr><th>Question</th><th>Current prototype choice</th><th>Team decision needed</th></tr>
+      <tr><td>Can one user work for multiple businesses?</td><td>No; User ↔ Employee is one-to-one</td><td>Use a membership model if multi-business users are required</td></tr>
+      <tr><td>Can employees work at multiple locations?</td><td>Not modeled yet</td><td>Add EmployeeLocation if scheduling requires it</td></tr>
+      <tr><td>Are services and roles tenant-owned?</td><td>Existing models remain global</td><td>Likely scope them to Business in a follow-up</td></tr>
+      <tr><td>What happens when records are removed?</td><td>No new delete behavior</td><td>Define soft-delete policy before CRUD deletion work</td></tr>
+      <tr><td>How is a business selected at login?</td><td>Dev user maps to one employee/business</td><td>Resolve during real authentication design</td></tr>
+    </table>
+
+    <h3>Alternatives considered</h3>
+    <ul>
+      <li><strong>Location-owned customers:</strong> rejected because customers must be shared across branches.</li>
+      <li><strong>Global customer directory:</strong> rejected because it creates privacy and tenant-isolation risks.</li>
+      <li><strong>Many-to-many customers and businesses:</strong> deferred because unrelated businesses should keep independent records, and the simpler ownership model is easier to secure.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-kicker">Team decision</div>
+    <h2>Requested review and recommended next steps</h2>
+    <p class="lead">The prototype is intended to start a team design conversation—not bypass the project’s issue, specification, review, and test process.</p>
+
+    <h3>Please confirm</h3>
+    <ol class="number-list">
+      <li><strong>Tenant boundary:</strong> Business owns customer data; Location does not.</li>
+      <li><strong>Access policy:</strong> all active employees in a business may read that business’s customers.</li>
+      <li><strong>Customer identity:</strong> the same real person may have separate records at unrelated businesses.</li>
+      <li><strong>Near-term scope:</strong> approve customer list/create before appointments and advanced scheduling.</li>
+      <li><strong>Future flexibility:</strong> decide whether multi-business users and multi-location employees are required now or later.</li>
+    </ol>
+
+    <h3>If approved</h3>
+    <ol>
+      <li>Create the official feature issue.</li>
+      <li>Review and accept or revise ADR-0012.</li>
+      <li>Draft the customer list/create feature specification.</li>
+      <li>Reconcile the prototype with the reviewed documents.</li>
+      <li>Add tenant-isolation integration tests and create-customer validation.</li>
+      <li>Run <code>pnpm test</code>, <code>pnpm typecheck</code>, <code>pnpm build</code>, and the manual verification drill before a PR.</li>
+    </ol>
+
+    <div class="callout success">
+      <strong>Recommendation:</strong> accept Business as the tenant boundary, then continue with the smallest complete vertical slice: list and create company customers with explicit cross-tenant rejection tests.
+    </div>
+
+    <div class="footer-note">Prepared from the local <code>learning/company-customers</code> prototype. No remote branch, issue, or pull request was created as part of this exploration.</div>
+  </section>
+</body>
+</html>
