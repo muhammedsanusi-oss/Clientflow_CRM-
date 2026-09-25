@@ -32,7 +32,7 @@ says `{"status":"ok","db":"ok"}`.
 
 ```
 browser ──fetch────▶ apps/web/app/api/health/route.ts
-                ───▶ packages/db ──▶ YOUR Postgres server (:5433)
+                ───▶ packages/db ──▶ YOUR Postgres server (:55432)
                 ───▶ packages/services (queue + storage + notify) ──▶ Azurite
                     apps/worker
                     polls queue, processes jobs

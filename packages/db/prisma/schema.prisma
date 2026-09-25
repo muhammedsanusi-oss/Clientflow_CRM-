@@ -120,6 +120,8 @@ model Appointment_Service {
 
 model Service {
   id                   String                @id @default(cuid())
+  business_id          String
+  business             Business              @relation(fields: [business_id], references: [id])
   name                 String
   category             String
   description          String
@@ -127,6 +129,9 @@ model Service {
   base_price           Decimal
   is_Active            Boolean               @default(false)
   appointment_services Appointment_Service[]
+
+  @@unique([business_id, name])
+  @@index([business_id])
 }
 
 model Interaction {
@@ -173,6 +178,7 @@ model Business {
   locations     Location[]
   employees     Employee[]
   customers     Customer[]
+  services      Service[]
 }
 
 model Location {

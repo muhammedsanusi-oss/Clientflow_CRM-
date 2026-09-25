@@ -30,6 +30,12 @@
           >
             Add customer
           </Link>
+          <Link
+            href="/calendar"
+            className="ml-4 text-sm text-blue-600 underline underline-offset-2"
+          >
+            Calendar
+          </Link>
         </header>
 
         {customers.length === 0 ? (
@@ -53,7 +59,12 @@
                 className="rounded-lg border border-neutral-200 p-5"
               >
                 <h2 className="font-semibold">
-                  {customer.first_name} {customer.last_name}
+                  <Link
+                    href={`/customers/${customer.id}`}
+                    className="text-blue-700 underline-offset-2 hover:underline"
+                  >
+                    {customer.first_name} {customer.last_name}
+                  </Link>
                 </h2>
 
                 <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
@@ -91,6 +102,13 @@
                     <dd>{customer.preferred_contact_method}</dd>
                   </div>
                 </dl>
+
+                <Link
+                  href={`/customers/${customer.id}`}
+                  className="mt-4 inline-block text-sm text-blue-600 underline underline-offset-2"
+                >
+                  View customer notes
+                </Link>
               </li>
             ))}
           </ul>

@@ -44,3 +44,16 @@ store issue state. See [CONTRIBUTING](../../CONTRIBUTING.md) for the full arc.
 Feature specs live under `docs/specs/<domain>/`, grouped by the domain they
 describe. In this template repo the `items/` domain is a worked demonstration;
 an application built from this template keeps its own domains on `main`.
+
+### Customers domain (`customers/`)
+
+| Doc | Type | What it covers | Key ADRs |
+|---|---|---|---|
+| [add customer](customers/add-customer.md) | feature | Add a business-scoped customer with shared validation | 0009, 0012 |
+| [customer notes](customers/customer-notes.md) | feature | Read and add business-shared notes on a customer | 0009, 0012 |
+
+### Appointments domain (`appointments/`)
+
+| Doc | Type | What it covers | Key ADRs |
+|---|---|---|---|
+| [customer calendar](appointments/customer-calendar.md) | feature | Schedule customer appointments on a shared monthly calendar | 0009, 0012 |

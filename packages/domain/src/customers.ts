@@ -15,6 +15,22 @@ export const createCustomerInputSchema = z
 export type CreateCustomerInput = z.infer<
   typeof createCustomerInputSchema
 >;
+
+export const createCustomerNoteInputSchema = z
+  .object({
+    customerId: z.string().trim().min(1).max(100),
+    content: z
+      .string()
+      .trim()
+      .min(1, "Note is required")
+      .max(2_000, "Note must be 2,000 characters or fewer"),
+  })
+  .strict();
+
+export type CreateCustomerNoteInput = z.infer<
+  typeof createCustomerNoteInputSchema
+>;
+
 export async function listCustomersForUser(userId: string) {
   return prisma.customer.findMany({
     where: {
@@ -78,5 +94,110 @@ export async function createCustomerForUser(
       address: true,
       preferred_contact_method: true,
     },
+  });
+}
+
+export async function getCustomerWithNotesForUser(
+  userId: string,
+  customerId: string,
+) {
+  return prisma.customer.findFirst({
+    where: {
+      id: customerId,
+      business: {
+        employees: {
+          some: {
+            user_id: userId,
+            is_active: true,
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      first_name: true,
+      last_name: true,
+      phone_number: true,
+      email: true,
+      address: true,
+      preferred_contact_method: true,
+      notes: {
+        where: {
+          employee: {
+            business: {
+              employees: {
+                some: {
+                  user_id: userId,
+                  is_active: true,
+                },
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          content: true,
+          note_date: true,
+          employee: {
+            select: {
+              first_name: true,
+              last_name: true,
+            },
+          },
+        },
+        orderBy: [{ note_date: "desc" }, { id: "desc" }],
+      },
+    },
+  });
+}
+
+export async function createCustomerNoteForUser(
+  userId: string,
+  input: CreateCustomerNoteInput,
+) {
+  return prisma.$transaction(async (tx) => {
+    const employee = await tx.employee.findFirst({
+      where: {
+        user_id: userId,
+        is_active: true,
+      },
+      select: {
+        id: true,
+        business_id: true,
+      },
+    });
+
+    if (!employee) {
+      return null;
+    }
+
+    const customer = await tx.customer.findFirst({
+      where: {
+        id: input.customerId,
+        business_id: employee.business_id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!customer) {
+      return null;
+    }
+
+    return tx.note.create({
+      data: {
+        customer_id: customer.id,
+        employee_id: employee.id,
+        content: input.content,
+      },
+      select: {
+        id: true,
+        customer_id: true,
+        employee_id: true,
+        content: true,
+        note_date: true,
+      },
+    });
   });
 }

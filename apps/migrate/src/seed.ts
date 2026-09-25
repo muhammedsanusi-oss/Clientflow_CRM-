@@ -120,6 +120,33 @@ async function main() {
       },
     });
 
+    const services = ["Service 1", "Service 2", "Service 3"];
+
+    for (const [index, name] of services.entries()) {
+      await tx.service.upsert({
+        where: { id: `demo-service-${index + 1}` },
+        update: {
+          business_id: BUSINESS_ID,
+          name,
+          category: "Example",
+          description: "Placeholder service for appointment scheduling",
+          duration_minutes: 30,
+          base_price: 0,
+          is_Active: true,
+        },
+        create: {
+          id: `demo-service-${index + 1}`,
+          business_id: BUSINESS_ID,
+          name,
+          category: "Example",
+          description: "Placeholder service for appointment scheduling",
+          duration_minutes: 30,
+          base_price: 0,
+          is_Active: true,
+        },
+      });
+    }
+
     const customers = [
       {
         id: "demo-customer-maria",
@@ -164,7 +191,9 @@ async function main() {
     }
   });
 
-  console.log("seeded demo business, locations, employee, and customers");
+  console.log(
+    "seeded demo business, locations, employee, services, and customers",
+  );
 }
 
 main()

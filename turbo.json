@@ -1,5 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": [
+    "ALLOW_DEV_IDENTITY",
+    "AZURE_STORAGE_CONNECTION_STRING",
+    "DATABASE_URL",
+    "DB_PORT",
+    "DEV_USER_ID",
+    "LOG_LEVEL",
+    "PGLITE_DATA_DIR",
+    "PG_POOL_MAX"
+  ],
   "tasks": {
     "dev": { "cache": false, "persistent": true },
     "build": { "dependsOn": ["^build"], "outputs": [".next/**", "dist/**"] },

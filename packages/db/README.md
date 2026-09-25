@@ -14,7 +14,7 @@ All exports come from `src/index.ts` (`@project/db`):
 | Export | What it is |
 |---|---|
 | `prisma` | The singleton PrismaClient. One per process — cached in a global to survive hot reloads. |
-| `LOCAL_DEV_URL` | The default dev database URL (`postgresql://postgres:postgres@127.0.0.1:5433/postgres`). |
+| `LOCAL_DEV_URL` | The default dev database URL (`postgresql://postgres:postgres@127.0.0.1:55432/postgres`). |
 
 The migration runner is available at a separate export to keep it out of the
 web bundle (web apps never run migrations):
@@ -31,7 +31,7 @@ environment:
 | Door | When | How |
 |---|---|---|
 | PGlite (in-process) | Tests (`PGLITE_DATA_DIR` set) | Postgres-in-WebAssembly, in memory, no server needed |
-| Local Postgres | Local dev (no env vars) | Your own server on `127.0.0.1:5433`, started by `apps/db-server/` |
+| Local Postgres | Local dev (no env vars) | Your own server on `127.0.0.1:55432`, started by `apps/db-server/` |
 | Azure Postgres | Production (`DATABASE_URL` set) | Azure Database for PostgreSQL over the wire |
 
 ## Dependencies

@@ -8,7 +8,7 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-export const LOCAL_DEV_URL = "postgresql://postgres:postgres@127.0.0.1:5433/postgres";
+export const LOCAL_DEV_URL = "postgresql://postgres:postgres@127.0.0.1:55432/postgres";
 
 async function makeClient(): Promise<PrismaClient> {
   if (process.env.PGLITE_DATA_DIR) {

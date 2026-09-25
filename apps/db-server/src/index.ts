@@ -10,7 +10,7 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
-const PORT = Number(process.env.DB_PORT ?? 5433);
+const PORT = Number(process.env.DB_PORT ?? 55432);
 const DATA_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ".pgdata");
 
 async function main() {
