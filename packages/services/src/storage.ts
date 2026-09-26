@@ -10,7 +10,7 @@ export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024; // 5 MB
 export async function storageAvailable(): Promise<boolean> {
   try {
     const client = BlobServiceClient.fromConnectionString(CONNECTION_STRING);
-    await client.getContainerClient(CONTAINER).getProperties();
+    await client.getContainerClient(CONTAINER).createIfNotExists();
     return true;
   } catch {
     return false;

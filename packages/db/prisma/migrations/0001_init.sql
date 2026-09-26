@@ -258,4 +258,3 @@ ALTER TABLE "Payment" ADD CONSTRAINT "Payment_customer_id_fkey" FOREIGN KEY ("cu
 
 -- AddForeignKey
 ALTER TABLE "Customer_Business" ADD CONSTRAINT "Customer_Business_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
