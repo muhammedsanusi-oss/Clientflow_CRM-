@@ -28,6 +28,8 @@ type CustomerRecord = {
   preferred_contact_method: "PHONE" | "EMAIL" | "TEXT";
 };
 
+// Build the public DTO field-by-field so tenant and persistence metadata can
+// never leak when the Prisma selection changes later.
 function toApiCustomer(customer: CustomerRecord): ApiCustomer {
   return {
     id: customer.id,
@@ -54,6 +56,8 @@ function hasErrorCode(error: unknown, code: string) {
 }
 
 export async function GET() {
+  // Resolve identity before touching customer data; every domain query starts
+  // from this server-derived user rather than a client-supplied tenant ID.
   let userId: string;
   try {
     userId = await currentUserId();
@@ -114,6 +118,8 @@ export async function POST(request: Request) {
     );
   }
 
+  // The strict shared schema rejects unknown ownership fields as well as
+  // malformed customer fields before any database operation can run.
   const parsed = createCustomerInputSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -140,6 +146,8 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    // Both business-scoped unique indexes use Prisma's P2002 code. Keep the
+    // response intentionally generic so it does not reveal which value exists.
     if (hasErrorCode(error, "P2002")) {
       return errorResponse(
         "CONFLICT",

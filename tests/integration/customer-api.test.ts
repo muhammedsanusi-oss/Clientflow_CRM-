@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const authState = vi.hoisted(() => ({
   userId: "test-customer-api-user-a",
@@ -25,6 +25,7 @@ const validCustomer = {
 
 describe("customer JSON API", () => {
   let prisma: (typeof import("@project/db"))["prisma"];
+  let domain: typeof import("@project/domain");
   let GET: (typeof import("../../apps/web/app/api/customers/route"))["GET"];
   let POST: (typeof import("../../apps/web/app/api/customers/route"))["POST"];
 
@@ -33,6 +34,7 @@ describe("customer JSON API", () => {
     delete process.env.DATABASE_URL;
 
     const db = await import("@project/db");
+    domain = await import("@project/domain");
     const route = await import("../../apps/web/app/api/customers/route");
 
     prisma = db.prisma;
@@ -150,6 +152,10 @@ describe("customer JSON API", () => {
     });
   }, 30_000);
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("lists only the current business customers in the documented shape", async () => {
     authState.userId = activeUserAId;
 
@@ -219,6 +225,25 @@ describe("customer JSON API", () => {
     });
   });
 
+  it("returns a safe error when listing customers fails unexpectedly", async () => {
+    authState.userId = activeUserAId;
+    vi.spyOn(domain, "getCustomerCollectionForUser").mockRejectedValueOnce(
+      new Error("private database details"),
+    );
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Customers could not be loaded. Try again.",
+      },
+    });
+    expect(JSON.stringify(body)).not.toContain("private database details");
+  });
+
   it("creates a customer under the derived business without exposing ownership", async () => {
     authState.userId = activeUserAId;
 
@@ -274,6 +299,28 @@ describe("customer JSON API", () => {
     expect(await prisma.customer.count()).toBe(startingCount);
   });
 
+  it("rejects invalid customer fields without writing", async () => {
+    authState.userId = activeUserAId;
+    const startingCount = await prisma.customer.count();
+
+    const response = await POST(
+      jsonRequest({
+        ...validCustomer,
+        email: "not-an-email",
+        phoneNumber: "   ",
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Review the submitted customer fields.",
+      },
+    });
+    expect(await prisma.customer.count()).toBe(startingCount);
+  });
+
   it("reports a conflict for an email that already exists in the business", async () => {
     authState.userId = activeUserAId;
 
@@ -282,6 +329,26 @@ describe("customer JSON API", () => {
         ...validCustomer,
         email: "zara-api@example.test",
         phoneNumber: "555-7399",
+      }),
+    );
+
+    expect(duplicateResponse.status).toBe(409);
+    await expect(duplicateResponse.json()).resolves.toEqual({
+      error: {
+        code: "CONFLICT",
+        message: "A customer with this email or phone number already exists.",
+      },
+    });
+  });
+
+  it("reports a conflict for a phone number that already exists in the business", async () => {
+    authState.userId = activeUserAId;
+
+    const duplicateResponse = await POST(
+      jsonRequest({
+        ...validCustomer,
+        email: "unique-phone-api@example.test",
+        phoneNumber: "555-7100",
       }),
     );
 
@@ -308,6 +375,31 @@ describe("customer JSON API", () => {
 
     expect(response.status).toBe(404);
     expect(await prisma.customer.count({ where: { email } })).toBe(0);
+  });
+
+  it("returns a safe error when customer creation fails unexpectedly", async () => {
+    authState.userId = activeUserAId;
+    vi.spyOn(domain, "createCustomerForUser").mockRejectedValueOnce(
+      new Error("private database details"),
+    );
+
+    const response = await POST(
+      jsonRequest({
+        ...validCustomer,
+        email: "unexpected-create-api@example.test",
+        phoneNumber: "555-7398",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The customer could not be created. Try again.",
+      },
+    });
+    expect(JSON.stringify(body)).not.toContain("private database details");
   });
 });
 

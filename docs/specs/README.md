@@ -50,6 +50,7 @@ an application built from this template keeps its own domains on `main`.
 | Doc | Type | What it covers | Key ADRs |
 |---|---|---|---|
 | [add customer](customers/add-customer.md) | feature | Add a business-scoped customer with shared validation | 0009, 0012 |
+| [customer API](customers/customer-api.md) | feature | List and create business-scoped customers through JSON endpoints | 0009, 0012 |
 | [customer notes](customers/customer-notes.md) | feature | Read and add business-shared notes on a customer | 0009, 0012 |
 
 ### Appointments domain (`appointments/`)

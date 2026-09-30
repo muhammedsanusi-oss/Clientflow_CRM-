@@ -32,6 +32,8 @@ export type CreateCustomerNoteInput = z.infer<
 >;
 
 export async function getCustomerCollectionForUser(userId: string) {
+  // Starting at the active employee relation makes business tenancy part of
+  // the database query instead of an application-side filtering step.
   const employee = await prisma.employee.findFirst({
     where: {
       user_id: userId,
@@ -68,6 +70,8 @@ export async function createCustomerForUser(
   userId: string,
   input: CreateCustomerInput,
 ) {
+  // Derive the tenant from the authenticated user; callers never provide a
+  // business ID that could be used to create a cross-tenant record.
   const employee = await prisma.employee.findFirst({
     where: {
       user_id: userId,
@@ -163,6 +167,8 @@ export async function createCustomerNoteForUser(
   userId: string,
   input: CreateCustomerNoteInput,
 ) {
+  // Resolve the author, verify customer tenancy, and write the note in one
+  // transaction so none of those decisions can become stale between queries.
   return prisma.$transaction(async (tx) => {
     const employee = await tx.employee.findFirst({
       where: {
