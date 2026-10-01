@@ -1,8 +1,8 @@
-// Todos list/create API. The full path from HTTP request to database:
+// Business list/create API. The full path from HTTP request to database:
 // identity check, Zod validation, scoped query, mapped errors.
 
 import { currentUserId } from "@project/auth";
-import { CreateTodo, listTodos, createTodo } from "@project/domain";
+import { CreateBusiness, createBusiness, listBusinesses } from "@project/domain";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +16,8 @@ export async function GET() {
   const userId = await currentUserId();
   if (!userId) return unauthenticated();
 
-  const todos = await listTodos(userId);
-  return Response.json({ todos });
+  const businesses = await listBusinesses(userId);
+  return Response.json({ businesses });
 }
 
 export async function POST(req: Request) {
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const parsed = CreateTodo.safeParse(body);
+  const parsed = CreateBusiness.safeParse(body);
   if (!parsed.success) {
     return Response.json(
       { error: { code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Invalid input" } },
@@ -42,6 +42,6 @@ export async function POST(req: Request) {
     );
   }
 
-  const todo = await createTodo(userId, parsed.data);
-  return Response.json({ todo }, { status: 201 });
+  const business = await createBusiness(userId, parsed.data);
+  return Response.json({ business }, { status: 201 });
 }
