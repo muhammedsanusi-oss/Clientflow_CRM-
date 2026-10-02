@@ -1,84 +1,94 @@
 # Copilot instructions
 
-Read [`AGENTS.md`](../AGENTS.md) first; it is the canonical repository-wide
-guide. Follow [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the issue → reviewed
-spec → implementation workflow. Check the relevant `docs/specs/` and package
-README before changing behavior.
+Read [`AGENTS.md`](../AGENTS.md) first; it is the canonical repo-wide guide. Then
+follow [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the issue → spec → PR workflow
+and check the relevant package README or `docs/specs/` page before changing
+behavior.
 
-## Commands
+## Build, test, and lint commands
 
-Run commands from the repository root with `pnpm`:
+Use `pnpm` from the repository root. This repo does not define a root lint script;
+CI and local validation are the standard `pnpm test`, `pnpm typecheck`, and
+`pnpm build` checks.
 
 ```bash
-pnpm test
+pnpm install
+pnpm dev                 # web + worker + local Postgres + Azurite
+pnpm test                # turborepo unit test run
+pnpm test:integration    # Vitest integration suite
 pnpm typecheck
 pnpm build
-pnpm prisma:generate # after changing the Prisma schema
+pnpm prisma:generate
+pnpm db:migrate
+pnpm db:reset            # removes .pgdata; restart pnpm dev to rebuild DB
+pnpm db:dev              # local Postgres server only
+pnpm dev:web             # web app only
+pnpm worker              # worker only
+pnpm azurite             # Azure storage emulator only
 ```
 
-Tests do not need external services: integration tests use in-memory PGlite.
-To run one test file:
+Single-test examples:
 
 ```bash
 pnpm test:integration -- tests/integration/smoke.test.ts
-pnpm --filter @project/services test -- tests/queue.test.ts
+pnpm --filter @project/web test -- src/app/api/health/route.test.ts
+pnpm --filter @project/domain test -- tests/todo-schema.test.ts
 ```
 
-`pnpm test` runs workspace test scripts through Turborepo; `pnpm test:integration`
-runs the root Vitest integration suite. PGlite does not support `pg_notify`;
-SSE tests need a real PostgreSQL connection or a mock. There is no root lint
-script.
+## High-level architecture
 
-## Architecture
+- This is a pnpm/Turborepo monorepo. `apps/` holds deployable services and
+  `packages/` holds shared libraries; do not import from one app into another.
+- The app stack is: `apps/web` (Next.js UI), `apps/worker` (background job
+  consumer), `apps/db-server` (local Postgres), and `apps/migrate` (migration/
+  seed runner).
+- Shared libraries are intentionally split by concern:
+  - `packages/db`: Prisma schema, client, migration tooling
+  - `packages/services`: Azure/seam-based adapters for queue, storage, and
+    notifications
+  - `packages/domain`: Zod validation and shared query logic intended for web use
+  - `packages/log`: logger
+  - `packages/auth`: dev identity stub
+- Local development runs a real Postgres server and Azurite emulator; production
+  adapters are selected by config rather than branching on environment. The seam
+  pattern is the repo's core architectural idea.
+- The request flow is "derive identity → validate input → perform user-scoped
+  domain logic → access DB through Prisma". Route handlers and Server Actions own
+  HTTP/UI concerns such as redirects, revalidation, and user-facing error mapping.
+- Every data access path is scoped to the current user and active business context.
+  Never trust client-supplied user, business, or location IDs as authorization.
+  Foreign or unknown resources should resolve as 404, not 403.
 
-- This is a pnpm/Turborepo monorepo. `apps/` contains deployable processes;
-  `packages/` contains shared libraries. Apps must not import from other apps.
-  Shared code belongs in a package. `packages/domain` is web-only; the worker
-  must not depend on it. Put shared web validation and query functions there
-  and export them from `src/index.ts`; check that exports actually exist before
-  importing a feature API.
-- The customer feature spec defines `Business` as the tenant boundary and
-  `Location` as a branch; customers are shared across a business's locations.
-  Before customer/data-model work, compare that contract with the current
-  Prisma schema and migrations rather than assuming the model is already
-  implemented. Derive tenant access through the current user's active employee
-  relationship; do not make customers location-owned.
-- The web request path is: derive identity with `@project/auth`, validate input
-  with Zod schemas in `@project/domain`, perform user-scoped domain queries,
-  then use `@project/db` for Prisma access. Route handlers and Server Actions
-  own HTTP/UI concerns such as error mapping, redirects, and revalidation.
-- Next.js API endpoints use the App Router convention under
-  `apps/web/app/api/`: each URL segment is a directory and its `route.ts`
-  exports the supported HTTP method handlers.
-- The current auth package is a guarded development identity stub, not
-  production authentication (it reads a request header, environment value, or
-  fallback). Check `docs/specs/auth.md` before changing identity behavior;
-  never trust client-provided IDs as authorization.
-- Business data is tenant-scoped. Derive the business from the current user's
-  active employee relationship; never accept a client-supplied user or
-  business ID as authority. Foreign or unknown resources return 404, not 403.
-- The web app enqueues work through `@project/services`; the standalone worker
-  consumes queue messages and uses shared packages to process them. Keep the
-  producer/consumer message contract compatible.
-- External dependencies use local/production seams: tests use PGlite, local
-  development uses the embedded Postgres server and Azurite, and production
-  adapters are selected by environment configuration. Preserve the adapter
-  interfaces rather than adding environment-specific branches to consumers.
+## Key conventions
 
-## Repository-specific conventions
+- Follow the repo's issue → spec → implementation → PR workflow. Behavior changes
+  should update the matching evergreen spec in `docs/specs/` in the same PR.
+- `AGENTS.md`, `README.md`, and `docs/README.md` are the canonical references for
+  architecture and operating rules.
+- Migrations are append-only. Never edit an applied migration; add a new SQL file.
+- Prisma schema changes require `pnpm prisma:generate`.
+- Respect soft-delete semantics where `deletedAt` exists; default reads exclude
+  deleted rows.
+- Writes that imply a history event must persist both pieces atomically in one
+  transaction.
+- Route and API handlers should return the repo's single error shape:
+  `{ error: { code, message } }`; do not expose raw exceptions or stack traces.
+- Keep validation and domain queries in `packages/domain`; avoid duplicating request
+  definitions across app and worker code.
+- Prefer the existing seams and adapter interfaces instead of introducing
+  environment-specific branching in consumers.
+- The `@project` workspace scope is a placeholder; do not hardcode it in new code.
+- Do not edit `.pgdata/`, `.azurite/`, or `.env` files.
+- If a change touches the database model, check both the Prisma schema and the
+  migration files before editing anything.
 
-- For every route handler or Server Action, follow this order: derive identity,
-  validate with the shared schema, query scoped to that identity, perform the
-  operation, map errors, then revalidate as needed. API errors use
-  `{ error: { code, message } }`; raw errors and stack traces never reach users.
-- If a write implies a history event, persist both in one transaction. Respect
-  `deletedAt` with soft deletes and exclude deleted rows from default reads.
-- Async UI regions provide loading, empty, and recoverable error states;
-  independent sections should stream through their own Suspense boundaries.
-- Prisma schema changes require `pnpm prisma:generate`. Migrations are
-  append-only; do not edit an applied migration.
-- A behavior change updates its evergreen spec in `docs/specs/` in the same
-  change. Specs contain no issue numbers, PR links, or dates. Follow the
-  feature/infrastructure templates and verify the spec's Verify steps.
-- `@project` is a placeholder workspace scope; do not hardcode it in new code.
-- Never edit `.pgdata/`, `.azurite/`, or `.env`.
+## Documentation and review expectations
+
+- The docs system is the source of truth for architecture and project workflow.
+  Read `docs/specs/` plus the relevant package README before implementing new
+  behavior.
+- Specs are evergreen and should be updated when behavior changes. ADRs are
+  write-once decisions; postmortems and runbooks are also kept in the repo's
+  documentation system.
+- Before declaring work done, run the repo's required checks: `pnpm test`,
+  `pnpm typecheck`, and `pnpm build` as applicable for the change.

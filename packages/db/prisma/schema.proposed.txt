@@ -1,4 +1,9 @@
-// The data model for the customer and appointment management app.
+PROPOSED Prisma schema
+
+This is a discussion draft only. It does not replace schema.prisma and has not
+been applied to a database. It assumes roles, appointment statuses, and
+interaction types are fixed application-wide values. Review existing database
+values and plan an append-only migration before adopting these changes.
 
 generator client {
   provider   = "prisma-client-js"

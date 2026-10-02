@@ -4,8 +4,11 @@ The database seam. Owns the Prisma schema, the generated client, the migration
 files, and the `applyMigrations` helper. Every app and most other packages
 import from here.
 
-**Boilerplate:** the schema is empty (generator + datasource only). Example
-branches add their own models, enums, and migration files.
+The Prisma schema models businesses and their employees, customers, locations,
+services, appointments, tasks, notes, interactions, and payments. Employees are
+business memberships: each user can belong to multiple businesses, with one
+role per membership. Customers and appointments are scoped through their
+business relationships.
 
 ## Public API
 
@@ -63,7 +66,12 @@ regenerated on install.
 
 ## Adding a migration
 
+Migrations are append-only SQL files applied in filename order by
+`applyMigrations`; never edit an applied migration.
+
 1. Edit `prisma/schema.prisma`.
-2. Run `prisma migrate dev --create-only` from this directory.
-3. Review the generated SQL in `prisma/migrations/`.
+2. Add a new numbered SQL migration in `prisma/migrations/`, including any
+   necessary data conversion and constraints.
+3. Review and test the SQL against both a clean database and representative
+   existing data.
 4. Run `pnpm prisma:generate` to update the client types.
