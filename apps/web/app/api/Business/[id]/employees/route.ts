@@ -1,5 +1,6 @@
 import { currentUserId } from "@project/auth";
 import { CreateEmployee, createEmployee } from "@project/domain";
+import { errorResponse } from "../../../error-response";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   }
 
-  const employee = await createEmployee(businessId, userId, parsed.data);
-  return Response.json({ employee }, { status: 201 });
+  try {
+    const employee = await createEmployee(businessId, userId, parsed.data);
+    return Response.json({ employee }, { status: 201 });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

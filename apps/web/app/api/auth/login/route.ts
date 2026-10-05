@@ -5,6 +5,7 @@
 
 import { startSession } from "@project/auth";
 import { SignIn, findOrCreateUser } from "@project/domain";
+import { errorResponse } from "../../error-response";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +35,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const user = await findOrCreateUser(parsed.data.username);
-  await startSession(user.id);
-
-  return Response.json({ user: { id: user.id, username: user.username } });
+  try {
+    const user = await findOrCreateUser(parsed.data.username);
+    await startSession(user.id);
+    return Response.json({ user: { id: user.id, username: user.username } });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }
