@@ -4,17 +4,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Todos — Starter Example",
-  description:
-    "example/todo — username identity, todos, attachments, and live notifications on the starter skeleton.",
+  title: "Clientflow CRM",
+  description: "A clearer way to manage your client relationships.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="mx-auto max-w-2xl px-4 py-10 font-sans text-neutral-900 antialiased">
-        {children}
-      </body>
+      <body className="font-sans text-neutral-900 antialiased">{children}</body>
     </html>
   );
 }
