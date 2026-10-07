@@ -10,3 +10,4 @@ export { createEmployee } from "./queries/employee";
 export { listLocations, getLocationById, createLocation } from "./queries/location";
 export { listCustomers, getCustomer, createCustomer } from "./queries/customers";
 export { getUser, findOrCreateUser } from "./queries/users";
+export { apiError } from "./errors";

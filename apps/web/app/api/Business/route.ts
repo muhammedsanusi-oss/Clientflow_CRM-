@@ -3,6 +3,7 @@
 
 import { currentUserId } from "@project/auth";
 import { CreateBusiness, createBusiness, listBusinesses } from "@project/domain";
+import { errorResponse } from "../error-response";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,12 @@ export async function GET() {
   const userId = await currentUserId();
   if (!userId) return unauthenticated();
 
-  const businesses = await listBusinesses(userId);
-  return Response.json({ businesses });
+  try {
+    const businesses = await listBusinesses(userId);
+    return Response.json({ businesses });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }
 
 export async function POST(req: Request) {
@@ -42,6 +47,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const business = await createBusiness(userId, parsed.data);
-  return Response.json({ business }, { status: 201 });
+  try {
+    const business = await createBusiness(userId, parsed.data);
+    return Response.json({ business }, { status: 201 });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

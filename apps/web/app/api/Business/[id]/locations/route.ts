@@ -1,5 +1,6 @@
 import { currentUserId } from "@project/auth";
 import { CreateLocation, createLocation, listLocations } from "@project/domain";
+import { errorResponse } from "../../../error-response";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,12 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
   if (!userId) return unauthenticated();
 
   const { id: businessId } = await ctx.params;
-  const locations = await listLocations(businessId);
-
-  return Response.json({ locations });
+  try {
+    const locations = await listLocations(businessId, userId);
+    return Response.json({ locations });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -43,6 +47,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   }
 
-  const location = await createLocation(businessId, parsed.data);
-  return Response.json({ location }, { status: 201 });
+  try {
+    const location = await createLocation(businessId, userId, parsed.data);
+    return Response.json({ location }, { status: 201 });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

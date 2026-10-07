@@ -13,7 +13,8 @@ export const Username = z
   );
 
 export const SignIn = z.object({
-  username: Username,
+  // Preserve existing short usernames while allowing employee email accounts.
+  username: z.union([Username, z.string().trim().toLowerCase().email()]),
 });
 
 export type SignInInput = z.infer<typeof SignIn>;

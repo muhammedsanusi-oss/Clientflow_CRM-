@@ -94,20 +94,20 @@ export default function LoginPage() {
           <header className="mb-8">
             <h2 className="text-3xl font-semibold tracking-tight">Sign in to Clientflow</h2>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Pick a username. If it doesn&rsquo;t exist yet, it&rsquo;s yours.
+              Enter your employee email or choose a username to continue.
             </p>
           </header>
 
           <form onSubmit={submit} className="space-y-5">
             <div>
               <label htmlFor="username" className="mb-2 block text-sm font-medium text-slate-700">
-                Username
+                Email or username
               </label>
               <input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Choose a username"
+                placeholder="you@company.com or username"
                 autoComplete="username"
                 autoFocus
                 aria-invalid={Boolean(error)}

@@ -11,6 +11,8 @@
   },
   "scripts": {
     "generate": "prisma generate",
+    "build": "prisma generate",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf src/generated"
   },

@@ -1,5 +1,5 @@
-// Database queries for todos. Every query is scoped by userId — no exceptions.
-// A todo and its event are written in a single transaction, always.
+// Customer queries use a business scope. There are no customer HTTP routes
+// yet; future callers must verify session-derived membership before use.
 import { prisma } from "@project/db";
 import type { CreateCustomerInput } from "../schemas/customer";
 

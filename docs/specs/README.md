@@ -32,6 +32,10 @@ store issue state. See [CONTRIBUTING](../../CONTRIBUTING.md) for the full arc.
 
 ### Items domain (`items/`)
 
+Business management is covered by [management-api](businesses/management-api.md):
+tenant isolation, employee accounts and permissions, error responses, and
+the Prisma schema/migration contract.
+
 | Doc | Type | What it covers | Key ADRs |
 |---|---|---|---|
 | [list](items/list.md) | feature | List my items, scoped by user, excludes soft-deleted | 0009, 0003 |

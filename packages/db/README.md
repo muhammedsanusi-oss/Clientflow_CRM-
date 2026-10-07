@@ -62,7 +62,9 @@ pnpm prisma:generate
 
 The generated client output goes to `src/generated/prisma/` (controlled by the
 `output` field in `prisma/schema.prisma`). This directory is gitignored and
-regenerated on install.
+generated with the command above and automatically through dependent Turbo
+build, test, and typecheck tasks. The adapter-based JavaScript engine does not
+require a platform-specific native query-engine library.
 
 ## Adding a migration
 
@@ -75,3 +77,12 @@ Migrations are append-only SQL files applied in filename order by
 3. Review and test the SQL against both a clean database and representative
    existing data.
 4. Run `pnpm prisma:generate` to update the client types.
+
+The `0003_reconcile_schema.sql` transition fills the missing step before `0004`.
+It converts roles/statuses/types, backfills note timestamps, and reconciles
+indexes, defaults and foreign keys with the active schema. Original lookup
+tables are retained under `legacy`. Unknown enum values, invalid dates,
+duplicate service bookings, or payments whose customer disagrees with their
+appointment abort the transaction; reconcile those rows before retrying.
+The runner applies every unrecorded filename, including a missing lower number.
+Do not reset a populated database to repair this migration failure.
