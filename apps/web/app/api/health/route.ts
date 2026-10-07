@@ -2,6 +2,7 @@
 // is reachable. Called by Azure's load balancer probes in production (Week 10).
 
 import { prisma } from "@project/db";
+import { log } from "@project/log";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,8 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     return Response.json({ status: "ok", db: "ok" });
-  } catch {
+  } catch (error) {
+    log.error({ err: error }, "health check database probe failed");
     return Response.json({ status: "ok", db: "error" }, { status: 503 });
   }
 }
