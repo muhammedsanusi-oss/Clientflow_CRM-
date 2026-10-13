@@ -1,38 +1,39 @@
-import { currentUserId } from "@project/auth";
-import { CreateEmployee, createEmployee } from "@project/domain";
+import { CreateEmployee, createEmployee, listEmployees } from "@project/domain";
+import {
+  authenticatedUserId,
+  hasBusinessAccess,
+  notFoundResponse,
+  parseRequestBody,
+  routeErrorResponse,
+  unauthenticatedResponse,
+} from "@/app/api/_lib/route-helpers";
 
 export const dynamic = "force-dynamic";
 
-const unauthenticated = () =>
-  Response.json(
-    { error: { code: "UNAUTHENTICATED", message: "Sign in first" } },
-    { status: 401 }
-  );
-
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
-
-  const { id: businessId } = await ctx.params;
-
-  let body: unknown;
+export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) {
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
   try {
-    body = await req.json();
-  } catch {
-    return Response.json(
-      { error: { code: "BAD_JSON", message: "Body must be valid JSON" } },
-      { status: 400 }
-    );
+    const { id: businessId } = await ctx.params;
+    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
+    return Response.json({ employees: await listEmployees(businessId, userId) });
+  } catch (error) {
+    return routeErrorResponse(error);
   }
+}
 
-  const parsed = CreateEmployee.safeParse(body);
-  if (!parsed.success) {
-    return Response.json(
-      { error: { code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Invalid input" } },
-      { status: 400 }
-    );
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
+  const parsed = await parseRequestBody(request, CreateEmployee);
+  if ("response" in parsed) return parsed.response;
+  try {
+    const { id: businessId } = await ctx.params;
+    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
+    const employee = await createEmployee(businessId, userId, parsed.data);
+    if (!employee) return notFoundResponse();
+    return Response.json({ employee }, { status: 201 });
+  } catch (error) {
+    return routeErrorResponse(error);
   }
-
-  const employee = await createEmployee(businessId, userId, parsed.data);
-  return Response.json({ employee }, { status: 201 });
 }

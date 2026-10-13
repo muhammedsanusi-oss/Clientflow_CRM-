@@ -1,47 +1,32 @@
-// Business list/create API. The full path from HTTP request to database:
-// identity check, Zod validation, scoped query, mapped errors.
-
-import { currentUserId } from "@project/auth";
 import { CreateBusiness, createBusiness, listBusinesses } from "@project/domain";
+import {
+  authenticatedUserId,
+  parseRequestBody,
+  routeErrorResponse,
+  unauthenticatedResponse,
+} from "@/app/api/_lib/route-helpers";
 
 export const dynamic = "force-dynamic";
 
-const unauthenticated = () =>
-  Response.json(
-    { error: { code: "UNAUTHENTICATED", message: "Sign in first" } },
-    { status: 401 }
-  );
-
 export async function GET() {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
-
-  const businesses = await listBusinesses(userId);
-  return Response.json({ businesses });
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
+  try {
+    return Response.json({ businesses: await listBusinesses(userId) });
+  } catch (error) {
+    return routeErrorResponse(error);
+  }
 }
 
-export async function POST(req: Request) {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
-
-  let body: unknown;
+export async function POST(request: Request) {
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
+  const parsed = await parseRequestBody(request, CreateBusiness);
+  if ("response" in parsed) return parsed.response;
   try {
-    body = await req.json();
-  } catch {
-    return Response.json(
-      { error: { code: "BAD_JSON", message: "Body must be valid JSON" } },
-      { status: 400 }
-    );
+    const result = await createBusiness(userId, parsed.data);
+    return Response.json({ business: result }, { status: 201 });
+  } catch (error) {
+    return routeErrorResponse(error);
   }
-
-  const parsed = CreateBusiness.safeParse(body);
-  if (!parsed.success) {
-    return Response.json(
-      { error: { code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Invalid input" } },
-      { status: 400 }
-    );
-  }
-
-  const business = await createBusiness(userId, parsed.data);
-  return Response.json({ business }, { status: 201 });
 }

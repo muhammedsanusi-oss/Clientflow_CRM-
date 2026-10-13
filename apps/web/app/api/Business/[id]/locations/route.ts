@@ -1,48 +1,39 @@
-import { currentUserId } from "@project/auth";
 import { CreateLocation, createLocation, listLocations } from "@project/domain";
+import {
+  authenticatedUserId,
+  hasBusinessAccess,
+  notFoundResponse,
+  parseRequestBody,
+  routeErrorResponse,
+  unauthenticatedResponse,
+} from "@/app/api/_lib/route-helpers";
 
 export const dynamic = "force-dynamic";
 
-const unauthenticated = () =>
-  Response.json(
-    { error: { code: "UNAUTHENTICATED", message: "Sign in first" } },
-    { status: 401 }
-  );
-
 export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
-
-  const { id: businessId } = await ctx.params;
-  const locations = await listLocations(businessId);
-
-  return Response.json({ locations });
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
+  try {
+    const { id: businessId } = await ctx.params;
+    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
+    return Response.json({ locations: await listLocations(businessId, userId) });
+  } catch (error) {
+    return routeErrorResponse(error);
+  }
 }
 
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
-
-  const { id: businessId } = await ctx.params;
-
-  let body: unknown;
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
+  const parsed = await parseRequestBody(request, CreateLocation);
+  if ("response" in parsed) return parsed.response;
   try {
-    body = await req.json();
-  } catch {
-    return Response.json(
-      { error: { code: "BAD_JSON", message: "Body must be valid JSON" } },
-      { status: 400 }
-    );
+    const { id: businessId } = await ctx.params;
+    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
+    const location = await createLocation(businessId, userId, parsed.data);
+    if (!location) return notFoundResponse();
+    return Response.json({ location }, { status: 201 });
+  } catch (error) {
+    return routeErrorResponse(error);
   }
-
-  const parsed = CreateLocation.safeParse(body);
-  if (!parsed.success) {
-    return Response.json(
-      { error: { code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Invalid input" } },
-      { status: 400 }
-    );
-  }
-
-  const location = await createLocation(businessId, parsed.data);
-  return Response.json({ location }, { status: 201 });
 }
