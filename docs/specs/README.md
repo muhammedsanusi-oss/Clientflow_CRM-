@@ -30,6 +30,12 @@ store issue state. See [CONTRIBUTING](../../CONTRIBUTING.md) for the full arc.
 | [deploy](deploy.md) | infrastructure | Container build + Azure topology, config via env only, kill-switches | 0008 |
 | [observability](observability.md) | infrastructure | Structured logs, request IDs, what gets measured | — |
 
+### CRM domain (`crm/`)
+
+| Doc | Type | What it covers | Key ADRs |
+|---|---|---|---|
+| [api](crm/api.md) | feature | Business-scoped CRM schemas, queries, and App Router endpoints | 0009 |
+
 ### Items domain (`items/`)
 
 Business management is covered by [management-api](businesses/management-api.md):

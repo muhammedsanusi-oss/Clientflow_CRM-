@@ -1,18 +1,12 @@
-import { currentUserId } from "@project/auth";
-import { CreateLocation, createLocation, listLocations } from "@project/domain";
+import { authenticatedUserId, parseRequestBody, unauthenticatedResponse } from "../../../_lib/route-helpers";
 import { errorResponse } from "../../../error-response";
+import { CreateLocation, createLocation, listLocations } from "@project/domain";
 
 export const dynamic = "force-dynamic";
 
-const unauthenticated = () =>
-  Response.json(
-    { error: { code: "UNAUTHENTICATED", message: "Sign in first" } },
-    { status: 401 }
-  );
-
 export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
 
   const { id: businessId } = await ctx.params;
   try {
@@ -24,28 +18,12 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await currentUserId();
-  if (!userId) return unauthenticated();
+  const userId = await authenticatedUserId();
+  if (!userId) return unauthenticatedResponse();
 
   const { id: businessId } = await ctx.params;
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return Response.json(
-      { error: { code: "BAD_JSON", message: "Body must be valid JSON" } },
-      { status: 400 }
-    );
-  }
-
-  const parsed = CreateLocation.safeParse(body);
-  if (!parsed.success) {
-    return Response.json(
-      { error: { code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Invalid input" } },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseRequestBody(req, CreateLocation);
+  if ("response" in parsed) return parsed.response;
 
   try {
     const location = await createLocation(businessId, userId, parsed.data);

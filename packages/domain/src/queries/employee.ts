@@ -3,6 +3,25 @@ import type { CreateEmployeeInput } from "../schemas/employee";
 import { DomainError } from "../errors";
 import { requireMembership } from "./membership";
 
+export async function listEmployees(businessId: string, userId: string) {
+  return prisma.$transaction(async (tx) => {
+    await requireMembership(tx, businessId, userId);
+    return tx.employee.findMany({
+      where: { business_id: businessId, is_active: true },
+      orderBy: { created_at: "desc" },
+    });
+  });
+}
+
+export async function getEmployee(id: string, businessId: string, userId: string) {
+  return prisma.$transaction(async (tx) => {
+    await requireMembership(tx, businessId, userId);
+    return tx.employee.findFirst({
+      where: { id, business_id: businessId, is_active: true },
+    });
+  });
+}
+
 export function createEmployee(businessId: string, userId: string, input: CreateEmployeeInput) {
   return prisma.$transaction(async (tx) => {
     const membership = await requireMembership(tx, businessId, userId);

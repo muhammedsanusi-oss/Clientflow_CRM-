@@ -49,6 +49,7 @@ describe("CreateEmployee schema", () => {
     const result = CreateEmployee.safeParse({
       firstName: "Grace",
       lastName: "Hopper",
+      username: "grace-hopper",
       email: "grace@company.com",
       phone_number: "0987654321",
       role: "MANAGER",
@@ -62,6 +63,7 @@ describe("CreateEmployee schema", () => {
       CreateEmployee.safeParse({
         firstName: "Grace",
         lastName: "Hopper",
+        username: "grace-hopper",
         email: "bad-email",
         phone_number: "0987654321",
         role: "MANAGER",
@@ -72,6 +74,7 @@ describe("CreateEmployee schema", () => {
       CreateEmployee.safeParse({
         firstName: "Grace",
         lastName: "Hopper",
+        username: "grace-hopper",
         email: "grace@company.com",
         phone_number: "0987654321",
         role: "EXECUTIVE",

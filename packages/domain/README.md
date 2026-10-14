@@ -3,13 +3,14 @@
 Zod validation schemas and database queries. Used only by the web app — the
 worker has no reason to validate user input or run web-queries.
 
-**Boilerplate:** empty barrel. Example branches add their own schemas and
-query functions here, following the web-only convention.
+CRM validation schemas and user-scoped queries live here. API handlers import
+these through the package barrel and keep HTTP concerns in `apps/web`.
 
 ## Public API
 
-All exports come from `src/index.ts`. Currently empty — example branches
-export their schemas and queries from here.
+All exports come from `src/index.ts`: schemas and queries cover businesses,
+employees, locations, customers, services, appointments and their service
+lines, tasks, notes, interactions, and payments.
 
 ## Dependencies
 

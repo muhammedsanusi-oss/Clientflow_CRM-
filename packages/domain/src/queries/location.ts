@@ -3,8 +3,6 @@ import type { CreateLocationInput } from "../schemas/location";
 import { requireMembership } from "./membership";
 
 export function listLocations(businessId: string, userId: string) {
-  // A membership check distinguishes an empty owned business from a foreign
-  // business, which must return 404 rather than an empty successful list.
   return prisma.$transaction(async (tx) => {
     await requireMembership(tx, businessId, userId);
     return tx.location.findMany({
@@ -28,7 +26,6 @@ export function getLocationById(id: string, businessId: string, userId: string) 
 }
 
 export async function createLocation(businessId: string, userId: string, input: CreateLocationInput) {
-  // Keep authorization and the write in the same database transaction.
   return prisma.$transaction(async (tx) => {
     await requireMembership(tx, businessId, userId);
     return tx.location.create({
