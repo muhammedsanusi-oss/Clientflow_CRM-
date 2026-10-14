@@ -35,7 +35,7 @@ export default function LoginPage() {
       <header>
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="text-sm text-neutral-500">
-          Pick a username. If it doesn&rsquo;t exist yet, it&rsquo;s yours.
+          Enter your employee email or pick a username.
         </p>
       </header>
 
@@ -43,8 +43,8 @@ export default function LoginPage() {
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="username"
-          aria-label="Username"
+          placeholder="username or employee email"
+          aria-label="Username or employee email"
           autoFocus
           className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
         />

@@ -1,12 +1,10 @@
 import { CreateEmployee, createEmployee, listEmployees } from "@project/domain";
 import {
   authenticatedUserId,
-  hasBusinessAccess,
-  notFoundResponse,
   parseRequestBody,
-  routeErrorResponse,
   unauthenticatedResponse,
-} from "@/app/api/_lib/route-helpers";
+} from "../../../_lib/route-helpers";
+import { errorResponse } from "../../../error-response";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +13,9 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
   if (!userId) return unauthenticatedResponse();
   try {
     const { id: businessId } = await ctx.params;
-    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
     return Response.json({ employees: await listEmployees(businessId, userId) });
   } catch (error) {
-    return routeErrorResponse(error);
+    return errorResponse(error);
   }
 }
 
@@ -29,11 +26,9 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   if ("response" in parsed) return parsed.response;
   try {
     const { id: businessId } = await ctx.params;
-    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
     const employee = await createEmployee(businessId, userId, parsed.data);
-    if (!employee) return notFoundResponse();
     return Response.json({ employee }, { status: 201 });
   } catch (error) {
-    return routeErrorResponse(error);
+    return errorResponse(error);
   }
 }

@@ -22,3 +22,4 @@ export { listTasks, getTask, createTask } from "./queries/tasks";
 export { listNotes, getNote, createNote } from "./queries/notes";
 export { listInteractions, getInteraction, createInteraction } from "./queries/interactions";
 export { listPayments, getPayment, createPayment } from "./queries/payments";
+export { apiError } from "./errors";

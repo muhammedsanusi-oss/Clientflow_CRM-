@@ -1,32 +1,31 @@
+import { authenticatedUserId, parseRequestBody, unauthenticatedResponse } from "../_lib/route-helpers";
+import { errorResponse } from "../error-response";
 import { CreateBusiness, createBusiness, listBusinesses } from "@project/domain";
-import {
-  authenticatedUserId,
-  parseRequestBody,
-  routeErrorResponse,
-  unauthenticatedResponse,
-} from "@/app/api/_lib/route-helpers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const userId = await authenticatedUserId();
   if (!userId) return unauthenticatedResponse();
+
   try {
-    return Response.json({ businesses: await listBusinesses(userId) });
+    const businesses = await listBusinesses(userId);
+    return Response.json({ businesses });
   } catch (error) {
-    return routeErrorResponse(error);
+    return errorResponse(error);
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   const userId = await authenticatedUserId();
   if (!userId) return unauthenticatedResponse();
-  const parsed = await parseRequestBody(request, CreateBusiness);
+  const parsed = await parseRequestBody(req, CreateBusiness);
   if ("response" in parsed) return parsed.response;
+
   try {
-    const result = await createBusiness(userId, parsed.data);
-    return Response.json({ business: result }, { status: 201 });
+    const business = await createBusiness(userId, parsed.data);
+    return Response.json({ business }, { status: 201 });
   } catch (error) {
-    return routeErrorResponse(error);
+    return errorResponse(error);
   }
 }

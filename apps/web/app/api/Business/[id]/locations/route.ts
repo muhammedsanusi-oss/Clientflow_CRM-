@@ -1,39 +1,34 @@
+import { authenticatedUserId, parseRequestBody, unauthenticatedResponse } from "../../../_lib/route-helpers";
+import { errorResponse } from "../../../error-response";
 import { CreateLocation, createLocation, listLocations } from "@project/domain";
-import {
-  authenticatedUserId,
-  hasBusinessAccess,
-  notFoundResponse,
-  parseRequestBody,
-  routeErrorResponse,
-  unauthenticatedResponse,
-} from "@/app/api/_lib/route-helpers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) {
   const userId = await authenticatedUserId();
   if (!userId) return unauthenticatedResponse();
+
+  const { id: businessId } = await ctx.params;
   try {
-    const { id: businessId } = await ctx.params;
-    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
-    return Response.json({ locations: await listLocations(businessId, userId) });
+    const locations = await listLocations(businessId, userId);
+    return Response.json({ locations });
   } catch (error) {
-    return routeErrorResponse(error);
+    return errorResponse(error);
   }
 }
 
-export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const userId = await authenticatedUserId();
   if (!userId) return unauthenticatedResponse();
-  const parsed = await parseRequestBody(request, CreateLocation);
+
+  const { id: businessId } = await ctx.params;
+  const parsed = await parseRequestBody(req, CreateLocation);
   if ("response" in parsed) return parsed.response;
+
   try {
-    const { id: businessId } = await ctx.params;
-    if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
     const location = await createLocation(businessId, userId, parsed.data);
-    if (!location) return notFoundResponse();
     return Response.json({ location }, { status: 201 });
   } catch (error) {
-    return routeErrorResponse(error);
+    return errorResponse(error);
   }
 }

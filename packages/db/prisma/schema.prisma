@@ -2,7 +2,8 @@
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"
+  // Driver adapters provide connectivity without a native query-engine DLL.
+  engineType = "client"
   output     = "../src/generated/prisma"
 }
 
@@ -83,6 +84,7 @@ model Employee {
   tasks        Task[]
   notes        Note[]
 
+  // One membership per business; the same user can join multiple businesses.
   @@unique([business_id, user_id])
   @@unique([business_id, email])
   @@index([user_id])

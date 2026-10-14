@@ -1,7 +1,15 @@
 // The Prisma client. One client per process, cached in a global to survive
 // hot reloads. Three doors: PGlite (tests), local Postgres (dev), Azure (prod).
 
-import { PrismaClient } from "./generated/prisma";
+import nodeModule from "node:module";
+
+// Keep the generated client outside the app bundle: its WASM compiler is
+// resolved relative to its own directory, not the Next.js working directory.
+// The module object's method avoids Webpack's named-createRequire rewrite,
+// which would relocate the compiler's filesystem lookup into the app bundle.
+const nativeRequire = nodeModule.createRequire(import.meta.url);
+export const { PrismaClient } = nativeRequire("./generated/prisma") as typeof import("./generated/prisma");
+export type PrismaClient = InstanceType<typeof PrismaClient>;
 
 declare global {
   // eslint-disable-next-line no-var

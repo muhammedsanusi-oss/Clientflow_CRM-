@@ -1,15 +1,17 @@
 import { prisma } from "@project/db";
 import type { CreateLocationInput } from "../schemas/location";
-
-
+import { requireMembership } from "./membership";
 
 export function listLocations(businessId: string, userId: string) {
-  return prisma.location.findMany({
-    where: {
-      business_id: businessId,
-      business: { employees: { some: { user_id: userId } } },
-    },
-    orderBy: { created_at: "desc" },
+  return prisma.$transaction(async (tx) => {
+    await requireMembership(tx, businessId, userId);
+    return tx.location.findMany({
+      where: {
+        business_id: businessId,
+        business: { employees: { some: { user_id: userId, is_active: true } } },
+      },
+      orderBy: { created_at: "desc" },
+    });
   });
 }
 
@@ -18,22 +20,19 @@ export function getLocationById(id: string, businessId: string, userId: string) 
     where: {
       id,
       business_id: businessId,
-      business: { employees: { some: { user_id: userId } } },
+      business: { employees: { some: { user_id: userId, is_active: true } } },
     },
   });
 }
 
 export async function createLocation(businessId: string, userId: string, input: CreateLocationInput) {
-  const business = await prisma.business.findFirst({
-    where: { id: businessId, employees: { some: { user_id: userId } } },
-    select: { id: true },
-  });
-  if (!business) return null;
-
-  return prisma.location.create({
-    data: {
-      business_id: businessId,
-      ...input,
-    },
+  return prisma.$transaction(async (tx) => {
+    await requireMembership(tx, businessId, userId);
+    return tx.location.create({
+      data: {
+        business_id: businessId,
+        ...input,
+      },
+    });
   });
 }

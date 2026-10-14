@@ -7,6 +7,7 @@ export function listBusinesses(userId: string) {
       employees: {
         some: {
           user_id: userId,
+          is_active: true,
         },
       },
     },
@@ -21,6 +22,7 @@ export function getBusinessById(id: string, userId: string) {
       employees: {
         some: {
           user_id: userId,
+          is_active: true,
         },
       },
     },
@@ -28,6 +30,8 @@ export function getBusinessById(id: string, userId: string) {
 }
 
 export async function createBusiness(userId: string, input: CreateBusinessInput) {
+  // The owner membership grants access to the new business. Commit both
+  // records together so a failed owner write cannot leave an orphan business.
   return prisma.$transaction(async (tx) => {
     const business = await tx.business.create({
       data: {
