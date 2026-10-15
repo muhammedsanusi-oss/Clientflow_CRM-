@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
   addCustomerAction,
@@ -37,11 +37,12 @@ const textFields = [
   },
 ] as const;
 
-export function CustomerForm() {
+export function CustomerForm({ businesses, selectedBusinessId }: { businesses: { id: string; name: string }[]; selectedBusinessId: string }) {
   const [state, formAction, pending] = useActionState(
     addCustomerAction,
     initialState,
   );
+  const [businessId, setBusinessId] = useState(state.businessId ?? selectedBusinessId);
 
   const addressError = state.fieldErrors?.address?.[0];
   const contactError = state.fieldErrors?.preferredContactMethod?.[0];
@@ -61,6 +62,16 @@ export function CustomerForm() {
           {state.error.message}
         </div>
       ) : null}
+
+      <div>
+        <label htmlFor="businessId" className="mb-1 block text-sm font-medium">Business</label>
+        <select id="businessId" name="businessId" required value={businessId} onChange={event => setBusinessId(event.target.value)} aria-invalid={Boolean(state.fieldErrors?.businessId)} aria-describedby={state.fieldErrors?.businessId ? "business-error" : "business-help"} className="w-full rounded-lg border border-neutral-300 px-3 py-2">
+          {businesses.map(business => <option key={business.id} value={business.id}>{business.name}</option>)}
+        </select>
+        <p id="business-help" className="mt-1 text-sm text-neutral-600">This customer will be linked to the business you select.</p>
+        {state.fieldErrors?.businessId && <p id="business-error" className="mt-1 text-sm text-red-700">{state.fieldErrors.businessId[0]}</p>}
+        <Link href="/businesses/new" className="mt-2 inline-block text-sm text-indigo-700 underline">Create another business</Link>
+      </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         {textFields.map((field) => {
@@ -165,7 +176,7 @@ export function CustomerForm() {
         </button>
 
         <Link
-          href="/customers"
+          href={`/customers?businessId=${encodeURIComponent(businessId)}`}
           className="text-sm text-neutral-700 underline underline-offset-2"
         >
           Cancel

@@ -47,7 +47,7 @@ function errorResponse(code: string, message: string, status: number) {
   return Response.json({ error: { code, message } }, { status });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   // Resolve identity before touching customer data; every domain query starts
   // from this server-derived user rather than a client-supplied tenant ID.
   let userId: string;
@@ -65,7 +65,8 @@ export async function GET() {
   }
 
   try {
-    const customers = await getCustomerCollectionForUser(userId);
+    const businessId = new URL(request.url).searchParams.get("businessId") ?? undefined;
+    const customers = await getCustomerCollectionForUser(userId, businessId);
 
     if (!customers) {
       return errorResponse(
@@ -127,7 +128,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const customer = await createCustomerForUser(userId, parsed.data);
+    const businessId = new URL(request.url).searchParams.get("businessId") ?? undefined;
+    const customer = await createCustomerForUser(userId, parsed.data, businessId);
 
     if (!customer) {
       return errorResponse(

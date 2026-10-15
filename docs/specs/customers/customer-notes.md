@@ -64,6 +64,8 @@ Employees need a shared, durable record of customer context so that another empl
 
 ## Constraints & decisions
 
+- For users with multiple memberships, the note author is the current user's active employee membership in the customer's business.
+
 - Business is the tenant boundary defined by `docs/adr/0012-business-tenant-boundary.md`; "taking the case" means being an active employee in the same business because the system has no individual customer assignment model.
 - Notes are append-only in this feature so prior employee context is not silently rewritten; editing and deletion require separate behavior.
 - The existing `Note` relation stores the customer, author, content, and creation time, so this feature requires no database migration.

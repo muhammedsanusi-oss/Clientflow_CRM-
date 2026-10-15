@@ -31,7 +31,7 @@ export default async function CustomerDetailPage({
     <main className="mx-auto max-w-3xl space-y-8">
       <header className="space-y-2">
         <Link
-          href="/customers"
+          href={`/customers?businessId=${encodeURIComponent(customer.business_id)}`}
           className="text-sm text-blue-600 underline underline-offset-2"
         >
           Back to customers
@@ -39,6 +39,7 @@ export default async function CustomerDetailPage({
         <h1 className="text-2xl font-bold">
           {customer.first_name} {customer.last_name}
         </h1>
+        <p className="text-sm text-neutral-600">Business: {customer.business.name}</p>
       </header>
 
       <section

@@ -31,13 +31,27 @@ export type CreateCustomerNoteInput = z.infer<
   typeof createCustomerNoteInputSchema
 >;
 
-export async function getCustomerCollectionForUser(userId: string) {
+export async function getCustomerBusinessForUser(userId: string, businessId?: string) {
+  return prisma.business.findFirst({
+    where: {
+      ...(businessId !== undefined ? { id: businessId } : {}),
+      employees: { some: { user_id: userId, is_active: true } },
+    },
+    select: { id: true, name: true },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+  });
+}
+
+export async function getCustomerCollectionForUser(userId: string, businessId?: string) {
   // Starting at the active employee relation makes business tenancy part of
   // the database query instead of an application-side filtering step.
+  const business = await getCustomerBusinessForUser(userId, businessId);
+  if (!business) return null;
   const employee = await prisma.employee.findFirst({
     where: {
       user_id: userId,
       is_active: true,
+      business_id: business.id,
     },
     select: {
       business: {
@@ -62,33 +76,26 @@ export async function getCustomerCollectionForUser(userId: string) {
   return employee?.business.customers ?? null;
 }
 
-export async function listCustomersForUser(userId: string) {
-  return (await getCustomerCollectionForUser(userId)) ?? [];
+export async function listCustomersForUser(userId: string, businessId?: string) {
+  return (await getCustomerCollectionForUser(userId, businessId)) ?? [];
 }
 
 export async function createCustomerForUser(
   userId: string,
   input: CreateCustomerInput,
+  businessId?: string,
 ) {
-  // Derive the tenant from the authenticated user; callers never provide a
-  // business ID that could be used to create a cross-tenant record.
-  const employee = await prisma.employee.findFirst({
-    where: {
-      user_id: userId,
-      is_active: true,
-    },
-    select: {
-      business_id: true,
-    },
-  });
+  // A selected business is only a hint; the session user's active membership
+  // must authorize it before it becomes the new customer's business link.
+  const business = await getCustomerBusinessForUser(userId, businessId);
 
-  if (!employee) {
+  if (!business) {
     return null;
   }
 
   return prisma.customer.create({
     data: {
-      business_id: employee.business_id,
+      business_id: business.id,
       first_name: input.firstName,
       last_name: input.lastName,
       phone_number: input.phoneNumber,
@@ -127,6 +134,8 @@ export async function getCustomerWithNotesForUser(
     },
     select: {
       id: true,
+      business_id: true,
+      business: { select: { name: true } },
       first_name: true,
       last_name: true,
       phone_number: true,
@@ -174,6 +183,7 @@ export async function createCustomerNoteForUser(
       where: {
         user_id: userId,
         is_active: true,
+        business: { customers: { some: { id: input.customerId } } },
       },
       select: {
         id: true,

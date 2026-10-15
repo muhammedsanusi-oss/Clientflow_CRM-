@@ -110,6 +110,7 @@ export async function createAppointmentForUser(
       where: {
         user_id: userId,
         is_active: true,
+        business: { customers: { some: { id: input.customerId } } },
       },
       select: {
         id: true,

@@ -11,7 +11,7 @@ export function listBusinesses(userId: string) {
         },
       },
     },
-    orderBy: { created_at: "desc" },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
 }
 

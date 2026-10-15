@@ -21,7 +21,8 @@ Clients need a stable HTTP interface for reading and creating customer records w
 - `POST /api/customers` accepts `firstName`, `lastName`, `phoneNumber`, `email`, `address`, and `preferredContactMethod` as JSON.
 - A successful create response has the shape `{ "data": { "customer": Customer } }` and status 201.
 - API customer objects expose `id`, `firstName`, `lastName`, `phoneNumber`, `email`, `address`, and `preferredContactMethod`; they do not expose `businessId` or database ownership fields.
-- The server derives the current user and business; neither endpoint accepts a user ID or business ID from the client.
+- The server derives the current user; neither endpoint accepts a user ID. An optional `businessId` query parameter selects a business only after active membership is verified. Without it, the newest accessible business is used.
+- The JSON customer body does not accept ownership fields. Foreign and unknown business selections return the same 404 response.
 - Both endpoints scope all database access to the current user's active employee relationship and business.
 - A user without an active employee-to-business relationship receives status 404 with the standard error shape.
 - Identity comes from the session cookie through the current auth seam; a signed-out request receives status 401 with the standard error shape before any customer query or write.

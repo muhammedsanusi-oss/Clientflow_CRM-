@@ -9,12 +9,13 @@ import {
 import type { CustomerFormInput } from "@project/domain";
 import { log } from "@project/log";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 
 export type AddCustomerActionState = {
+  businessId?: string;
   values?: Record<keyof CustomerFormInput, string>;
   fieldErrors?: Partial<
-    Record<keyof CustomerFormInput, string[] | undefined>
+    Record<keyof CustomerFormInput | "businessId", string[] | undefined>
   >;
   error?: {
     code: "VALIDATION_ERROR" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_ERROR";
@@ -33,6 +34,7 @@ export async function addCustomerAction(
 ): Promise<AddCustomerActionState> {
   const userId = await currentUserId();
   if (!userId) redirect("/login");
+  const businessId = readString(formData, "businessId");
 
   const values: Record<keyof CustomerFormInput, string> = {
     firstName: readString(formData, "firstName"),
@@ -48,10 +50,11 @@ export async function addCustomerAction(
 
   const parsed = createCustomerInputSchema.safeParse(values);
 
-  if (!parsed.success) {
+  if (!parsed.success || !businessId) {
     return {
+      businessId,
       values,
-      fieldErrors: parsed.error.flatten().fieldErrors,
+      fieldErrors: { ...(!parsed.success ? parsed.error.flatten().fieldErrors : {}), ...(!businessId ? { businessId: ["Choose a business before adding a customer."] } : {}) },
       error: {
         code: "VALIDATION_ERROR",
         message: "Review the highlighted fields.",
@@ -59,21 +62,13 @@ export async function addCustomerAction(
     };
   }
 
+  let created = false;
   try {
-    const created = await createCustomerForUser(userId, parsed.data);
-
-    if (!created) {
-      return {
-        values,
-        error: {
-          code: "NOT_FOUND",
-          message: "Your business could not be found.",
-        },
-      };
-    }
+    created = Boolean(await createCustomerForUser(userId, parsed.data, businessId));
   } catch (error) {
     if (apiError(error).code === "CONFLICT") {
       return {
+        businessId,
         values,
         error: {
           code: "CONFLICT",
@@ -89,6 +84,7 @@ export async function addCustomerAction(
     );
 
     return {
+      businessId,
       values,
       error: {
         code: "INTERNAL_ERROR",
@@ -96,7 +92,8 @@ export async function addCustomerAction(
       },
     };
   }
+  if (!created) notFound();
 
   revalidatePath("/customers");
-  redirect("/customers");
+  redirect(`/customers?businessId=${encodeURIComponent(businessId)}`);
 }

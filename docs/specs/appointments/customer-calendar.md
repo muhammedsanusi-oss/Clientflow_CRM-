@@ -74,7 +74,7 @@ Employees need a simple way to record when a customer plans to visit and to see 
 
 - Business is the tenant boundary defined by `docs/adr/0012-business-tenant-boundary.md`.
 - Scheduling uses the shared CRM schema, including business-scoped services, the `status` appointment field, enum employee roles, and date-valued hire dates. Existing migrations remain unchanged.
-- A user can have memberships in multiple businesses. The first active employee membership supplies the default business for customer collection and scheduling writes; resource reads are scoped through active memberships.
+- A user can have memberships in multiple businesses. Customer creation uses an authorized business selector; scheduling resolves the employee membership in the customer's business. Resource reads are scoped through active memberships.
 - `Service 1`, `Service 2`, and `Service 3` are explicitly demo placeholders, each with a 30-minute duration and zero example price, until the group defines the service catalog.
 - Appointment creation copies the selected service's current base price into `price_at_booking` with quantity one, even though the placeholder price is zero.
 - The fixed `SCHEDULED` status avoids inventing a status workflow before the group decides one.

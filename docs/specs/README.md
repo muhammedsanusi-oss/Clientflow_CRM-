@@ -57,6 +57,8 @@ an application built from this template keeps its own domains on `main`.
 
 ### Customers domain (`customers/`)
 
+Business creation and customer selection are described by [Create business](businesses/create-business.md).
+
 | Doc | Type | What it covers | Key ADRs |
 |---|---|---|---|
 | [add customer](customers/add-customer.md) | feature | Add a business-scoped customer with shared validation | 0009, 0012 |

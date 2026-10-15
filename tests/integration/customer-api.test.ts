@@ -152,7 +152,7 @@ describe("customer JSON API", () => {
   it("lists only the current business customers in the documented shape", async () => {
     authState.userId = activeUserAId;
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/customers"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -184,7 +184,7 @@ describe("customer JSON API", () => {
     expect(JSON.stringify(body)).not.toContain("test-customer-api-b-private");
 
     authState.userId = activeUserBId;
-    const otherBusinessResponse = await GET();
+    const otherBusinessResponse = await GET(new Request("http://localhost/api/customers"));
 
     expect(otherBusinessResponse.status).toBe(200);
     await expect(otherBusinessResponse.json()).resolves.toEqual({
@@ -207,7 +207,7 @@ describe("customer JSON API", () => {
   it("returns not found for an inactive employee", async () => {
     authState.userId = inactiveUserId;
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/customers"));
 
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({
@@ -224,7 +224,7 @@ describe("customer JSON API", () => {
       new Error("private database details"),
     );
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/customers"));
     const body = await response.json();
 
     expect(response.status).toBe(500);
@@ -376,7 +376,7 @@ describe("customer JSON API", () => {
     const write = vi.spyOn(domain, "createCustomerForUser");
     const before = await prisma.customer.count();
 
-    expect((await GET()).status).toBe(401);
+    expect((await GET(new Request("http://localhost/api/customers"))).status).toBe(401);
     expect((await POST(jsonRequest(validCustomer))).status).toBe(401);
     expect(read).not.toHaveBeenCalled();
     expect(write).not.toHaveBeenCalled();

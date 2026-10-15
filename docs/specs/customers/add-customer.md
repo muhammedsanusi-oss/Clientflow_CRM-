@@ -17,10 +17,12 @@ Employees need to create customer records shared within their business without e
 
 ## Behavior
 
-- `/customers/new` displays fields for first name, last name, phone number, email, address, and preferred contact method.
+- `/customers/new` displays an accessible business selector and fields for first name, last name, phone number, email, address, and preferred contact method.
 - The server derives the current user and resolves their active employee and business.
-- The client never controls customer ownership.
-- The form and server operation do not accept a business ID.
+- The selected business ID is verified through the session-derived user's active membership before ownership is assigned; foreign and unknown selections return 404.
+- `?businessId=` preserves the selection between the customer list and form. Without a selection, the newest accessible business is the default.
+- Saving creates the customer and its business relationship together; there is no separate linking operation.
+- Users with no business see a `Create business` action before the customer form is available. Business creation is described by `docs/specs/businesses/create-business.md`.
 - Shared Zod validation runs before any database write.
 - Invalid input returns field errors and creates no customer.
 - Valid input creates the customer under the derived business.
@@ -29,7 +31,7 @@ Employees need to create customer records shared within their business without e
 - Duplicate values within the same business produce a safe conflict error.
 - A user without an active employee-to-business relationship cannot create a customer.
 - Raw database errors never reach the client.
-- Success revalidates `/customers` and redirects there.
+- Success revalidates `/customers` and redirects there with the selected `businessId` query parameter.
 - The form prevents duplicate submissions and exposes its pending state accessibly.
 
 ## Examples
@@ -40,7 +42,8 @@ Employees need to create customer records shared within their business without e
 | Required field is empty | Field error is shown and nothing is written |
 | Email exists in the same business | Conflict error is shown |
 | Email exists only in another business | Customer is created |
-| Client supplies a business ID | It cannot control customer ownership |
+| Client selects a business in which they have an active membership | Customer is linked to that business |
+| Client supplies a foreign or unknown business ID | 404; no row is created |
 | User has no active employee relationship | Nothing is created and no business information is exposed |
 
 ## Verify
