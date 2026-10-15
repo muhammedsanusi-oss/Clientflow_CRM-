@@ -95,6 +95,12 @@ export default async function Home() {
           </header>
 
           <div id="overview" className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
+            <nav aria-label="Customer management" className="mb-6 flex flex-wrap gap-3">
+              <a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
+              <a href="/customers" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Customers</a>
+              <a href="/customers/new" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Add customer</a>
+              <a href="/calendar" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Calendar</a>
+            </nav>
             <section className="relative overflow-hidden rounded-3xl bg-[#172b4d] px-6 py-8 text-white sm:px-9 sm:py-10">
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10" />
               <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-40 h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />
@@ -148,16 +154,17 @@ export default async function Home() {
                     Your businesses
                   </h2>
                 </div>
-                <span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+                <div className="flex flex-wrap items-center gap-3"><a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a><span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
                   {businesses.length} total
-                </span>
+                </span></div>
               </div>
 
               {businesses.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {businesses.map((business) => (
-                    <article
+                    <a
                       key={business.id}
+                      href={`/customers?businessId=${encodeURIComponent(business.id)}`}
                       className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       <div className="flex items-start gap-3">
@@ -175,7 +182,7 @@ export default async function Home() {
                         <p className="truncate">{business.email}</p>
                         <p>{business.phone_number}</p>
                       </div>
-                    </article>
+                    </a>
                   ))}
                 </div>
               ) : (
@@ -187,8 +194,9 @@ export default async function Home() {
                   </span>
                   <h3 className="mt-4 text-base font-semibold text-slate-900">Your workspace is ready</h3>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                    Businesses connected to your account will appear here when they&rsquo;re set up.
+                    Create your first business to start adding customers linked to it.
                   </p>
+                  <a href="/businesses/new" className="mt-5 inline-block rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
                 </div>
               )}
             </section>

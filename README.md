@@ -14,6 +14,8 @@ Each week of class goes deep on one layer that's already here under your feet.
 
 ## Get running (no Docker, no installs beyond Node)
 
+For Windows ARM and the combined customer/calendar app, follow [Run locally on Windows](docs/runbooks/run-local-windows.md).
+
 ```bash
 pnpm install
 pnpm prisma:generate     # builds the typed CRM database client
@@ -32,7 +34,7 @@ says `{"status":"ok","db":"ok"}`.
 
 ```
 browser ──fetch────▶ apps/web/app/api/health/route.ts
-                ───▶ packages/db ──▶ YOUR Postgres server (:5433)
+                ───▶ packages/db ──▶ YOUR Postgres server (:55432)
                 ───▶ packages/services (queue + storage + notify) ──▶ Azurite
                     apps/worker
                     polls queue, processes jobs

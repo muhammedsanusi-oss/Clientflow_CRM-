@@ -23,3 +23,23 @@ export { listNotes, getNote, createNote } from "./queries/notes";
 export { listInteractions, getInteraction, createInteraction } from "./queries/interactions";
 export { listPayments, getPayment, createPayment } from "./queries/payments";
 export { apiError } from "./errors";
+export {
+  appointmentTimeSlots,
+  calendarMonthSchema,
+  createAppointmentForUser,
+  createAppointmentInputSchema,
+  getAppointmentFormForUser,
+  listAppointmentsForUserMonth,
+} from "./appointments";
+export type { CreateAppointmentInput as ScheduleAppointmentInput } from "./appointments";
+export {
+  createCustomerNoteForUser,
+  createCustomerNoteInputSchema,
+  createCustomerForUser,
+  createCustomerInputSchema,
+  getCustomerCollectionForUser,
+  getCustomerBusinessForUser,
+  getCustomerWithNotesForUser,
+  listCustomersForUser,
+} from "./customers";
+export type { CreateCustomerInput as CustomerFormInput, CreateCustomerNoteInput } from "./customers";
