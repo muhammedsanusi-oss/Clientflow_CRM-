@@ -3,7 +3,7 @@
 import { prisma } from "@project/db";
 
 export function getUser(id: string) {
-  return prisma.user.findUnique({ where: { id } });
+  return prisma.user.findUnique({ where: { id } , select: { username: true,}, });
 }
 
 export function findOrCreateUser(username: string) {

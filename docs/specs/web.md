@@ -14,6 +14,16 @@ on every branch, for every feature.
   blocked by the thing they're probing. Deploy probes, uptime checks, and the
   "stop the database and watch" demo all point here.
 
+## Workspace homepage
+
+- `/` requires a current user and redirects signed-out or stale identities to
+  `/login`.
+- The overview shows the current user's username and businesses returned by
+  the user-scoped business query; it does not trust client-supplied user IDs.
+- The business directory shows an explicit empty state when the user has no
+  businesses.
+- Signing out uses the logout endpoint and returns the user to `/login`.
+
 ## Async honesty (UI standard)
 
 - Every async region has three states: loading (skeleton), empty (with a
