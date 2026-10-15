@@ -84,5 +84,8 @@ indexes, defaults and foreign keys with the active schema. Original lookup
 tables are retained under `legacy`. Unknown enum values, invalid dates,
 duplicate service bookings, or payments whose customer disagrees with their
 appointment abort the transaction; reconcile those rows before retrying.
-The runner applies every unrecorded filename, including a missing lower number.
+If `0003` is missing from the migration ledger but its complete schema changes
+are already present, the runner records it without replaying the migration.
+Otherwise, the runner applies every unrecorded filename, including a missing
+lower number.
 Do not reset a populated database to repair this migration failure.
