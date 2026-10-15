@@ -100,4 +100,26 @@ describe("SQL migration contract", () => {
       expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(4);
     } finally { await db.close(); }
   }, 30000);
+
+  it("records 0003 without replaying it when its schema changes already exist", async () => {
+    const db = new PGlite();
+    try {
+      await db.exec(await migration("0001_init.sql"));
+      await db.exec(await migration("0002_business_tenancy.sql"));
+      await db.exec(await migration("0003_reconcile_schema.sql"));
+      await db.exec(await migration("0004_schema_update.sql"));
+      await db.exec(`DROP SCHEMA legacy CASCADE;
+        CREATE TABLE _migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ DEFAULT now());
+        INSERT INTO _migrations (name) VALUES ('0001_init.sql'), ('0002_business_tenancy.sql'), ('0004_schema_update.sql');`);
+
+      await applyMigrations(db);
+
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(4);
+      expect((await db.query(`SELECT udt_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'Employee' AND column_name = 'role_id'`)).rows)
+        .toEqual([{ udt_name: "EmployeeRole" }]);
+    } finally {
+      await db.close();
+    }
+  }, 30000);
 });
