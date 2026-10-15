@@ -95,6 +95,11 @@ export default async function Home() {
           </header>
 
           <div id="overview" className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
+            <nav aria-label="Customer management" className="mb-6 flex flex-wrap gap-3">
+              <a href="/customers" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Customers</a>
+              <a href="/customers/new" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Add customer</a>
+              <a href="/calendar" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Calendar</a>
+            </nav>
             <section className="relative overflow-hidden rounded-3xl bg-[#172b4d] px-6 py-8 text-white sm:px-9 sm:py-10">
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10" />
               <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-40 h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />

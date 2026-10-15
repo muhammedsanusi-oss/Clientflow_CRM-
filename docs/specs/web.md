@@ -16,6 +16,10 @@ on every branch, for every feature.
 
 ## Workspace homepage
 
+- The homepage links to `/customers`, `/customers/new`, and `/calendar`.
+- Customer and calendar pages and server actions redirect signed-out users to `/login` before querying or writing tenant data.
+- Development uses the standard Next.js bundler (`next dev`); the customer forms must support server-action POST submissions as well as client navigation.
+
 - `/` requires a current user and redirects signed-out or stale identities to
   `/login`.
 - The overview shows the current user's username and businesses returned by

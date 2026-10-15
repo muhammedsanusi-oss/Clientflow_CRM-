@@ -5,7 +5,7 @@ import { Client } from "pg";
 import { applyMigrations } from "@project/db/migrate";
 
 const url =
-  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:5433/postgres";
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:55432/postgres";
 
 async function main() {
   const client = new Client({ connectionString: url });
