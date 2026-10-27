@@ -67,7 +67,7 @@ Employees need to create customer records shared within their business without e
 
 ## Out of scope
 
-- Editing or deleting customers.
+- Editing customers is described by [customer search and editing](search-and-edit.md). Customer deletion is not specified.
 - Customer detail pages.
 - Bulk import.
 - Assigning customers to individual locations.
