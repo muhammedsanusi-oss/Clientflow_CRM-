@@ -41,5 +41,7 @@ export {
   getCustomerBusinessForUser,
   getCustomerWithNotesForUser,
   listCustomersForUser,
+  customerSearchInputSchema,
+  updateCustomerForUser,
 } from "./customers";
 export type { CreateCustomerInput as CustomerFormInput, CreateCustomerNoteInput } from "./customers";
