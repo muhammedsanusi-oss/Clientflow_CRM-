@@ -30,6 +30,8 @@ data in `.azurite/`).
 Check it worked: `http://localhost:3000/api/health`
 says `{"status":"ok","db":"ok"}`.
 
+Register a GitHub OAuth app and configure ignored local secrets using [OAuth setup](docs/runbooks/github-oauth-setup.md) before signing in. Legacy demo users remain stored but cannot be selected at login.
+
 ## The map
 
 ```
@@ -57,7 +59,7 @@ packages/                       # shared libraries
 ├── services/                   #   Azure adapters (queue, storage, notify)
 ├── domain/                     #   Zod schemas + queries (web-only)
 ├── log/                        #   pino logger
-└── auth/                       #   dev identity stub (real auth in Week 8)
+└── auth/                       #   GitHub OAuth + database sessions
 ```
 
 **Apps** are deployable. **Packages** are shared — no app imports from another app.

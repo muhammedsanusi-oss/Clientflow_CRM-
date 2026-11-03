@@ -23,11 +23,11 @@ on every branch, for every feature.
 
 - `/` requires a current user and redirects signed-out or stale identities to
   `/login`.
-- The overview shows the current user's username and businesses returned by
+- The overview shows the current user's GitHub name (or preserved legacy username) and businesses returned by
   the user-scoped business query; it does not trust client-supplied user IDs.
 - The business directory shows an explicit empty state when the user has no
   businesses.
-- Signing out uses the logout endpoint and returns the user to `/login`.
+- Signing out uses an Origin-protected Auth.js Server Action and returns the user to `/login`.
 
 ## Async honesty (UI standard)
 

@@ -27,7 +27,7 @@
    corepack.cmd pnpm db:seed
    ```
 
-4. Open `http://localhost:3000/login` and sign in as `demo-user`.
+4. Follow [OAuth setup](github-oauth-setup.md), open `http://localhost:3000/login`, and sign in with GitHub.
 5. Open Customers from the homepage, select a customer, and choose Schedule; open Calendar to see appointments.
 6. Stop the services with Ctrl+C in the first terminal.
 
@@ -35,7 +35,7 @@
 
 1. Run `curl.exe -s http://localhost:3000/api/health` and expect `{"status":"ok","db":"ok"}`.
 2. Confirm `/`, `/customers`, `/customers/new`, and `/calendar` render after sign-in.
-3. Confirm a seeded customer has a scheduling form with two locations and three services.
+3. Create a business and customer under the GitHub account; legacy seeded rows remain stored but are not automatically assigned to OAuth users.
 4. Run `corepack.cmd pnpm test`, `corepack.cmd pnpm typecheck`, and `corepack.cmd pnpm build` with development stopped before the build.
 
 ## If this didn't work
@@ -50,7 +50,7 @@
    corepack.cmd pnpm prisma:generate
    ```
 
-3. For an empty customer list, sign out and sign in as the seeded `demo-user`; other usernames have no demo employee membership.
+3. For an empty customer list, create a business and customer. Legacy demo memberships are preserved but cannot be claimed by typing a username.
 
 ## Related
 

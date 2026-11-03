@@ -2,7 +2,6 @@
 import { currentUserId } from "@project/auth";
 import { getUser, listBusinesses } from "@project/domain";
 import { redirect } from "next/navigation";
-import { SignOutButton } from "./sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +23,7 @@ export default async function Home() {
   ]);
   if (!user) redirect("/login");
 
-  const initials = user.username.slice(0, 2).toUpperCase();
+  const initials = (user.name ?? user.username ?? "GitHub user").slice(0, 2).toUpperCase();
 
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#f5f7fb] text-slate-900">
@@ -71,7 +70,7 @@ export default async function Home() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white px-5 sm:px-8 lg:px-10">
+          <header className="flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white pl-5 pr-28 sm:pl-8 lg:pl-10">
             <a href="#overview" className="flex items-center gap-2 lg:hidden" aria-label="Clientflow home">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#172b4d] text-cyan-200">
                 <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
@@ -84,13 +83,13 @@ export default async function Home() {
             <p className="hidden text-sm text-slate-500 lg:block">Workspace overview</p>
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
-                <p className="max-w-48 truncate text-sm font-medium text-slate-800">{user.username}</p>
+                <p className="max-w-48 truncate text-sm font-medium text-slate-800">{(user.name ?? user.username ?? "GitHub user")}</p>
                 <p className="text-xs text-slate-400">Workspace account</p>
               </div>
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700" aria-hidden="true">
                 {initials}
               </span>
-              <SignOutButton />
+
             </div>
           </header>
 
@@ -109,7 +108,7 @@ export default async function Home() {
                   Your Clientflow workspace
                 </p>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Welcome back, {user.username}.
+                  Welcome back, {(user.name ?? user.username ?? "GitHub user")}.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
                   A clear view of the businesses connected to your account, all in one place.
@@ -139,7 +138,7 @@ export default async function Home() {
 
               <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
                 <p className="text-sm font-medium text-slate-500">Signed in as</p>
-                <p className="mt-3 truncate text-lg font-semibold text-slate-900">{user.username}</p>
+                <p className="mt-3 truncate text-lg font-semibold text-slate-900">{(user.name ?? user.username ?? "GitHub user")}</p>
                 <p className="mt-2 text-xs text-slate-400">Your personal Clientflow workspace</p>
               </article>
             </section>

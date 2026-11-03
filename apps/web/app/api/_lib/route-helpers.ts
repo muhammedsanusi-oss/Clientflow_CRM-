@@ -9,6 +9,7 @@ type ValidationSchema<T> = {
 };
 
 export async function authenticatedUserId() {
+  // URL/body IDs are lookup keys only; Auth.js resolves request identity.
   return currentUserId();
 }
 
