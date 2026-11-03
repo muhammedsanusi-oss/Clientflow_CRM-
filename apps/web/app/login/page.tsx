@@ -1,35 +1,9 @@
-// The sign-in page. A username is an account — no password, and the page
-// says so out loud. Client Component: owns the form state, calls the API.
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-export default function LoginPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
-    });
-    setBusy(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setError(data?.error?.message ?? "Something went wrong");
-      return;
-    }
-    router.push("/");
-    router.refresh();
-  }
-
+// Public GitHub sign-in; Next.js protects the form action's origin.
+import { signIn, currentUserId } from "../../../../packages/auth/src/index";
+import { redirect } from "next/navigation";
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  if (await currentUserId()) redirect("/");
+  const { error } = await searchParams;
   return (
     <main className="fixed inset-0 grid min-h-screen overflow-y-auto bg-[#f5f7fb] text-slate-900 lg:grid-cols-2">
       <section className="relative flex min-h-[320px] flex-col justify-between overflow-hidden bg-[#172b4d] px-7 py-8 text-white sm:px-12 sm:py-10 lg:min-h-screen lg:px-16 lg:py-12">
@@ -94,49 +68,14 @@ export default function LoginPage() {
           <header className="mb-8">
             <h2 className="text-3xl font-semibold tracking-tight">Sign in to Clientflow</h2>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Enter your employee email or choose a username to continue.
+              Use your GitHub account to securely access your workspace.
             </p>
           </header>
 
-          <form onSubmit={submit} className="space-y-5">
-            <div>
-              <label htmlFor="username" className="mb-2 block text-sm font-medium text-slate-700">
-                Email or username
-              </label>
-              <input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="you@company.com or username"
-                autoComplete="username"
-                autoFocus
-                aria-invalid={Boolean(error)}
-                aria-describedby={error ? "login-error" : undefined}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-              />
-            </div>
-            {error && (
-              <p id="login-error" role="alert" className="text-sm text-red-600">
-                {error}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={busy || username.trim().length === 0}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#263b68] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1d3058] focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-45"
-            >
-              {busy ? "Signing in…" : "Continue"}
-              {!busy && <span aria-hidden="true">→</span>}
-            </button>
+          {error && <p role="alert" className="mb-4 text-sm text-red-600">Sign-in failed. Please try again.</p>}
+          <form action={async () => { "use server"; await signIn("github", { redirectTo: "/" }); }}>
+            <button type="submit" className="w-full rounded-xl bg-[#263b68] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1d3058] focus:outline-none focus:ring-4 focus:ring-indigo-200">Sign in with GitHub</button>
           </form>
-
-          <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-semibold text-amber-950">Development sign-in</p>
-            <p className="mt-1.5 text-xs leading-5 text-amber-900/80">
-              No password is required in this demo. This identifies a user but
-              does not authenticate them, so anyone can sign in as any username.
-            </p>
-          </div>
 
           <p className="mt-8 text-center text-xs text-slate-400">
             Clientflow CRM <span className="mx-1.5">·</span> Built for better client relationships

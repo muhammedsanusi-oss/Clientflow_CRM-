@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ClientFlow CRM — Project & Prototype Guide</title>
+  <link rel="stylesheet" href="report.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <div class="cover-band"></div>
+      <div class="eyebrow">Learning & showcase guide</div>
+      <h1>ClientFlow CRM Project Guide</h1>
+      <p class="subtitle">What was changed, how the repository fits together, where each kind of code belongs, what is safe to modify, and how to run the current customer-list showcase.</p>
+      <div style="margin-top:24px">
+        <span class="pill local">Branch: learning/company-customers</span>
+        <span class="pill done">Database-backed page</span>
+        <span class="pill proposed">Local prototype</span>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <div><strong>Audience</strong>Developer learning the codebase</div>
+      <div><strong>Stack</strong>Next.js, TypeScript, Prisma, PostgreSQL, pnpm/Turborepo</div>
+      <div><strong>Current showcase</strong>Company-scoped customer list</div>
+      <div><strong>Important</strong>Keep local until the team reviews the proposal</div>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Mental model</div>
+    <h2>How a customer reaches the screen</h2>
+    <p class="lead">The browser does not talk directly to PostgreSQL. Each layer has a focused responsibility and calls the next layer.</p>
+
+    <div class="flow">
+      <div class="node">Browser<br><code>/customers</code></div><div class="arrow">→</div>
+      <div class="node">Next.js<br>page</div><div class="arrow">→</div>
+      <div class="node">Auth +<br>domain query</div><div class="arrow">→</div>
+      <div class="node">Prisma<br>client</div><div class="arrow">→</div>
+      <div class="node">PostgreSQL<br>:5433</div>
+    </div>
+
+    <ol class="number-list">
+      <li><strong>Next.js receives the page request.</strong> The file is <code>apps/web/app/customers/page.tsx</code>.</li>
+      <li><strong>Authentication derives the current user.</strong> Development currently falls back to <code>demo-user</code>.</li>
+      <li><strong>The domain function scopes the query.</strong> It follows User → Employee → Business and returns only that business’s customers.</li>
+      <li><strong>Prisma translates the typed query to SQL.</strong> The client connects to the local PostgreSQL server.</li>
+      <li><strong>React renders the results.</strong> Loading, empty, and error files cover the asynchronous states.</li>
+    </ol>
+
+    <h3>Ownership model introduced by the prototype</h3>
+    <div class="tree">Software platform
+└── Business (tenant/security boundary)
+    ├── Location: Downtown
+    ├── Location: North Side
+    ├── Employee → User: demo-user
+    └── Customers
+        ├── Aisha Brown
+        ├── Maria Lopez
+        └── James Wilson</div>
+
+    <div class="callout">
+      <strong>Security rule:</strong> do not trust a business ID sent by a browser. Start with the authenticated user and derive the allowed business on the server.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Repository map</div>
+    <h2>What each section is for</h2>
+
+    <table>
+      <tr><th>Path</th><th>Responsibility</th><th>Modify it when…</th></tr>
+      <tr><td><code>apps/web/</code></td><td>Next.js pages, route handlers, loading/error UI</td><td>You are changing what users see or a web entry point</td></tr>
+      <tr><td><code>apps/worker/</code></td><td>Background queue processing</td><td>Work should happen outside a web request</td></tr>
+      <tr><td><code>apps/db-server/</code></td><td>Runs local embedded PostgreSQL</td><td>Local database startup behavior must change; usually leave it alone</td></tr>
+      <tr><td><code>apps/migrate/</code></td><td>One-shot migration and seed commands</td><td>You need repeatable demo/dev data or migration execution</td></tr>
+      <tr><td><code>packages/db/</code></td><td>Prisma schema, generated client, migration runner</td><td>You are changing stored data or relationships</td></tr>
+      <tr><td><code>packages/domain/</code></td><td>Zod validation and web-facing database queries</td><td>You need reusable validation or user-scoped queries</td></tr>
+      <tr><td><code>packages/auth/</code></td><td>Determines the current user</td><td>Authentication/session behavior changes</td></tr>
+      <tr><td><code>packages/services/</code></td><td>Blob, queue, and database-notification adapters</td><td>You integrate storage or asynchronous messaging</td></tr>
+      <tr><td><code>packages/log/</code></td><td>Structured logging</td><td>You add operational logs</td></tr>
+      <tr><td><code>docs/specs/</code></td><td>Evergreen behavior contracts</td><td>A feature’s observable behavior changes</td></tr>
+      <tr><td><code>docs/adr/</code></td><td>Write-once architecture decisions</td><td>A durable technical choice needs team agreement</td></tr>
+      <tr><td><code>tests/</code></td><td>Integration verification using in-memory PGlite</td><td>You need proof that behavior and isolation work</td></tr>
+    </table>
+
+    <h3>Dependency direction</h3>
+    <div class="callout warning">
+      Apps may import packages, but one app must not import another app. Shared logic belongs in a package. The <code>@project</code> scope is a repository placeholder and should not be hardcoded into newly invented package names.
+    </div>
+
+    <h3>Files you should not edit manually</h3>
+    <ul>
+      <li><code>.pgdata/</code> — PostgreSQL’s local data files.</li>
+      <li><code>.azurite/</code> — local Azure emulator data.</li>
+      <li><code>packages/db/src/generated/</code> — regenerated by Prisma.</li>
+      <li>Applied migration files such as <code>0001_init.sql</code> — migrations are append-only.</li>
+      <li><code>.env</code> files unless you intentionally manage local secrets; never commit them.</li>
+    </ul>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Database layers</div>
+    <h2>Schema, migration, client, and data are different things</h2>
+
+    <div class="grid-2">
+      <div class="card blue"><h3>1. Prisma schema</h3><p><code>schema.prisma</code> describes the desired models and relations used by TypeScript.</p></div>
+      <div class="card"><h3>2. SQL migration</h3><p>A numbered <code>.sql</code> file changes an existing PostgreSQL database to match the new design.</p></div>
+      <div class="card teal"><h3>3. Generated client</h3><p><code>pnpm prisma:generate</code> creates typed query code from the Prisma schema.</p></div>
+      <div class="card amber"><h3>4. Seed data</h3><p><code>pnpm db:seed</code> creates predictable local records for development and demonstrations.</p></div>
+    </div>
+
+    <h3>Correct database-change sequence</h3>
+    <ol>
+      <li>Agree on the behavior and relationships.</li>
+      <li>Edit <code>packages/db/prisma/schema.prisma</code>.</li>
+      <li>Generate a new append-only migration; never rewrite an applied one.</li>
+      <li>Review generated SQL before applying it. Tools may propose destructive statements.</li>
+      <li>Apply the migration and confirm the migration tracker records it.</li>
+      <li>Run <code>pnpm prisma:generate</code>.</li>
+      <li>Update repeatable seed data.</li>
+      <li>Add tests that prove ownership boundaries.</li>
+    </ol>
+
+    <h3>What happened in this prototype</h3>
+    <table>
+      <tr><th>Change</th><th>Reason</th></tr>
+      <tr><td>Split Business from Location</td><td>A tenant and a physical branch have different responsibilities</td></tr>
+      <tr><td>Added <code>Customer.business_id</code></td><td>Customers are shared business-wide but isolated from other businesses</td></tr>
+      <tr><td>Added <code>Employee.business_id</code> and <code>user_id</code></td><td>The server can derive tenant access from the current user</td></tr>
+      <tr><td>Added <code>Appointment.location_id</code></td><td>Future appointments identify where service occurs</td></tr>
+      <tr><td>Changed unique customer fields</td><td>Email and phone are unique per business, not across the SaaS platform</td></tr>
+      <tr><td>Removed incomplete Customer_Business model</td><td>A direct business owner matches the current product rule</td></tr>
+    </table>
+
+    <div class="callout warning"><strong>Migration lesson learned:</strong> Prisma’s live-database diff tried to drop the custom <code>_migrations</code> table because it is not part of the Prisma schema. That line was reviewed and removed before applying migration 0002.</div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Changed files</div>
+    <h2>What was done and where to continue</h2>
+
+    <h3><code>docs/adr/0012-business-tenant-boundary.md</code></h3>
+    <p>Records the proposed architectural decision: Business is the tenant; customers are shared across its locations. It remains <strong>Proposed</strong> until the team accepts it.</p>
+
+    <h3><code>packages/db/prisma/schema.prisma</code></h3>
+    <p>Defines Business, Location, and the new ownership relationships. Modify this file when the persistent data model changes—not for display-only frontend changes.</p>
+
+    <h3><code>packages/db/prisma/migrations/0002_business_tenancy.sql</code></h3>
+    <p>Applies the tenancy design to PostgreSQL. Do not edit it after the team treats it as applied/shared; future changes get migration 0003.</p>
+
+    <h3><code>apps/migrate/src/seed.ts</code></h3>
+    <p>Uses fixed IDs and upserts inside a transaction. It seeds one business, two locations, one employee, and three customers. Running it multiple times is safe.</p>
+
+    <h3><code>packages/domain/src/customers.ts</code></h3>
+    <p>Contains <code>listCustomersForUser(userId)</code>. The query scopes through an active employee instead of accepting a business ID from the browser.</p>
+
+    <h3><code>apps/web/app/customers/</code></h3>
+    <table>
+      <tr><th>File</th><th>Purpose</th></tr>
+      <tr><td><code>page.tsx</code></td><td>Server-rendered customer list</td></tr>
+      <tr><td><code>loading.tsx</code></td><td>Skeleton shown while the route loads</td></tr>
+      <tr><td><code>error.tsx</code></td><td>Client-side retry card if loading fails</td></tr>
+    </table>
+
+    <h3><code>package.json</code></h3>
+    <p>Adds <code>pnpm db:seed</code>, forwarding to the migration app’s seed script.</p>
+
+    <div class="callout success">
+      <strong>Current result:</strong> visiting <code>http://localhost:3000/customers</code> shows Aisha Brown, Maria Lopez, and James Wilson from PostgreSQL.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Showcase runbook</div>
+    <h2>How to start the current project demo</h2>
+    <p class="lead">Use the focused two-terminal startup for a presentation. It avoids extra worker/Azurite noise and prevents accidental duplicate database servers.</p>
+
+    <h3>Preparation — repository terminal</h3>
+    <pre>cd "C:\Users\Juanc\OneDrive\Desktop\Webdevelopment Fall\Fall Project\Clientflow_CRM-"
+git switch learning/company-customers
+pnpm install
+pnpm prisma:generate</pre>
+    <p class="small">Normally <code>pnpm install</code> is only needed after a fresh clone or dependency change.</p>
+
+    <h3>Terminal 1 — database</h3>
+    <pre>pnpm db:dev</pre>
+    <p>Wait for:</p>
+    <pre>postgres ready — this process owns the data</pre>
+
+    <h3>Terminal 2 — seed</h3>
+    <pre>pnpm db:seed</pre>
+    <p>Expected:</p>
+    <pre>seeded demo business, locations, employee, and customers</pre>
+
+    <h3>Terminal 2 — web app</h3>
+    <pre>pnpm dev:web</pre>
+
+    <h3>Open these URLs</h3>
+    <table>
+      <tr><th>URL</th><th>What to show</th></tr>
+      <tr><td><code>http://localhost:3000/api/health</code></td><td><code>{"status":"ok","db":"ok"}</code> proves the web process can reach PostgreSQL</td></tr>
+      <tr><td><code>http://localhost:3000/customers</code></td><td>The company-scoped customer list from the seed data</td></tr>
+    </table>
+
+    <h3>Stop cleanly</h3>
+    <ol>
+      <li>Press <code>Ctrl+C</code> in the web terminal.</li>
+      <li>Press <code>Ctrl+C</code> in the database terminal.</li>
+      <li>Wait for PostgreSQL’s shutdown message before closing the window.</li>
+    </ol>
+
+    <div class="callout warning"><strong>Avoid duplicate servers:</strong> do not run <code>pnpm dev</code>, <code>pnpm db:dev</code>, or <code>pnpm dev:web</code> twice. A second database process will fail on port 5433, and a second web process may move to port 3001.</div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Troubleshooting</div>
+    <h2>Common local problems</h2>
+
+    <table>
+      <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+      <tr><td><code>P1001</code> or cannot reach <code>127.0.0.1:5433</code></td><td>PostgreSQL is not running</td><td>Start one <code>pnpm db:dev</code> and wait for “postgres ready”</td></tr>
+      <tr><td>Health returns <code>503</code> with <code>db:error</code></td><td>Web is running but database is unavailable</td><td>Check port 5433 and the database terminal</td></tr>
+      <tr><td>“Port in use”</td><td>A duplicate dev/database process is already running</td><td>Stop old terminals; run only one stack</td></tr>
+      <tr><td><code>fatal: not a git repository</code></td><td>Terminal is one folder above the repository</td><td><code>cd .\Clientflow_CRM-</code></td></tr>
+      <tr><td>Customers page is empty</td><td>Seed was not run or user mapping differs</td><td>Run <code>pnpm db:seed</code>; confirm current user is <code>demo-user</code></td></tr>
+      <tr><td>Prisma types do not include new models</td><td>Generated client is stale</td><td>Run <code>pnpm prisma:generate</code></td></tr>
+      <tr><td>Package-manager version/signature failure</td><td>Corepack/pnpm mismatch or registry unavailable</td><td>Use the repository-pinned pnpm 11.17.0 and confirm registry/network access</td></tr>
+    </table>
+
+    <h3>Focused commands</h3>
+    <pre># Database only
+pnpm db:dev
+
+# Web only
+pnpm dev:web
+
+# Repeatable demo data
+pnpm db:seed
+
+# Prisma client after schema edits
+pnpm prisma:generate
+
+# Required checks before declaring merge-ready
+pnpm test
+pnpm typecheck
+pnpm build</pre>
+
+    <div class="callout">The full <code>pnpm dev</code> command starts web, worker, PostgreSQL, and Azurite together. Use it when demonstrating the whole platform, but only after all focused processes are stopped.</div>
+  </section>
+
+  <section class="page">
+    <div class="section-kicker">Safe workflow</div>
+    <h2>How to decide what to modify</h2>
+
+    <table>
+      <tr><th>Goal</th><th>Start here</th><th>Usually also update</th></tr>
+      <tr><td>Change page layout or text</td><td><code>apps/web/app/…</code></td><td>Feature spec if behavior changes</td></tr>
+      <tr><td>Add a form/API input</td><td><code>packages/domain</code> Zod schema</td><td>Web action/route, tests, spec</td></tr>
+      <tr><td>Read database records</td><td><code>packages/domain</code> query</td><td>User/business scope tests</td></tr>
+      <tr><td>Add a database field/table</td><td><code>schema.prisma</code></td><td>New migration, generated client, seed, tests, spec</td></tr>
+      <tr><td>Change current-user behavior</td><td><code>packages/auth</code></td><td>Auth spec and security tests</td></tr>
+      <tr><td>Add background processing</td><td><code>apps/worker</code></td><td>Queue adapter, message contract, tests</td></tr>
+      <tr><td>Add file/image storage</td><td><code>packages/services</code></td><td>Web endpoint, worker if processing, storage spec</td></tr>
+    </table>
+
+    <h3>Feature implementation ritual</h3>
+    <ol class="number-list">
+      <li><strong>Issue:</strong> describe why, behavior sketch, out-of-scope items, and verification sketch.</li>
+      <li><strong>Spec:</strong> write observable behavior, examples, failures, constraints, and verification.</li>
+      <li><strong>Implementation:</strong> derive identity, validate, scope the query, act, map errors, and revalidate.</li>
+      <li><strong>Tests:</strong> include happy path plus a failure that would catch removal of the feature.</li>
+      <li><strong>Review:</strong> read the diff, run the complete checks, and verify the documented drill.</li>
+    </ol>
+
+    <h3>Database safety rules</h3>
+    <ul class="checklist">
+      <li>Every query is scoped from the current user.</li>
+      <li>Foreign or unknown resources return 404, not 403.</li>
+      <li>Never edit an applied migration; add the next numbered migration.</li>
+      <li>Writes that imply history must save the record and history event transactionally.</li>
+      <li>Do not edit or commit <code>.pgdata</code>, <code>.azurite</code>, or <code>.env</code>.</li>
+      <li>Review generated SQL before applying it.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-kicker">Next learning milestone</div>
+    <h2>Recommended next work</h2>
+    <p class="lead">Turn the read-only prototype into a complete customer creation slice only after the team reviews the tenant design.</p>
+
+    <ol>
+      <li>Create the official issue and customer feature specification.</li>
+      <li>Add a Zod schema for customer input in <code>packages/domain</code>.</li>
+      <li>Add a scoped create function that derives <code>business_id</code> from the current user.</li>
+      <li>Build an accessible “Add customer” form.</li>
+      <li>Map validation errors to 400 and duplicate email/phone conflicts to 409.</li>
+      <li>Add tests with two businesses proving cross-tenant reads and writes are impossible.</li>
+      <li>Decide whether services, employee roles, and employees’ location assignments must also be business-scoped now.</li>
+    </ol>
+
+    <h3>Glossary</h3>
+    <table>
+      <tr><th>Term</th><th>Meaning in this project</th></tr>
+      <tr><td>Tenant</td><td>An independent subscribing Business whose data must be isolated</td></tr>
+      <tr><td>Scope</td><td>The ownership condition added to a query, derived from the current user</td></tr>
+      <tr><td>Migration</td><td>An ordered SQL change that moves an existing database forward</td></tr>
+      <tr><td>Seed</td><td>Repeatable development/demo data</td></tr>
+      <tr><td>Domain layer</td><td>Shared web validation and database-query logic</td></tr>
+      <tr><td>Seam</td><td>A configuration boundary between a local stand-in and production service</td></tr>
+      <tr><td>ADR</td><td>A durable record of an architectural decision and its tradeoffs</td></tr>
+    </table>
+
+    <div class="callout success"><strong>You can safely explore:</strong> keep work on <code>learning/company-customers</code>, avoid pushing until ready, make small changes, run focused typechecks, inspect the diff, and reset only the local database when you intentionally want fresh data.</div>
+
+    <div class="footer-note">This guide describes the local prototype as it exists on the learning branch. Before merging, the repository requires an approved issue/spec workflow plus passing test, typecheck, build, and manual verification checks.</div>
+  </section>
+</body>
+</html>

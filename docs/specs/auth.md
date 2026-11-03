@@ -1,35 +1,38 @@
 ---
 type: infrastructure
 ---
-# Identity — the auth subsystem
+# Identity comes exclusively from a database session
 
-Who the current user is, and how every server entry learns it.
+GitHub OAuth through Auth.js v5 proves identity in development and production.
+The Prisma adapter persists accounts and opaque session tokens. Each request
+resolves its unexpired Session row; signing out revokes that row.
 
-## Today: the dev identity stub
+## Server entry contract
 
-`packages/auth/` resolves the current user from the `x-user-id` header, then
-`DEV_USER_ID`, then a fallback — **deliberately naive**, and guarded: it throws
-in production unless `ALLOW_DEV_IDENTITY` is set. This is the auth seam's
-local stand-in (see [seams](seams.md)) and a planted lesson.
+- Call currentUserId() before private queries or writes. Null means signed out.
+- Pages and form actions redirect signed-out users to /login. Private APIs return
+  401 with { error: { code: "UNAUTHENTICATED", message: "Sign in first" } }.
+- /login, /api/health, and /api/auth/* are public. The existing / dashboard is private.
+- Scope every operation to the session user's business membership. Foreign and
+  unknown resources return 404. Browser IDs are lookup keys, never authority.
+- No username login, legacy identity cookie, header, or environment fallback exists.
+- OAuth users do not automatically claim legacy accounts by matching email or name.
 
-## Target: session-derived identity, only
+## Configuration and verification
 
-- Auth.js v5 + Prisma adapter, database sessions, GitHub OAuth (one provider).
-- Public surface: landing, /login, /api/health, /api/auth/*. Everything else
-  gated; signed-out API calls get 401, pages redirect to /login.
-- Identity comes from the session **only**. The client never supplies a user
-  id — no header, no param, no dev-only bypass: dev signs in like prod.
-- First sign-in creates the user (name/avatar from GitHub).
-
-The swap from stub to sessions is epic work — a `sign-in` ticket in the
-app's feature epic executes it against this contract.
+See [GitHub sign-in](auth/github-sign-in.md) for models, examples and tests,
+[local setup](../runbooks/github-oauth-setup.md) for OAuth app registration and
+ignored secrets, and [review checklist](../reviews/github-sign-in.md) for all four
+teammate manual proofs. Database migrations are additive; do not reset existing data.
 
 ## Constraints & decisions
 
-- One provider (GitHub); more is out of scope.
-- After the swap, the string `x-user-id` appears nowhere in the codebase.
-- Roles/admin, account deletion + export: future work with a privacy doc.
+GitHub is the only provider. Roles, invitations, legacy membership transfer,
+account deletion/export and other providers are separate work. The adapter User
+keeps its string ID and existing employee relationships. Secrets belong in
+apps/web/.env.local; examples contain placeholders.
 
-## Key decisions
+## Historical decision
 
-- [ADR-0003](../adr/0003-dev-identity-stub.md) — why the stub exists and how it's guarded.
+[ADR-0003](../adr/0003-dev-identity-stub.md) records the retired identity stub;
+it is historical and does not describe current authentication.

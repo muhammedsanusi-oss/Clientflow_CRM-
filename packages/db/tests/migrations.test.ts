@@ -35,7 +35,7 @@ describe("SQL migration contract", () => {
         { encoding: "utf8", env: { ...process.env, DATABASE_URL: "postgresql://unused:unused@localhost:5433/unused" } });
       await expected.exec(sql);
       expect(await catalog(migrated)).toEqual(await catalog(expected));
-      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(4);
+      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
     } finally {
       await migrated.close();
       await expected.close();
@@ -60,6 +60,12 @@ describe("SQL migration contract", () => {
       await db.exec(await migration("0002_business_tenancy.sql"));
       await db.exec(await migration("0003_reconcile_schema.sql"));
       await db.exec(await migration("0004_schema_update.sql"));
+      // OAuth is an additive migration: legacy identities and membership links survive.
+      const usersBefore = (await db.query('SELECT * FROM "User" ORDER BY "id"')).rows;
+      const employeesBefore = (await db.query('SELECT * FROM "Employee" ORDER BY "id"')).rows;
+      await db.exec(await migration("0005_github_auth.sql"));
+      expect((await db.query('SELECT "id", "username", "createdAt" FROM "User" ORDER BY "id"')).rows).toEqual(usersBefore);
+      expect((await db.query('SELECT * FROM "Employee" ORDER BY "id"')).rows).toEqual(employeesBefore);
       expect((await db.query('SELECT "role_id" FROM "Employee"')).rows).toEqual([{ role_id: "OWNER" }]);
       expect((await db.query('SELECT "type_id" FROM "Interaction"')).rows).toEqual([{ type_id: "CALL" }]);
       expect((await db.query('SELECT "status_id" FROM "Appointment"')).rows).toEqual([{ status_id: "SCHEDULED" }]);
@@ -97,7 +103,7 @@ describe("SQL migration contract", () => {
       await applyMigrations(db);
       expect((await db.query(`SELECT column_default FROM information_schema.columns
         WHERE table_name = 'Note' AND column_name = 'updated_at'`)).rows).toEqual([{ column_default: null }]);
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(4);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
     } finally { await db.close(); }
   }, 30000);
 
@@ -114,7 +120,7 @@ describe("SQL migration contract", () => {
 
       await applyMigrations(db);
 
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(4);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
       expect((await db.query(`SELECT udt_name FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = 'Employee' AND column_name = 'role_id'`)).rows)
         .toEqual([{ udt_name: "EmployeeRole" }]);

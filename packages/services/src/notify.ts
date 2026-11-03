@@ -24,7 +24,7 @@ type Handler = (n: StageEvent) => void;
 
 export async function onStage(entityId: string, handler: Handler): Promise<() => void> {
   if (!listener) {
-    const url = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:5433/postgres";
+    const url = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:55432/postgres";
     listener = new Client({ connectionString: url });
     await listener.connect();
     await listener.query(`LISTEN "${CHANNEL}"`);

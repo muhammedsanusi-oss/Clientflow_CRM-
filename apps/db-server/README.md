@@ -9,7 +9,7 @@ instance (Week 10).
 - Boots an embedded Postgres from `embedded-postgres` (a native npm package)
 - Owns the `.pgdata/` data directory at the repo root
 - Auto-applies any pending migrations on startup via `@project/db`'s `applyMigrations`
-- Listens on port 5433 by default (configurable via `DB_PORT`)
+- Listens on port 55432 by default (configurable via `DB_PORT`)
 - Traps SIGINT/SIGTERM to shut down cleanly
 
 ## Dependencies

@@ -14,6 +14,8 @@ Each week of class goes deep on one layer that's already here under your feet.
 
 ## Get running (no Docker, no installs beyond Node)
 
+For Windows ARM and the combined customer/calendar app, follow [Run locally on Windows](docs/runbooks/run-local-windows.md).
+
 ```bash
 pnpm install
 pnpm prisma:generate     # builds the typed CRM database client
@@ -28,11 +30,13 @@ data in `.azurite/`).
 Check it worked: `http://localhost:3000/api/health`
 says `{"status":"ok","db":"ok"}`.
 
+Register a GitHub OAuth app and configure ignored local secrets using [OAuth setup](docs/runbooks/github-oauth-setup.md) before signing in. Legacy demo users remain stored but cannot be selected at login.
+
 ## The map
 
 ```
 browser ──fetch────▶ apps/web/app/api/health/route.ts
-                ───▶ packages/db ──▶ YOUR Postgres server (:5433)
+                ───▶ packages/db ──▶ YOUR Postgres server (:55432)
                 ───▶ packages/services (queue + storage + notify) ──▶ Azurite
                     apps/worker
                     polls queue, processes jobs
@@ -55,7 +59,7 @@ packages/                       # shared libraries
 ├── services/                   #   Azure adapters (queue, storage, notify)
 ├── domain/                     #   Zod schemas + queries (web-only)
 ├── log/                        #   pino logger
-└── auth/                       #   dev identity stub (real auth in Week 8)
+└── auth/                       #   GitHub OAuth + database sessions
 ```
 
 **Apps** are deployable. **Packages** are shared — no app imports from another app.

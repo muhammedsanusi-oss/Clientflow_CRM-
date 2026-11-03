@@ -2,7 +2,6 @@
 import { currentUserId } from "@project/auth";
 import { getUser, listBusinesses } from "@project/domain";
 import { redirect } from "next/navigation";
-import { SignOutButton } from "./sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +23,7 @@ export default async function Home() {
   ]);
   if (!user) redirect("/login");
 
-  const initials = user.username.slice(0, 2).toUpperCase();
+  const initials = (user.name ?? user.username ?? "GitHub user").slice(0, 2).toUpperCase();
 
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#f5f7fb] text-slate-900">
@@ -71,7 +70,7 @@ export default async function Home() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white px-5 sm:px-8 lg:px-10">
+          <header className="flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white pl-5 pr-28 sm:pl-8 lg:pl-10">
             <a href="#overview" className="flex items-center gap-2 lg:hidden" aria-label="Clientflow home">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#172b4d] text-cyan-200">
                 <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
@@ -84,17 +83,23 @@ export default async function Home() {
             <p className="hidden text-sm text-slate-500 lg:block">Workspace overview</p>
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
-                <p className="max-w-48 truncate text-sm font-medium text-slate-800">{user.username}</p>
+                <p className="max-w-48 truncate text-sm font-medium text-slate-800">{(user.name ?? user.username ?? "GitHub user")}</p>
                 <p className="text-xs text-slate-400">Workspace account</p>
               </div>
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700" aria-hidden="true">
                 {initials}
               </span>
-              <SignOutButton />
+
             </div>
           </header>
 
           <div id="overview" className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
+            <nav aria-label="Customer management" className="mb-6 flex flex-wrap gap-3">
+              <a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
+              <a href="/customers" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Customers</a>
+              <a href="/customers/new" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Add customer</a>
+              <a href="/calendar" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Calendar</a>
+            </nav>
             <section className="relative overflow-hidden rounded-3xl bg-[#172b4d] px-6 py-8 text-white sm:px-9 sm:py-10">
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10" />
               <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-40 h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />
@@ -103,7 +108,7 @@ export default async function Home() {
                   Your Clientflow workspace
                 </p>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Welcome back, {user.username}.
+                  Welcome back, {(user.name ?? user.username ?? "GitHub user")}.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
                   A clear view of the businesses connected to your account, all in one place.
@@ -133,7 +138,7 @@ export default async function Home() {
 
               <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
                 <p className="text-sm font-medium text-slate-500">Signed in as</p>
-                <p className="mt-3 truncate text-lg font-semibold text-slate-900">{user.username}</p>
+                <p className="mt-3 truncate text-lg font-semibold text-slate-900">{(user.name ?? user.username ?? "GitHub user")}</p>
                 <p className="mt-2 text-xs text-slate-400">Your personal Clientflow workspace</p>
               </article>
             </section>
@@ -148,16 +153,17 @@ export default async function Home() {
                     Your businesses
                   </h2>
                 </div>
-                <span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+                <div className="flex flex-wrap items-center gap-3"><a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a><span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
                   {businesses.length} total
-                </span>
+                </span></div>
               </div>
 
               {businesses.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {businesses.map((business) => (
-                    <article
+                    <a
                       key={business.id}
+                      href={`/customers?businessId=${encodeURIComponent(business.id)}`}
                       className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       <div className="flex items-start gap-3">
@@ -175,7 +181,7 @@ export default async function Home() {
                         <p className="truncate">{business.email}</p>
                         <p>{business.phone_number}</p>
                       </div>
-                    </article>
+                    </a>
                   ))}
                 </div>
               ) : (
@@ -187,8 +193,9 @@ export default async function Home() {
                   </span>
                   <h3 className="mt-4 text-base font-semibold text-slate-900">Your workspace is ready</h3>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                    Businesses connected to your account will appear here when they&rsquo;re set up.
+                    Create your first business to start adding customers linked to it.
                   </p>
+                  <a href="/businesses/new" className="mt-5 inline-block rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
                 </div>
               )}
             </section>
