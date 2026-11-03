@@ -53,7 +53,7 @@ export async function GET(request: Request) {
   let userId: string;
   try {
     const signedInUserId = await currentUserId();
-    if (!signedInUserId) return errorResponse("UNAUTHORIZED", "Sign in to continue.", 401);
+    if (!signedInUserId) return errorResponse("UNAUTHENTICATED", "Sign in first", 401);
     userId = signedInUserId;
   } catch (error) {
     log.error({ err: String(error) }, "customer API identity failed");
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
   let userId: string;
   try {
     const signedInUserId = await currentUserId();
-    if (!signedInUserId) return errorResponse("UNAUTHORIZED", "Sign in to continue.", 401);
+    if (!signedInUserId) return errorResponse("UNAUTHENTICATED", "Sign in first", 401);
     userId = signedInUserId;
   } catch (error) {
     log.error({ err: String(error) }, "customer API identity failed");

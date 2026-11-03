@@ -1,20 +1,23 @@
 import { redirect, notFound } from "next/navigation";
   import Link from "next/link";
   import { currentUserId } from "@project/auth";
-  import { listCustomersForUser, getCustomerBusinessForUser, listBusinesses } from "@project/domain";
+  import { listCustomersForUser, getCustomerBusinessForUser, listBusinesses, customerSearchInputSchema } from "@project/domain";
   import { BusinessSelector } from "./business-selector";
 
   export const dynamic = "force-dynamic";
 
-  export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ businessId?: string | string[] }> }) {
+  export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ businessId?: string | string[]; q?: string | string[] }> }) {
     const userId = await currentUserId();
   if (!userId) redirect("/login");
-    const requested = (await searchParams).businessId;
+    const parameters = await searchParams;
+    const requested = parameters.businessId;
+    const search = customerSearchInputSchema.safeParse(parameters.q);
+    const query = search.success ? search.data : "";
     const businessId = requested === undefined ? undefined : typeof requested === "string" ? requested : "";
     const [businesses, business] = await Promise.all([listBusinesses(userId), getCustomerBusinessForUser(userId, businessId)]);
     if (businessId !== undefined && !business) notFound();
     if (!business) return <main className="mx-auto max-w-3xl space-y-5 px-5 py-10"><Link href="/" className="text-indigo-700 underline">Back to dashboard</Link><h1 className="text-2xl font-semibold">Create a business to add customers</h1><p>Customers need a business. Create yours first, then add customers linked to it.</p><Link href="/businesses/new" className="inline-block rounded-lg bg-indigo-700 px-4 py-2 text-white">Create business</Link></main>;
-    const customers = await listCustomersForUser(userId, business.id);
+    const customers = search.success ? await listCustomersForUser(userId, business.id, query) : [];
     const selectedQuery = `?businessId=${encodeURIComponent(business.id)}`;
 
     return (
@@ -48,17 +51,28 @@ import { redirect, notFound } from "next/navigation";
         </header>
         <BusinessSelector businesses={businesses} selectedId={business.id} />
 
-        {customers.length === 0 ? (
+        <form method="get" action="/customers" className="flex flex-wrap items-end gap-3">
+          <input type="hidden" name="businessId" value={business.id} />
+          <div className="flex-1">
+            <label htmlFor="customer-search" className="mb-1 block text-sm font-medium">Search customers</label>
+            <input id="customer-search" type="search" name="q" defaultValue={search.success ? query : typeof parameters.q === "string" ? parameters.q : ""} maxLength={100} aria-invalid={!search.success} aria-describedby="search-help" className="w-full rounded-lg border border-neutral-300 px-3 py-2" />
+            <p id="search-help" className="mt-1 text-sm text-neutral-600">Search by name, email, or phone number.</p>
+          </div>
+          <button className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white">Search</button>
+          <Link href={`/customers${selectedQuery}`} className="text-sm text-blue-700 underline">Clear search</Link>
+        </form>
+
+        {!search.success ? <p role="alert" className="text-sm text-red-700">Enter one search query of 100 characters or fewer.</p> : customers.length === 0 ? (
           <section className="rounded-lg border border-neutral-200 bg-neutral-50 p-6">
             <h2 className="font-semibold">No customers found</h2>
             <p className="mt-2 text-sm text-neutral-600">
-              Your business does not have any customer records yet.
+              {query ? "No customers match your search. Clear the search to see all customers." : "Your business does not have any customer records yet."}
             </p>
             <Link
               href={`/customers${selectedQuery}`}
               className="mt-4 inline-block text-blue-600 underline underline-offset-2"
             >
-              Refresh customer list
+              {query ? "Clear search" : "Refresh customer list"}
             </Link>
           </section>
         ) : (

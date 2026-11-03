@@ -40,6 +40,7 @@ export default async function CustomerDetailPage({
           {customer.first_name} {customer.last_name}
         </h1>
         <p className="text-sm text-neutral-600">Business: {customer.business.name}</p>
+        <Link href={`/customers/${customer.id}/edit`} className="inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white">Edit customer</Link>
       </header>
 
       <section

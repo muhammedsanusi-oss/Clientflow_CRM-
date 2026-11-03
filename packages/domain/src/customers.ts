@@ -16,6 +16,8 @@ export type CreateCustomerInput = z.infer<
   typeof createCustomerInputSchema
 >;
 
+export const customerSearchInputSchema = z.string().trim().max(100).default("");
+
 export const createCustomerNoteInputSchema = z
   .object({
     customerId: z.string().trim().min(1).max(100),
@@ -42,7 +44,8 @@ export async function getCustomerBusinessForUser(userId: string, businessId?: st
   });
 }
 
-export async function getCustomerCollectionForUser(userId: string, businessId?: string) {
+export async function getCustomerCollectionForUser(userId: string, businessId?: string, query = "") {
+  const search = customerSearchInputSchema.parse(query);
   // Starting at the active employee relation makes business tenancy part of
   // the database query instead of an application-side filtering step.
   const business = await getCustomerBusinessForUser(userId, businessId);
@@ -57,6 +60,13 @@ export async function getCustomerCollectionForUser(userId: string, businessId?: 
       business: {
         select: {
           customers: {
+            where: {
+              AND: search.split(/\s+/).filter(Boolean).map((term) => ({
+                OR: ["first_name", "last_name", "email", "phone_number"].map((field) => ({
+                  [field]: { contains: term.replace(/[\\%_]/g, "\\$&"), mode: "insensitive" as const },
+                })),
+              })),
+            },
             select: {
               id: true,
               first_name: true,
@@ -66,7 +76,7 @@ export async function getCustomerCollectionForUser(userId: string, businessId?: 
               address: true,
               preferred_contact_method: true,
             },
-            orderBy: [{ last_name: "asc" }, { first_name: "asc" }],
+            orderBy: [{ last_name: "asc" }, { first_name: "asc" }, { id: "asc" }],
           },
         },
       },
@@ -76,8 +86,29 @@ export async function getCustomerCollectionForUser(userId: string, businessId?: 
   return employee?.business.customers ?? null;
 }
 
-export async function listCustomersForUser(userId: string, businessId?: string) {
-  return (await getCustomerCollectionForUser(userId, businessId)) ?? [];
+export async function listCustomersForUser(userId: string, businessId?: string, query = "") {
+  return (await getCustomerCollectionForUser(userId, businessId, query)) ?? [];
+}
+
+export async function updateCustomerForUser(userId: string, customerId: string, input: CreateCustomerInput) {
+  const values = createCustomerInputSchema.parse(input);
+  // Membership is part of the UPDATE predicate, including when it changes
+  // after the edit page was loaded. No ownership field is ever writable.
+  const result = await prisma.customer.updateMany({
+    where: {
+      id: customerId,
+      business: { employees: { some: { user_id: userId, is_active: true } } },
+    },
+    data: {
+      first_name: values.firstName,
+      last_name: values.lastName,
+      phone_number: values.phoneNumber,
+      email: values.email,
+      address: values.address,
+      preferred_contact_method: values.preferredContactMethod,
+    },
+  });
+  return result.count === 1;
 }
 
 export async function createCustomerForUser(

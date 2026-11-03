@@ -1,18 +1,14 @@
 import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
 
 const session = vi.hoisted(() => ({ userId: null as string | null }));
-vi.mock("../../packages/auth/src/current-user", () => ({
+vi.mock("../../packages/auth/src/index", () => ({
   currentUserId: async () => session.userId,
-  startSession: async (value: string) => { session.userId = value; },
-  endSession: async () => { session.userId = null; },
-  SESSION_COOKIE: "session",
 }));
 
 let db: typeof import("../../packages/db/src/index");
 let businesses: typeof import("../../apps/web/app/api/Business/route");
 let locations: typeof import("../../apps/web/app/api/Business/[id]/locations/route");
 let employees: typeof import("../../apps/web/app/api/Business/[id]/employees/route");
-let login: typeof import("../../apps/web/app/api/auth/login/route");
 let ownerId: string;
 let outsiderId: string;
 let businessId: string;
@@ -32,7 +28,6 @@ beforeAll(async () => {
   businesses = await import("../../apps/web/app/api/Business/route");
   locations = await import("../../apps/web/app/api/Business/[id]/locations/route");
   employees = await import("../../apps/web/app/api/Business/[id]/employees/route");
-  login = await import("../../apps/web/app/api/auth/login/route");
   ownerId = (await db.prisma.user.create({ data: { username: "owner" } })).id;
   outsiderId = (await db.prisma.user.create({ data: { username: "outsider" } })).id;
 }, 30000);
@@ -88,7 +83,7 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
     expect((await duplicate.json()).error.code).toBe("CONFLICT");
   });
 
-  it("creates the employee's own account, supports email sign-in and rejects duplicate membership", async () => {
+  it("creates a separate employee account and rejects duplicate membership", async () => {
     session.userId = ownerId;
     const response = await employees.POST(request({ ...employeeInput, email: " Grace@Example.com " }), context());
     expect(response.status).toBe(201);
@@ -97,10 +92,7 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
     expect(staffId).not.toBe(ownerId);
     expect(employee).toMatchObject({ email: "grace@example.com", role: "STAFF", is_active: true });
     expect((await employees.POST(request(employeeInput), context())).status).toBe(409);
-    const signIn = await login.POST(request({ username: " Grace@Example.com " }));
-    expect(signIn.status).toBe(200);
-    expect((await signIn.json()).user.id).toBe(staffId);
-    expect(session.userId).toBe(staffId);
+    expect(session.userId).toBe(ownerId); // Contact email cannot change the authenticated identity.
   });
 
   it("reuses an employee account across businesses and rolls back orphan accounts on duplicate email", async () => {
