@@ -59,7 +59,7 @@ A signed-in user with no business needs a visible way to create one and begin ad
 - Run `pnpm test`, `pnpm typecheck`, and `pnpm build`.
 - With the local app running, run `node tests/http/business-onboarding.mjs` (`API_BASE_URL` selects a disposable instance). The drill submits actual HTML business and customer forms and creates labeled example accounts, businesses, and a customer; do not run it against production.
 - Verify business creation produces exactly one business and its active owner membership, with rollback on membership failure.
-- Sign in as a new username, create a business from the zero-business dashboard, and confirm the customer list names that business and the dashboard count becomes one.
+- Sign in with a new GitHub account, create a business from the zero-business dashboard, and confirm the customer list names that business and the dashboard count becomes one.
 - Add a customer and verify the stored business relationship and selected-business customer list.
 - Create a second business, switch between businesses, and verify new customers, notes, and appointments use the intended business membership.
 - Use two users to verify foreign and unknown business selections return the same 404 behavior for page and customer API operations.
@@ -70,7 +70,7 @@ A signed-in user with no business needs a visible way to create one and begin ad
 
 - Reuse the existing transactional business creation query and Prisma models; no schema migration or new dependency is required.
 - Business selection is a resource selector, not proof of ownership. Every query verifies active membership through the session-derived user, following `docs/specs/businesses/management-api.md` and `docs/specs/web.md`.
-- The business contact email also initializes the owner's employee contact email, matching the existing API; it does not change the user's login username.
+- The business contact email also initializes the owner's employee contact email, matching the existing API; it does not change the user's GitHub identity.
 - Business names and contact details may repeat because the existing schema does not make them unique.
 - Selecting a business does not transfer existing customers. A customer's business relationship remains authoritative for notes and scheduling.
 - Business locations and services are not fabricated when creating a business; scheduling continues to explain when active locations or services are missing.

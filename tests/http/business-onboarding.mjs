@@ -1,15 +1,12 @@
-// Local/disposable data only: this drill creates two accounts, three businesses,
+// Local/disposable data only: this drill uses two OAuth accounts, creates three businesses,
 // and one customer through the same HTML forms used by the browser.
 import assert from "node:assert/strict";
+import { sessionCookie } from "./session-cookies.mjs";
 
 const base = process.env.API_BASE_URL ?? "http://localhost:3000";
 const suffix = Date.now().toString(36);
 const decode = value => value.replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-async function signIn(username) {
-  const response = await fetch(`${base}/api/auth/login`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ username }) });
-  assert.equal(response.status, 200);
-  return response.headers.get("set-cookie").split(";")[0];
-}
+
 async function page(path, cookie) {
   const response = await fetch(base + path, { headers: { cookie } });
   assert.equal(response.status, 200, path);
@@ -36,7 +33,7 @@ async function createBusiness(name, cookie) {
   assert.ok((await page(next.pathname + next.search, cookie)).includes(name));
   return id;
 }
-const cookie = await signIn(`business-drill-${suffix}`);
+const cookie = sessionCookie("A");
 const empty = await page("/customers/new", cookie);
 assert.ok(empty.includes("A business is required"));
 assert.ok(empty.includes('href="/businesses/new"'));
@@ -76,7 +73,7 @@ assert.equal(duplicate.status, 200);
 assert.ok((await duplicate.text()).includes("already exists"));
 assert.equal((await readCustomers(second)).length, 1);
 
-const otherCookie = await signIn(`other-business-drill-${suffix}`);
+const otherCookie = sessionCookie("B");
 const foreign = await createBusiness(`Other business ${suffix}`, otherCookie);
 for (const businessId of [foreign, "unknown-business"]) {
   for (const method of ["GET", "POST"]) {
