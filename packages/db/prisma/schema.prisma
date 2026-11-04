@@ -173,6 +173,12 @@ model Payment {
 model Business {
   id            String       @id @default(cuid())
   name          String
+  description   String       @default("")
+  websiteTemplate WebsiteTemplate?
+  publicAddress String       @default("")
+  openingHours  String       @default("")
+  inquiries     WebsiteInquiry[]
+  developerAccess DeveloperBusinessAccess[]
   business_type BusinessType
   phone_number  String
   email         String
@@ -204,12 +210,18 @@ model Location {
 
 model User {
   id            String     @id @default(cuid())
-  // Legacy usernames and memberships remain stored; OAuth users need no username.
+  // Legacy usernames and memberships remain stored; password accounts use email.
   username      String?    @unique
   name          String?
   email         String?    @unique
   emailVerified DateTime?
   image         String?
+  isDeveloper   Boolean    @default(false)
+  passwordHash  String?
+  mustChangePassword Boolean @default(false)
+  temporaryExpiresAt DateTime?
+  temporaryConsumedAt DateTime?
+  developerAccess DeveloperBusinessAccess[]
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime   @default(now())
@@ -236,6 +248,7 @@ model Account {
 
 // Random tokens are revocable database tickets, never application user IDs.
 model Session {
+  restricted   Boolean  @default(false)
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -303,4 +316,40 @@ enum BusinessType {
   CLINIC
   BARBERSHOP
   OTHER
+  BAKERY
+}
+
+enum WebsiteTemplate {
+  BAKERY
+  BARBERSHOP
+  SALON
+  CONTACT
+}
+
+model WebsiteInquiry {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  name         String
+  email        String
+  phone        String   @default("")
+  message      String
+  createdAt    DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+model DeveloperBusinessAccess {
+  developerId String
+  businessId String
+  developer User @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  @@id([developerId, businessId])
+  @@index([businessId])
+}
+
+model AuthThrottle {
+  key String @id
+  attempts Int @default(0)
+  windowStart DateTime @default(now())
 }

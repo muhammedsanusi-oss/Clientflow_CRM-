@@ -16,7 +16,7 @@ All exports come from `src/index.ts` (`@project/db`):
 
 | Export | What it is |
 |---|---|
-| `prisma` | The singleton PrismaClient. One per process — cached in a global to survive hot reloads. |
+| `prisma` | The singleton PrismaClient. One per process — cached with its initialization promise in a global across Next.js page/action and API runtimes, including production. |
 | `LOCAL_DEV_URL` | The default dev database URL (`postgresql://postgres:postgres@127.0.0.1:5433/postgres`). |
 
 The migration runner is available at a separate export to keep it out of the

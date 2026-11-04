@@ -25,7 +25,7 @@ Clients need a stable HTTP interface for reading and creating customer records w
 - The JSON customer body does not accept ownership fields. Foreign and unknown business selections return the same 404 response.
 - Both endpoints scope all database access to the current user's active employee relationship and business.
 - A user without an active employee-to-business relationship receives status 404 with the standard error shape.
-- Identity comes exclusively from the authenticated Auth.js database session; a signed-out request receives status 401 with the standard UNAUTHENTICATED error shape before any customer query or write.
+- Identity comes from the session cookie through the current auth seam; a signed-out request receives status 401 with the standard error shape before any customer query or write.
 - POST validates the complete JSON body with the shared strict Zod schema before writing.
 - Invalid JSON or invalid fields return status 400 with code `VALIDATION_ERROR`; no customer is created.
 - A duplicate email or phone number in the same business returns status 409 with code `CONFLICT`.

@@ -16,18 +16,22 @@ on every branch, for every feature.
 
 ## Workspace homepage
 
-- The homepage links to `/customers`, `/customers/new`, and `/calendar`.
-- `Create business` opens `/businesses/new` from the dashboard directory and zero-business state. Business cards open `/customers?businessId=<id>`; creation and customer linking follow `docs/specs/businesses/create-business.md`.
-- Customer and calendar pages and server actions redirect signed-out users to `/login` before querying or writing tenant data.
-- Development uses the standard Next.js bundler (`next dev`); the customer forms must support server-action POST submissions as well as client navigation.
+- The existing / dashboard is for developers. Owners visiting it redirect to /customers; signed-out requests redirect to /login.
+- The dashboard shows businesses authorized by the current developer's access grants, plus owner email and activation status. Its existing visual layout remains in place.
+- Create business opens /businesses/new. Business cards open /businesses/<id> for provisioning details. See [business creation](businesses/create-business.md).
+- Owners access the existing customer and calendar pages through active business membership. The owner customer page identifies the business by name and description.
+- Activation-only sessions cannot access CRM data. Login routes them to /change-password until they finish setup.
+- Customer and calendar pages and actions check identity before accessing tenant data.
+- Signing out uses the same-origin logout endpoint and revokes the persisted session.
+- Development uses the standard Next.js bundler; business forms support Server Action POST submissions and client navigation.
 
-- `/` requires a current user and redirects signed-out or stale identities to
-  `/login`.
-- The overview shows the current user's GitHub name (or preserved legacy username) and businesses returned by
-  the user-scoped business query; it does not trust client-supplied user IDs.
-- The business directory shows an explicit empty state when the user has no
-  businesses.
-- Signing out uses an Origin-protected Auth.js Server Action and returns the user to `/login`.
+## Public business websites
+
+- /sites/<businessId> renders the saved Bakery, Barbershop, Salon, or Contact template without a session, using only explicitly public business fields. Businesses without website settings return 404.
+- The contact form posts to /api/sites/<businessId>/contact and persists business-bound inquiries; it does not send email or create CRM customers.
+- The owner's /inquiries page is private and scopes messages to an active OWNER membership. The owner workspace links to its website and inbox.
+- Developer business cards and creation confirmation include Open website for configured sites. Preview dialogs use unsaved form details and never submit real messages.
+- The root sign-out control remains available to signed-in visitors; website content exposes no session identity or private owner information.
 
 ## Async honesty (UI standard)
 

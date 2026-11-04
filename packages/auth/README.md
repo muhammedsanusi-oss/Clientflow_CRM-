@@ -1,14 +1,9 @@
 # Authentication
 
-Auth.js v5 uses GitHub OAuth, the Prisma adapter and database sessions in both
-development and production. The cookie contains a random token, not a User ID.
+Email/password login supports developer accounts and developer-provisioned business owners. Developer accounts open the existing dashboard. A temporary owner password grants a restricted session until the owner chooses a permanent password.
 
-- currentUserId(): the session user's string ID, or null.
-- auth(): resolves the authenticated database session.
-- handlers: GET/POST endpoints mounted at /api/auth/[...nextauth].
-- signIn/signOut: server-side form actions; sign-out revokes the database session.
+Public exports include currentUserId(), currentSession(), authenticate(), replaceTemporaryPassword(), startSession(), and endSession(). The crypto-only password subpath provides salted scrypt hashing for the domain and the interactive developer bootstrap command without importing Next.js request APIs.
 
-There are no username, browser user-ID, or environment identity shortcuts.
-Legacy usernames and employee relationships remain stored; matching profile
-email does not claim them. See [identity contract](../../docs/specs/auth.md)
-and [OAuth setup](../../docs/runbooks/github-oauth-setup.md).
+Cookies contain opaque tokens; the database stores their SHA-256 digests. Restricted sessions resolve to no CRM identity. Logout revokes the database record. No username-only, GitHub, header, or environment identity bypass exists.
+
+See [the identity contract](../../docs/specs/auth.md), [developer provisioning](../../docs/specs/businesses/developer-provisioning.md), and [developer setup](../../docs/runbooks/developer-owner-setup.md).

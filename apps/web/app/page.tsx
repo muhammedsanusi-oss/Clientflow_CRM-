@@ -1,6 +1,6 @@
 // The signed-in home page. Business records are always scoped to the current user.
 import { currentUserId } from "@project/auth";
-import { getUser, listBusinesses } from "@project/domain";
+import { getUser, listProvisionedBusinesses } from "@project/domain";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -11,19 +11,19 @@ const businessTypes: Record<string, string> = {
   CLINIC: "Clinic",
   BARBERSHOP: "Barbershop",
   OTHER: "Other",
+  BAKERY: "Bakery",
 };
 
 export default async function Home() {
   const userId = await currentUserId();
   if (!userId) redirect("/login");
 
-  const [user, businesses] = await Promise.all([
-    getUser(userId),
-    listBusinesses(userId),
-  ]);
+  const user = await getUser(userId);
   if (!user) redirect("/login");
+  if (!user.isDeveloper) redirect("/customers");
+  const businesses = await listProvisionedBusinesses(userId);
 
-  const initials = (user.name ?? user.username ?? "GitHub user").slice(0, 2).toUpperCase();
+  const initials = (user.name ?? user.email ?? user.username ?? "Developer").slice(0, 2).toUpperCase();
 
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#f5f7fb] text-slate-900">
@@ -80,11 +80,11 @@ export default async function Home() {
               </span>
               <span className="font-semibold tracking-tight text-[#172b4d]">clientflow</span>
             </a>
-            <p className="hidden text-sm text-slate-500 lg:block">Workspace overview</p>
+            <p className="hidden text-sm text-slate-500 lg:block">Developer overview</p>
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
-                <p className="max-w-48 truncate text-sm font-medium text-slate-800">{(user.name ?? user.username ?? "GitHub user")}</p>
-                <p className="text-xs text-slate-400">Workspace account</p>
+                <p className="max-w-48 truncate text-sm font-medium text-slate-800">{(user.name ?? user.email ?? user.username ?? "Developer")}</p>
+                <p className="text-xs text-slate-400">Developer account</p>
               </div>
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700" aria-hidden="true">
                 {initials}
@@ -96,9 +96,6 @@ export default async function Home() {
           <div id="overview" className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
             <nav aria-label="Customer management" className="mb-6 flex flex-wrap gap-3">
               <a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
-              <a href="/customers" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Customers</a>
-              <a href="/customers/new" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Add customer</a>
-              <a href="/calendar" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-slate-200">Calendar</a>
             </nav>
             <section className="relative overflow-hidden rounded-3xl bg-[#172b4d] px-6 py-8 text-white sm:px-9 sm:py-10">
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10" />
@@ -108,7 +105,7 @@ export default async function Home() {
                   Your Clientflow workspace
                 </p>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Welcome back, {(user.name ?? user.username ?? "GitHub user")}.
+                  Welcome back, {(user.name ?? user.email ?? user.username ?? "Developer")}.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
                   A clear view of the businesses connected to your account, all in one place.
@@ -138,7 +135,7 @@ export default async function Home() {
 
               <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
                 <p className="text-sm font-medium text-slate-500">Signed in as</p>
-                <p className="mt-3 truncate text-lg font-semibold text-slate-900">{(user.name ?? user.username ?? "GitHub user")}</p>
+                <p className="mt-3 truncate text-lg font-semibold text-slate-900">{(user.name ?? user.email ?? user.username ?? "Developer")}</p>
                 <p className="mt-2 text-xs text-slate-400">Your personal Clientflow workspace</p>
               </article>
             </section>
@@ -161,9 +158,8 @@ export default async function Home() {
               {businesses.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {businesses.map((business) => (
-                    <a
+                    <article
                       key={business.id}
-                      href={`/customers?businessId=${encodeURIComponent(business.id)}`}
                       className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       <div className="flex items-start gap-3">
@@ -171,7 +167,7 @@ export default async function Home() {
                           {business.name.slice(0, 2).toUpperCase()}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-semibold text-slate-900">{business.name}</h3>
+                          <h3 className="truncate font-semibold text-slate-900"><a href={`/businesses/${encodeURIComponent(business.id)}`} className="hover:underline">{business.name}</a></h3>
                           <p className="mt-1 text-xs text-slate-500">
                             {businessTypes[business.business_type] ?? "Business"}
                           </p>
@@ -180,8 +176,11 @@ export default async function Home() {
                       <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-xs text-slate-500">
                         <p className="truncate">{business.email}</p>
                         <p>{business.phone_number}</p>
+                        <p>Owner: {business.employees[0]?.email ?? "Not assigned"}</p>
+                        <p>{!business.employees[0]?.user.mustChangePassword ? "Active" : business.employees[0]?.user.temporaryExpiresAt && business.employees[0].user.temporaryExpiresAt <= new Date() ? "Invitation expired" : "Pending first sign-in"}</p>
                       </div>
-                    </a>
+                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><a href={`/businesses/${business.id}`} className="underline">Business details</a>{business.websiteTemplate && <a href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</a>}</div>
+                    </article>
                   ))}
                 </div>
               ) : (

@@ -30,7 +30,8 @@ import { redirect, notFound } from "next/navigation";
             ← Dashboard
           </Link>
 
-          <h1 className="text-2xl font-bold">Customers</h1>
+          <h1 className="text-2xl font-bold">{business.name}</h1>
+          {business.description && <p className="text-sm text-slate-600">{business.description}</p>}
 
           <p className="text-sm text-neutral-500">
             Customers linked to {business.name}.
@@ -49,6 +50,7 @@ import { redirect, notFound } from "next/navigation";
             Calendar
           </Link>
         </header>
+        <nav aria-label="Business website" className="flex flex-wrap gap-3"><Link href={`/inquiries${selectedQuery}`} className="rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">Website inquiries</Link>{business.websiteTemplate && <Link href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300 px-4 py-2 text-sm text-indigo-700">Open website</Link>}</nav>
         <BusinessSelector businesses={businesses} selectedId={business.id} />
 
         <form method="get" action="/customers" className="flex flex-wrap items-end gap-3">

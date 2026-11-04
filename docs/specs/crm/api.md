@@ -26,7 +26,8 @@ shared validation and tenancy rules.
   that all related records belong to the selected business and copies each
   service's current base price into the appointment-service price snapshot.
 - Notes and interactions are attributed to the signed-in user's employee
-  membership. Employee creation retains a legacy User keyed by normalized contact email without granting OAuth access; tasks and appointments may reference employees in the
+  membership. Employee creation targets a previously registered user by
+  normalized username; tasks and appointments may reference employees in the
   same business.
 - JSON and Zod validation failures return 400, uniqueness/constraint conflicts
   return 409, and unexpected errors are logged and returned as a generic 500.

@@ -35,7 +35,7 @@ describe("SQL migration contract", () => {
         { encoding: "utf8", env: { ...process.env, DATABASE_URL: "postgresql://unused:unused@localhost:5433/unused" } });
       await expected.exec(sql);
       expect(await catalog(migrated)).toEqual(await catalog(expected));
-      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
+      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(7);
     } finally {
       await migrated.close();
       await expected.close();
@@ -103,7 +103,7 @@ describe("SQL migration contract", () => {
       await applyMigrations(db);
       expect((await db.query(`SELECT column_default FROM information_schema.columns
         WHERE table_name = 'Note' AND column_name = 'updated_at'`)).rows).toEqual([{ column_default: null }]);
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(7);
     } finally { await db.close(); }
   }, 30000);
 
@@ -120,7 +120,7 @@ describe("SQL migration contract", () => {
 
       await applyMigrations(db);
 
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(7);
       expect((await db.query(`SELECT udt_name FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = 'Employee' AND column_name = 'role_id'`)).rows)
         .toEqual([{ udt_name: "EmployeeRole" }]);

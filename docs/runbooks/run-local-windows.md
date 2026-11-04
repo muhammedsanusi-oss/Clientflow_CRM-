@@ -20,22 +20,16 @@
    ```
 
 2. Wait for `postgres ready` and the web server's `Ready` message. Keep this terminal open.
-3. Seed the demo workspace in a second PowerShell terminal in the same repository:
-
-   ```powershell
-   $env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:55433/postgres"
-   corepack.cmd pnpm db:seed
-   ```
-
-4. Follow [OAuth setup](github-oauth-setup.md), open `http://localhost:3000/login`, and sign in with GitHub.
-5. Open Customers from the homepage, select a customer, and choose Schedule; open Calendar to see appointments.
+3. Open http://localhost:3000/login. Select Developer, click Use test developer, then sign in. No account setup in the terminal is required.
+4. Use Create business to enter its details and owner login email, then share the displayed temporary password.
+5. Sign out, select Business owner, and enter the owner's email and temporary password. Choose a permanent password to open the linked portal. The Use test business owner button instead opens the sample business. See [developer and owner setup](developer-owner-setup.md).
 6. Stop the services with Ctrl+C in the first terminal.
 
 ## Verify it worked
 
 1. Run `curl.exe -s http://localhost:3000/api/health` and expect `{"status":"ok","db":"ok"}`.
-2. Confirm `/`, `/customers`, `/customers/new`, and `/calendar` render after sign-in.
-3. Create a business and customer under the GitHub account; legacy seeded rows remain stored but are not automatically assigned to OAuth users.
+2. Confirm / and /businesses/new render for developers. Confirm /customers, /customers/new, and /calendar render for an activated owner.
+3. Confirm the owner portal displays its business name. A newly provisioned business has no fabricated customers, locations, or services.
 4. Run `corepack.cmd pnpm test`, `corepack.cmd pnpm typecheck`, and `corepack.cmd pnpm build` with development stopped before the build.
 
 ## If this didn't work
@@ -50,7 +44,7 @@
    corepack.cmd pnpm prisma:generate
    ```
 
-3. For an empty customer list, create a business and customer. Legacy demo memberships are preserved but cannot be claimed by typing a username.
+3. New owner workspaces start empty. Add customers as the activated owner. Legacy demo users do not receive passwords or access transfers automatically.
 
 ## Related
 
