@@ -39,7 +39,7 @@ export async function getCustomerBusinessForUser(userId: string, businessId?: st
       ...(businessId !== undefined ? { id: businessId } : {}),
       employees: { some: { user_id: userId, is_active: true } },
     },
-    select: { id: true, name: true },
+    select: { id: true, name: true, description: true, websiteTemplate: true },
     orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
 }

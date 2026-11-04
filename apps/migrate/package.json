@@ -7,11 +7,13 @@
     "dev": "tsx src/index.ts",
     "seed": "tsx src/seed.ts",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "create-developer": "tsx src/create-developer.ts"
   },
   "dependencies": {
     "pg": "^8.13.0",
-    "@project/db": "workspace:*"
+    "@project/db": "workspace:*",
+    "@project/auth": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

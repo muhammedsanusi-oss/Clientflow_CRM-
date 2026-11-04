@@ -1,85 +1,60 @@
 ---
 type: feature
 ---
-# Users create businesses and add customers to the selected business
+# Developers create businesses and owners use their assigned workspace
 
 ## Why
 
-A signed-in user with no business needs a visible way to create one and begin adding customers. Users with several businesses need to know which business receives each new customer.
+The project developers prepare business portals for owners. Owners manage customers in their assigned business without creating or claiming other businesses.
 
 ## Where it lives
 
-- `apps/web/app/page.tsx` - business count, create actions, and business directory links.
-- `apps/web/app/businesses/new/` - business form, server action, loading, and error states.
-- `apps/web/app/customers/` - selected business, customer list, creation, notes, and scheduling links.
-- `apps/web/app/api/customers/route.ts` - optional authorized business selection for the existing customer collection API.
-- `packages/domain/src/schemas/business.ts` - shared business validation.
-- `packages/domain/src/queries/business.ts` - transactional business and owner membership creation.
-- `packages/domain/src/customers.ts` - authorized business selection and customer ownership.
-- `packages/domain/src/appointments.ts` - scheduler membership for the selected customer's business.
-- `tests/integration/` - creation, customer linkage, and tenant isolation checks.
-- `docs/specs/web.md`, `docs/specs/customers/add-customer.md`, `docs/specs/customers/customer-api.md`, `docs/specs/appointments/customer-calendar.md` - related navigation and ownership contracts updated with implementation.
+- apps/web/app/page.tsx: existing developer dashboard and business directory.
+- apps/web/app/businesses/new/: existing form extended with description and owner login email.
+- apps/web/app/businesses/[id]/: developer-only business handoff and pending-password regeneration.
+- packages/domain/src/provisioning.ts: validation, developer grants, and transactional provisioning.
+- packages/domain/src/customers.ts and appointments.ts: membership-scoped customer and appointment access.
+- tests/integration/: provisioning and tenant isolation regression checks.
 
 ## Behavior
 
-- The dashboard has a visible `Create business` action beside `Your businesses`, including when the count is zero. The zero-business state also offers that action.
-- `/businesses/new` presents business name, business type, contact email, phone number, and the owner's first and last names, using the existing business validation limits and business types.
-- Signed-out page requests and server actions redirect to `/login` before accessing business data.
-- The form labels fields, preserves input after validation errors, displays field and submission errors, and disables submission while pending.
-- Submission derives the owner from the current session, validates shared input, and uses the existing transaction to create both the business and its active `OWNER` employee membership. No client-supplied user or employee identity is accepted.
-- A failed transaction creates neither record. Unexpected errors produce a safe message; raw database errors never reach the client.
-- Successful creation revalidates the dashboard and opens `/customers?businessId=<created-business-id>`. Returning to the dashboard shows the updated business count and a clickable business card.
-- Each business card opens the customer list for that business. The customer list and add-customer form display the selected business name.
-- Customer pages offer a business selector when the user has several active business memberships. Without an explicit selection, the newest accessible business is the default, consistent with the dashboard ordering.
-- A user with no active business membership sees an explanation and `Create business` action rather than a customer form that cannot succeed.
-- The add-customer link and submission preserve the business selection. The server verifies the selected business through the signed-in user's active employee membership before reading or creating customers.
-- The customer creation form includes a required `Business` selector listing only accessible businesses. Saving creates the customer and its business link together; there is no separate linking step after creation.
-- If no business exists, the customer page offers `Create business` and explains that a business is required before a customer can be saved.
-- Customer JSON collection requests may supply `businessId` as a query parameter; the customer JSON body remains unchanged and cannot specify ownership. Omitting the query selects the same default business as the pages.
-- Customer creation sets `business_id` to the authorized selected business. Existing customers keep their business relationship.
-- Unknown and foreign business IDs have indistinguishable 404 behavior and expose no customer data. Duplicate contact details conflict only within the selected business, following the existing customer contract.
-- Notes and scheduling for a customer resolve the current employee membership in that customer's business, so selecting a second business does not attach the action to the user's first membership.
-- The calendar retains its existing scope across accessible business memberships; this feature does not introduce a calendar business filter.
+- The existing dashboard layout remains the developer portal. Owners visiting / redirect to /customers.
+- Create business collects business name, type, description, contact email and phone, owner first/last names, and owner login email. Only developers may provision businesses.
+- Provisioning creates the owner account, business, OWNER membership, and both developers' access grants atomically. Developers do not become employee owners.
+- The form includes Bakery, Barbershop, Salon, and Contact templates, a live preview dialog, and Use sample details. Creation saves the website settings and contact information; see [website templates](website-templates.md).
+- The success screen displays the temporary owner password once and an Open website link rather than redirecting the developer into the CRM. Business cards open developer-only provisioning details. Full credential and activation behavior is defined in [developer provisioning](developer-provisioning.md).
+- Owners sign in with email and temporary password, replace it, and then open their business customer list. The portal displays its business name and description.
+- CRM queries select only active employee memberships. The business selector, when several memberships exist, selects a resource, not authorization.
+- Customer creation preserves the authorized business selection and writes the customer with that business relationship. Unknown or foreign business IDs return 404.
+- Notes and scheduling resolve the employee membership in the customer's business; existing customers keep their business relationship.
+- The calendar keeps its existing scope across accessible memberships; no new calendar filter is introduced.
+- Signed-out or activation-only requests cannot create businesses or access CRM data. Pages redirect to /login; private APIs return 401. The login page sends activation sessions to password replacement.
+- Form validation preserves safe inputs, identifies field errors, and disables submission while pending. Failures expose only the standard safe error shape.
 
 ## Examples
 
 | State / input | Behavior |
 |---|---|
-| Signed-in user has zero businesses | Dashboard shows `Create business`; customer pages explain how to create one |
-| User submits valid business and owner details | Business and owner membership are created together; selected business customer list opens |
-| Required business name is empty or email is invalid | Field errors appear; no business or membership is created |
-| Owner membership creation fails | Business creation rolls back and the form shows a safe error |
-| User owns businesses A and B and selects B | Customer list and form identify B; a new customer's `business_id` is B |
-| User submits another user's business ID | 404; no customer is created or disclosed |
-| User schedules a customer in B while also belonging to A | Scheduler membership is selected from B |
-| Signed-out visitor opens the business form | Redirect to `/login` |
+| Developer submits valid business and new owner details | Atomic provisioning; one-time credential handoff screen |
+| Owner submits business creation | Denied; no business created |
+| Blank business name or invalid email | Field errors; no provisioning writes |
+| Provisioning transaction fails | Business, account, membership and grants roll back |
+| Owner selects an authorized business | Customers are read and created within that business |
+| Owner supplies another business ID | 404; no data disclosed |
+| Developer opens a provisioned business card | Description, contact details and owner activation state |
 
 ## Verify
 
-- Run `pnpm test`, `pnpm typecheck`, and `pnpm build`.
-- With the local app running, run `node tests/http/business-onboarding.mjs` (`API_BASE_URL` selects a disposable instance). The drill submits actual HTML business and customer forms and creates labeled example accounts, businesses, and a customer; do not run it against production.
-- Verify business creation produces exactly one business and its active owner membership, with rollback on membership failure.
-- Sign in with a new GitHub account, create a business from the zero-business dashboard, and confirm the customer list names that business and the dashboard count becomes one.
-- Add a customer and verify the stored business relationship and selected-business customer list.
-- Create a second business, switch between businesses, and verify new customers, notes, and appointments use the intended business membership.
-- Use two users to verify foreign and unknown business selections return the same 404 behavior for page and customer API operations.
-- Verify invalid form submissions create no rows and duplicate contacts remain isolated by business.
-- Complete business creation and business selection using only the keyboard when browser automation is available; record any unavailable manual verification in the implementation handoff.
+- Run pnpm test, pnpm typecheck, and pnpm build.
+- On a disposable app with an explicitly provisioned developer, set DEVELOPER_EMAIL and DEVELOPER_PASSWORD in the process environment, then run node tests/http/business-onboarding.mjs. API_BASE_URL selects the app.
+- The drill verifies developer dashboard/form fields, owner activation, required password replacement, owner portal access, business isolation, and logout replay protection. It creates synthetic accounts and businesses.
+- Integration tests verify selected-business customer writes, note and appointment membership resolution, field validation, provisioning rollback, and foreign-resource 404s.
+- Complete form entry and credential handoff using the keyboard when a browser is available; report unavailable manual checks.
 
 ## Constraints & decisions
 
-- Reuse the existing transactional business creation query and Prisma models; no schema migration or new dependency is required.
-- Business selection is a resource selector, not proof of ownership. Every query verifies active membership through the session-derived user, following `docs/specs/businesses/management-api.md` and `docs/specs/web.md`.
-- The business contact email also initializes the owner's employee contact email, matching the existing API; it does not change the user's GitHub identity.
-- Business names and contact details may repeat because the existing schema does not make them unique.
-- Selecting a business does not transfer existing customers. A customer's business relationship remains authoritative for notes and scheduling.
-- Business locations and services are not fabricated when creating a business; scheduling continues to explain when active locations or services are missing.
-- Validation and queries stay in `packages/domain`, following `docs/adr/0009-domain-web-only.md`.
+Reuse the dashboard, current visual style, existing business types and CRM workflows. Add schema changes in append-only migration 0006_owner_provisioning.sql. Developer grants authorize provisioning records separately from employee memberships. Owner email never claims or resets a legacy account. See ADR-0014 and [authentication](../auth.md).
 
 ## Out of scope
 
-- Moving an existing customer between businesses or sharing customers across unrelated businesses.
-- Business editing, deletion, employee invitations, and role management.
-- Creating locations or services through new screens.
-- Production authentication, owned by `docs/specs/auth.md`.
-- Calendar availability and conflict handling, outside the existing customer calendar specification.
+Business editing/deletion, customer transfers, staff invitations, custom domains, custom themes beyond the four standard templates, automatic email delivery, subscriptions, and new calendar rules.

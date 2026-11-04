@@ -1,6 +1,15 @@
-// Profile lookup for the session-derived user.
+// Database queries for users. Sign-in is find-or-create: a username IS an
+// account. The unique index on username makes the upsert race-safe.
 import { prisma } from "@project/db";
 
 export function getUser(id: string) {
-  return prisma.user.findUnique({ where: { id } , select: { username: true, name: true,}, });
+  return prisma.user.findUnique({ where: { id }, select: { username: true, name: true, email: true, isDeveloper: true } });
+}
+
+export function findOrCreateUser(username: string) {
+  return prisma.user.upsert({
+    where: { username },
+    update: {},
+    create: { username },
+  });
 }

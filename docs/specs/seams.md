@@ -22,18 +22,21 @@ production behavior diverge, controlled by configuration, not code branches.
 | Database (dev) | Local Postgres via `apps/db-server/` | Azure Postgres | `DATABASE_URL` |
 | Blob storage | Azurite | Azure Blob Storage | `AZURE_STORAGE_CONNECTION_STRING` |
 | Queue | Azurite | Azure Storage Queue | `AZURE_STORAGE_CONNECTION_STRING` |
-| Identity | GitHub OAuth + database sessions | Same authentication | OAuth credentials; see [auth](auth.md) |
+| Identity | Email/password and database sessions | Same identity mechanism | Explicit account provisioning; see auth.md |
 
 ## Design intent
 
 - **No code branches.** The seam is never an `if (isLocal)`. The stand-in and
   the real thing implement the same interface, and the configuration chooses
   which one the SDK connects to.
-- **Default to running.** Database and storage work without cloud setup; pnpm dev starts Postgres and Azurite. GitHub sign-in requires OAuth app registration.
-- **Safe by default.** Identity uses GitHub authentication in every environment; no development bypass exists.
+- **Default to running.** Every seam works out of the box with zero cloud
+  setup. `pnpm dev` starts the stand-ins (Postgres, Azurite).
+- **Safe by default.** Identity has no development bypass; the same database-session boundary applies locally and when hosted.
 - **One env var per seam.** Azure Blob and Queue share
   `AZURE_STORAGE_CONNECTION_STRING`; the database has its own
-  (`DATABASE_URL`). Identity requires OAuth credentials and a secret rather than a stand-in; see [auth](auth.md).
+  (`DATABASE_URL`). Identity uses the same verified session mechanism in all environments. Each configurable cloud seam
+  is a distinct env var away from production, and none requires more than
+  one.
 
 ## ADRs
 

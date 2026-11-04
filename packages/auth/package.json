@@ -10,12 +10,24 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.11.3",
-    "@project/db": "workspace:*",
     "next": "15.5.21",
-    "next-auth": "5.0.0-beta.32"
+    "@project/db": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^4.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./password": {
+      "types": "./src/password.ts",
+      "default": "./src/password.ts"
+    },
+    "./test-accounts": {
+      "types": "./src/test-accounts.ts",
+      "default": "./src/test-accounts.ts"
+    }
   }
 }

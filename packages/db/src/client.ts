@@ -14,6 +14,8 @@ export type PrismaClient = InstanceType<typeof PrismaClient>;
 declare global {
   // eslint-disable-next-line no-var
   var __prisma: PrismaClient | undefined;
+  // Cache initialization too, so concurrent runtimes cannot open two clients.
+  var __prismaPromise: Promise<PrismaClient> | undefined;
 }
 
 export const LOCAL_DEV_URL = "postgresql://postgres:postgres@127.0.0.1:55432/postgres";
@@ -41,5 +43,7 @@ async function makeClient(): Promise<PrismaClient> {
 
 // Next.js hot-reloads modules in dev; the global stops us opening a new
 // client on every save. (Top-level await is fine in server modules.)
-export const prisma = globalThis.__prisma ?? (await makeClient());
-if (process.env.NODE_ENV !== "production") globalThis.__prisma = prisma;
+export const prisma = globalThis.__prisma ?? (await (globalThis.__prismaPromise ??= makeClient()));
+// Next's page/action and route runtimes can load separate copies of this module.
+// Share the process client in production too, especially for embedded PGlite.
+globalThis.__prisma = prisma;

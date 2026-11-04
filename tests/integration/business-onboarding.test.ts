@@ -52,13 +52,10 @@ describe("business creation and customer linking", () => {
     await db.prisma.employee.update({ where: { business_id_user_id: { business_id: firstBusinessId, user_id: auth.userId } }, data: { is_active: true } });
   });
 
-  it("creates the business and active owner together through the form action", async () => {
-    const values = { ...businessInput, name: "Created from form" };
-    await expect(addBusiness({}, form(values))).rejects.toThrow("REDIRECT:/customers?businessId=");
-    const business = await db.prisma.business.findFirstOrThrow({ where: { name: values.name }, include: { employees: true } });
-    expect(business.employees).toHaveLength(1);
-    expect(business.employees[0]).toMatchObject({ user_id: auth.userId, role: "OWNER", is_active: true });
-    expect(await domain.listBusinesses(auth.userId!)).toEqual(expect.arrayContaining([expect.objectContaining({ id: business.id })]));
+  it("does not let a CRM owner provision another business", async () => {
+    const state = await addBusiness({}, form({ ...businessInput, name: "Not allowed", description: "A business", owner_email: "new-owner@example.test" }));
+    expect(state.error?.code).toBe("NOT_FOUND");
+    expect(await db.prisma.business.count({ where: { name: "Not allowed" } })).toBe(0);
   });
 
   it("rejects blank business fields and rolls back when the owner cannot be created", async () => {

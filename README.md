@@ -1,124 +1,85 @@
-# Starter Skeleton — C12 Fall 2026
+# Clientflow CRM
 
-Use this template, its your app now.
+Clientflow helps small service businesses keep customer details, relationship history, and appointments in one workspace.
 
-(And when it *is* your app — named, with a feature or two shipped — replace
-this file: `cp README.template.md README.md`, fill in the placeholders, land
-it as a PR. This page is the starter's README, not your project's. See
-[README.template.md](README.template.md).)
+The product direction is a subscription SaaS. This repository currently provides a local development MVP; subscription management and hosted operations remain planned work. Appointment-based service businesses are the provisional first audience.
 
-The layers of a real web application exists in this repo — a page, an API,
-a database, tests, CI. All of it minimal. **You will work in
-layers we haven't studied yet. That's not a gap in the plan; that's the job.**
-Each week of class goes deep on one layer that's already here under your feet.
+See [MVP scope and SaaS roadmap](MVP.md) for the proposed pilot, launch requirements, and deferred features.
 
-## Get running (no Docker, no installs beyond Node)
+## Current features
 
-For Windows ARM and the combined customer/calendar app, follow [Run locally on Windows](docs/runbooks/run-local-windows.md).
+- Create businesses and switch between accessible workspaces ([spec](docs/specs/businesses/create-business.md)).
+- Add, search, and edit customers ([creation](docs/specs/customers/add-customer.md), [search and editing](docs/specs/customers/search-and-edit.md)).
+- Keep shared customer notes ([spec](docs/specs/customers/customer-notes.md)).
+- Schedule appointments and view a monthly calendar ([spec](docs/specs/appointments/customer-calendar.md)).
+- Manage businesses, employees, and locations through business-scoped APIs ([spec](docs/specs/businesses/management-api.md)).
+
+Owners access CRM records through their active business memberships. Developers access provisioning records through explicit developer grants.
+
+## Local development
+
+Use Node.js and pnpm. No Docker or cloud account is required. Windows users can follow the [local setup runbook](docs/runbooks/run-local-windows.md).
 
 ```bash
 pnpm install
-pnpm prisma:generate     # builds the typed CRM database client
-pnpm dev                 # starts web + YOUR OWN Postgres server + Azurite
+pnpm prisma:generate
+pnpm dev
 ```
 
-`pnpm dev` starts **four processes**: the Next.js app, the background worker,
-a real PostgreSQL server that npm installed for you (data in `.pgdata/`,
-migrations auto-apply on boot), and Azurite (local Azure blob + queue storage,
-data in `.azurite/`).
+Open http://localhost:3000. The health endpoint at /api/health returns {"status":"ok","db":"ok"} when the database is available.
 
-Check it worked: `http://localhost:3000/api/health`
-says `{"status":"ok","db":"ok"}`.
+The dev command starts Next.js, a background worker, local PostgreSQL, and Azurite. Local data lives in .pgdata/ and .azurite/; do not commit it.
 
-Register a GitHub OAuth app and configure ignored local secrets using [OAuth setup](docs/runbooks/github-oauth-setup.md) before signing in. Legacy demo users remain stored but cannot be selected at login.
+### Sign in on the website
 
-## The map
+Open http://localhost:3000/login and choose Developer or Business owner. For local testing, click Use test account and then Sign in. Test accounts are created automatically; no developer account-creation command is required.
 
-```
-browser ──fetch────▶ apps/web/app/api/health/route.ts
-                ───▶ packages/db ──▶ YOUR Postgres server (:55432)
-                ───▶ packages/services (queue + storage + notify) ──▶ Azurite
-                    apps/worker
-                    polls queue, processes jobs
-```
+| Login type | Test email | Test password |
+|---|---|---|
+| Developer | developer@clientflow.test | Clientflow-test-2026! |
+| Business owner | owner@clientflow.test | Clientflow-test-2026! |
 
-Every cloud dependency follows the same pattern — a **seam**: local stand-in by
-default, real Azure when an env var says so. See `docs/specs/seams.md`.
+The developer opens the existing dashboard, selects Create business, and enters the business details plus the owner's login email. The saved business is linked to that owner's account. Share the temporary password displayed after creation; the owner selects Business owner on the login page and must replace that password before opening their linked business portal.
 
-## The monorepo layout
+The sample owner opens Sample business. A second developer can use friend@clientflow.test with the same test password. Fixed test accounts are disabled outside local development. Individual developer credentials can optionally be provisioned using the maintenance command described in [setup](docs/runbooks/developer-owner-setup.md).
 
-```
-apps/                           # deployable processes
-├── web/                        #   Next.js app (the UI)
-├── worker/                     #   background worker
-├── db-server/                  #   dev-only Postgres host (replaced by Azure in Week 10)
-└── migrate/                    #   migration CLI + seed script
+See the [feature spec](docs/specs/businesses/developer-provisioning.md). The selected public website is a route within Clientflow; no separate deployment, automated email, or subscription billing is created.
 
-packages/                       # shared libraries
-├── db/                         #   Prisma schema + client + apply-migrations
-├── services/                   #   Azure adapters (queue, storage, notify)
-├── domain/                     #   Zod schemas + queries (web-only)
-├── log/                        #   pino logger
-└── auth/                       #   GitHub OAuth + database sessions
-```
+## Reusable business websites
 
-**Apps** are deployable. **Packages** are shared — no app imports from another app.
-Every package has a README explaining its role.
+From Developer sign-in, choose **Create business**, select **Bakery**, **Barbershop**, **Salon**, or **Contact**, and use **Preview template** or **Use sample details**. Saving creates the selected site and the linked owner account; select **Open website** on the confirmation or dashboard card.
 
-**Example branches** add their own models, API routes, workers, and feature specs
-under `docs/specs/<domain>/`.
+Each site uses the saved business name, description, public email/phone, and optional address/hours. Its contact form delivers messages to the owner's **Website inquiries** inbox in Clientflow. Sign in using that owner's supplied email and complete first-password replacement to test the inbox. Existing businesses without template settings stay private.
 
-## Rules of the road
+See the [template specification](docs/specs/businesses/website-templates.md) and [testing runbook](docs/runbooks/business-website-templates.md). These are routes in the local app; no custom domain, separate deployment, email delivery, ordering, or payment setup is required.
 
-- Work on a branch; open a PR; your pod reviews it with the checklist. Every PR gets
-  a green check or a red X from CI — red means fix it before asking for review.
-- **No AI-generated code gets merged unread.** You own every line in your PR.
-- Stuck 15 minutes? Pod thread → stand-up → TA → office hours. In that order.
+## SaaS direction
+
+The proposed first release focuses on one workflow: the team provisions a business, its owner activates their account, and the owner records customers and schedules visits.
+
+Before accepting real customer data, the hosted service needs verified authentication, revocable sessions, secure invitations, complete permission checks, tenant isolation, backups with tested recovery, and monitoring. A paid release additionally needs workspace subscriptions and reliable subscription lifecycle handling. These are proposed requirements, not shipped capabilities.
+
+Pricing, the first customer segment, and the production sign-in method remain open decisions. GitHub OAuth is not required.
 
 ## Commands
 
-| Command | What it does |
+| Command | Purpose |
 |---|---|
-| `pnpm dev` | Start all four processes: web + worker + Postgres + Azurite |
-| `pnpm dev:web` | Next.js app only |
-| `pnpm worker` | Background worker only |
-| `pnpm db:dev` | Dev Postgres server only |
-| `pnpm azurite` | Azure storage emulator only |
-| `pnpm test` | Run all unit tests (what CI runs) |
-| `pnpm test:integration` | Run integration tests against PGlite |
-| `pnpm typecheck` | TypeScript, strict, for every package |
-| `pnpm db:migrate` | Apply migrations over the wire |
-| `pnpm db:reset` | Nuke local DB, re-migrate |
-| `pnpm prisma:generate` | Regenerate the Prisma client |
+| pnpm dev | Run web, worker, PostgreSQL, and Azurite |
+| pnpm dev:web | Run the web app only |
+| pnpm db:seed | Create demo data while local services run |
+| pnpm prisma:generate | Generate the typed database client |
+| pnpm test | Package and integration tests; no services required |
+| pnpm typecheck | Check TypeScript across workspaces |
+| pnpm build | Build the application |
+| pnpm verify:api | Exercise business APIs on a disposable instance |
 
-## OpenCode agents
+## Architecture
 
-This repo ships with opencode agent files in `.opencode/`. The default agent is
-`mentor` — a teaching-mode agent that explains rather than edits. Switch to
-`build` when you want to execute a plan. The `@project` scope is a placeholder;
-replace it via search-and-replace across all `package.json` files.
+This pnpm/Turborepo monorepo uses Next.js and TypeScript, Prisma and PostgreSQL, and a separate background worker with Azure storage and queue adapters. Integration tests use in-memory PGlite.
 
-## FAQ
+Deployable processes live in apps/; shared database, domain, auth, logging, and service packages live in packages/. See the [monorepo contract](docs/specs/monorepo.md) and [documentation index](docs/README.md).
 
-**Why am I running my own database server?** Because databases ARE servers —
-one process owns the data files, everything else (the web app, the worker,
-`psql`) connects as a client. npm installed a real PostgreSQL for you
-(`apps/db-server/` runs it; data in `.pgdata/`; `db:reset` nukes it). In
-Week 10 you swap YOUR server for Azure's managed one by setting a single env
-var (`DATABASE_URL`) — same wire protocol, same driver, same code. Tests skip
-the server entirely and run PGlite (Postgres-in-WebAssembly) in memory —
-that's the third door in `packages/db/src/client.ts`.
+## Contributing
 
-**What's Azurite?** Microsoft's official storage emulator, running from npm —
-fake Azure Blob + Queue storage on your laptop (data in `.azurite/`). Attached
-images and job messages live in its blob / queue stores. In Week 10, one env var
-points the same code at real Azure Storage.
-
-**Why is there stuff in here we haven't learned?** Because that's what every
-codebase you'll ever be hired into looks like. Use AI to read it — then verify
-what it tells you by running the code. That habit is the whole course.
-
-**Where are the example apps?** This is the boilerplate `main` branch — empty
-schema, generic infrastructure. Switch to an `example/*` branch to see a
-working application built on the same skeleton. Each example branch has its
-own feature specs in `docs/specs/<domain>/`.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). Behavior changes require a reviewed feature spec and passing tests, typecheck, and build. MVP.md guides future specifications; it does not authorize implementation of unreviewed features.

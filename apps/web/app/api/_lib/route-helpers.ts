@@ -9,7 +9,7 @@ type ValidationSchema<T> = {
 };
 
 export async function authenticatedUserId() {
-  // URL/body IDs are lookup keys only; Auth.js resolves request identity.
+  // URL/body IDs are lookup keys only; the persisted session establishes request identity.
   return currentUserId();
 }
 

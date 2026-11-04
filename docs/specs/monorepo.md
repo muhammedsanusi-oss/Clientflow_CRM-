@@ -20,7 +20,7 @@ packages/                       # shared libraries
 ├── services/                   #   Azure adapters (queue, storage, notify)
 ├── domain/                     #   Zod schemas + queries (web-only)
 ├── log/                        #   pino logger
-└── auth/                       #   GitHub OAuth + database sessions
+└── auth/                       #   email/password identity and owner activation
 ```
 
 ## Dependency rules

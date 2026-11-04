@@ -47,15 +47,13 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
     }
   });
 
-  it("creates a business and active owner transactionally; one user can own multiple businesses", async () => {
+  it("lists only the current owner's memberships and blocks owner provisioning", async () => {
+    const { createBusiness } = await import("../../packages/domain/src/index");
+    const first = await createBusiness(ownerId, businessInput);
+    businessId = first.business.id;
+    await createBusiness(ownerId, { ...businessInput, name: "Second business" });
     session.userId = ownerId;
-    const response = await businesses.POST(request(businessInput));
-    expect(response.status).toBe(201);
-    const { business: result } = await response.json();
-    businessId = result.business.id;
-    expect(result.employee).toMatchObject({ user_id: ownerId, role: "OWNER", is_active: true });
-    const second = await businesses.POST(request({ ...businessInput, name: "Second business" }));
-    expect(second.status).toBe(201);
+    expect((await businesses.POST(request(businessInput))).status).toBe(404);
     expect((await (await businesses.GET()).json()).businesses).toHaveLength(2);
     session.userId = outsiderId;
     expect((await (await businesses.GET()).json()).businesses).toEqual([]);
@@ -123,8 +121,7 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
 
   it("returns stable 400 errors for malformed JSON and validation failures", async () => {
     session.userId = ownerId;
-    for (const call of [(req: Request) => businesses.POST(req),
-      (req: Request) => locations.POST(req, context()), (req: Request) => employees.POST(req, context())]) {
+    for (const call of [(req: Request) => locations.POST(req, context()), (req: Request) => employees.POST(req, context())]) {
       const invalid = await call(request({}));
       expect(invalid.status).toBe(400);
       expect((await invalid.json()).error.code).toBe("VALIDATION");

@@ -19,7 +19,7 @@ All public routes are defined under `app/api/`:
 - `@project/db` — the Prisma client and generated types
 - `@project/services` — queue, storage, and notify adapters
 - `@project/domain` — Zod schemas and database queries (empty on main, populated on example branches)
-- `@project/auth` — the `currentUserId()` GitHub OAuth + database sessions
+- `@project/auth` — the `currentUserId()` email/password identity and owner activation
 - `@project/log` — pino logger
 
 ## Consumers
