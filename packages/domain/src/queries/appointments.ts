@@ -1,11 +1,35 @@
+/*
+ * Code guide: packages/domain/src/queries/appointments.ts
+ * Database query module for appointments. Uses the shared Prisma client and business/user predicates; HTTP
+ * callers supply session-derived identity and perform route-level access checks. Follow the functions below
+ * for the exact membership/role filters used.
+ */
+/*
+ * Import connection: @project/db -> packages/db/src/index.ts.
+ * prisma: Shared database client from packages/db; queries reach PostgreSQL or the configured embedded test
+ * database. Defined in packages/db/src/client.ts.
+ */
 import { prisma } from "@project/db";
+import { DomainError } from "../errors";
+import { acquireBookingLock } from "../booking";
+/*
+ * Import connection: ../schemas/appointment -> packages/domain/src/schemas/appointment.ts.
+ * Type CreateAppointmentInput: Type contract used to check callers at compile time; it does not fetch or
+ * modify data.
+ */
 import type { CreateAppointmentInput } from "../schemas/appointment";
 
+// Reusable relationship predicate connecting this resource to the supplied business and user membership. The
+// route may perform additional active-access checks.
 const ownedCustomerWhere = (businessId: string, userId: string) => ({
   business_id: businessId,
   business: { employees: { some: { user_id: userId } } },
 });
 
+/*
+ * Reads appointments using the business/user scope in the query below. Callers handle the absent-resource
+ * result.
+ */
 export function listAppointments(businessId: string, userId: string) {
   return prisma.appointment.findMany({
     where: { customer: ownedCustomerWhere(businessId, userId) },
@@ -14,6 +38,10 @@ export function listAppointments(businessId: string, userId: string) {
   });
 }
 
+/*
+ * Reads appointment using the business/user scope in the query below. Callers handle the absent-resource
+ * result.
+ */
 export function getAppointment(id: string, businessId: string, userId: string) {
   return prisma.appointment.findFirst({
     where: { id, customer: ownedCustomerWhere(businessId, userId) },
@@ -21,6 +49,10 @@ export function getAppointment(id: string, businessId: string, userId: string) {
   });
 }
 
+/*
+ * Business API appointment write: verifies related records and snapshots service prices while creating
+ * service lines atomically.
+ */
 export async function createAppointment(businessId: string, userId: string, input: CreateAppointmentInput) {
   return prisma.$transaction(async (tx) => {
     const [customer, employee, location, services] = await Promise.all([
@@ -39,12 +71,25 @@ export async function createAppointment(businessId: string, userId: string, inpu
           business_id: businessId,
           business: { employees: { some: { user_id: userId } } },
         },
-        select: { id: true, base_price: true },
+        select: { id: true, name: true, duration_minutes: true, base_price: true },
       }),
     ]);
 
     if (!customer || !employee || !location || services.length !== input.services.length) return null;
-    const prices = new Map(services.map((service) => [service.id, service.base_price]));
+    const serviceById = new Map(services.map((service) => [service.id, service]));
+    if (input.status !== "CANCELED") {
+      await acquireBookingLock(tx, businessId);
+      const conflictingAppointment = await tx.appointment.findFirst({
+        where: {
+          location: { business_id: businessId },
+          status: { not: "CANCELED" },
+          start_time: { lt: input.end_time },
+          end_time: { gt: input.start_time },
+        },
+        select: { id: true },
+      });
+      if (conflictingAppointment) throw new DomainError("CONFLICT", "That time is already booked.");
+    }
 
     return tx.appointment.create({
       data: {
@@ -60,7 +105,9 @@ export async function createAppointment(businessId: string, userId: string, inpu
           create: input.services.map(({ service_id, quantity }) => ({
             service_id,
             quantity,
-            price_at_booking: prices.get(service_id)!,
+            price_at_booking: serviceById.get(service_id)!.base_price,
+            service_name_at_booking: serviceById.get(service_id)!.name,
+            duration_minutes_at_booking: serviceById.get(service_id)!.duration_minutes,
           })),
         },
       },

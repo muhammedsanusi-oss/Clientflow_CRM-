@@ -1,16 +1,49 @@
+/*
+ * Code guide: apps/web/app/customers/[customerId]/note-form.tsx
+ * Browser form that saves a note through addCustomerNoteAction. Carries the customer lookup ID and shows
+ * validation/pending states; authorship is derived on the server.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
 
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useActionState: Connects a form to a Server Action and exposes its returned errors/receipt plus pending
+ * status.
+ */
 import { useActionState } from "react";
 
+/*
+ * Import connection: ./actions -> apps/web/app/customers/[customerId]/actions.ts.
+ * addCustomerNoteAction: Validates note input, saves it with server-derived authorship, refreshes customer
+ * details, and redirects back to the customer.
+ * Type AddCustomerNoteActionState: Type for retained note text and note-submission errors.
+ */
 import {
   addCustomerNoteAction,
   type AddCustomerNoteActionState,
 } from "./actions";
 
+// Initial browser form/action state before any submission; later validation messages and receipts come from
+// the server action.
 const initialState: AddCustomerNoteActionState = {};
 
+/*
+ * Browser form that saves a note through addCustomerNoteAction. Carries the customer lookup ID and shows
+ * validation/pending states; authorship is derived on the server.
+ */
 export function NoteForm({ customerId }: { customerId: string }) {
+  // Connect the form to its imported Server Action: state contains the returned values/errors, the action
+  // submits, and pending disables duplicate clicks.
   const [state, formAction, pending] = useActionState(
     addCustomerNoteAction,
     initialState,

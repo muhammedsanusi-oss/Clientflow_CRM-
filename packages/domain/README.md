@@ -5,12 +5,15 @@ worker has no reason to validate user input or run web-queries.
 
 CRM validation schemas and user-scoped queries live here. API handlers import
 these through the package barrel and keep HTTP concerns in `apps/web`.
+Owner-managed schedules and services, public booking availability, and
+transactional appointment booking also live here; the public booking projection
+does not expose CRM records.
 
 ## Public API
 
 All exports come from `src/index.ts`: schemas and queries cover businesses,
 employees, locations, customers, services, appointments and their service
-lines, tasks, notes, interactions, and payments.
+lines, tasks, notes, interactions, payments, and the public booking contract.
 
 ## Dependencies
 

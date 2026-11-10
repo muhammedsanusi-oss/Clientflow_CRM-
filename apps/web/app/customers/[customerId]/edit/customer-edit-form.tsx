@@ -1,10 +1,42 @@
+/*
+ * Code guide: apps/web/app/customers/[customerId]/edit/customer-edit-form.tsx
+ * Edits customer contact fields through editCustomerAction. Ownership fields are not editable; failed
+ * validation keeps the submitted values visible.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
 
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useActionState: Connects a form to a Server Action and exposes its returned errors/receipt plus pending
+ * status.
+ */
 import { useActionState } from "react";
+/*
+ * Import connection: @project/domain -> packages/domain/src/index.ts.
+ * Type CustomerFormInput: Type inferred from the UI customer input schema. Defined in
+ * packages/domain/src/customers.ts.
+ */
 import type { CustomerFormInput } from "@project/domain";
+/*
+ * Import connection: ./actions -> apps/web/app/customers/[customerId]/edit/actions.ts.
+ * editCustomerAction: Checks customer access and submitted contact fields, applies the scoped update, and
+ * refreshes list/detail/edit routes before returning to details.
+ * Type EditCustomerState: Type for retained customer-edit inputs and validation/conflict errors.
+ */
 import { editCustomerAction, type EditCustomerState } from "./actions";
 
+// UI field metadata: connects stored/form keys to labels, input types, and length limits. It defines
+// controls, not saved database rows.
 const fields = [
   { name: "firstName", label: "First name", type: "text", autoComplete: "given-name", maxLength: 100 },
   { name: "lastName", label: "Last name", type: "text", autoComplete: "family-name", maxLength: 100 },
@@ -13,7 +45,13 @@ const fields = [
   { name: "address", label: "Address", type: "text", autoComplete: "street-address", maxLength: 500 },
 ] as const;
 
+/*
+ * Edits customer contact fields through editCustomerAction. Ownership fields are not editable; failed
+ * validation keeps the submitted values visible.
+ */
 export function CustomerEditForm({ customerId, initialValues }: { customerId: string; initialValues: CustomerFormInput }) {
+  // Connect the form to its imported Server Action: state contains the returned values/errors, the action
+  // submits, and pending disables duplicate clicks.
   const [state, action, pending] = useActionState(editCustomerAction, {} as EditCustomerState);
   const values = state.values ?? initialValues;
   const contactError = state.fieldErrors?.preferredContactMethod?.[0];

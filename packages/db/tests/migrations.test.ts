@@ -1,9 +1,51 @@
+/*
+ * Code guide: packages/db/tests/migrations.test.ts
+ * Automated regression tests for SQL migration contract. Assertions document expected behavior and failure
+ * cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the
+ * running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ */
 import { describe, it, expect } from "vitest";
+/*
+ * Import connection: @electric-sql/pglite.
+ * Embedded PostgreSQL-compatible WASM engine used by disposable tests instead of the real TCP database.
+ */
 import { PGlite } from "@electric-sql/pglite";
+/*
+ * Import connection: node:fs/promises.
+ * Promise-based local filesystem access, primarily reading migration files or a local compiled action
+ * manifest in these modules.
+ */
 import { readFile } from "node:fs/promises";
+/*
+ * Import connection: node:child_process.
+ * Runs a local child command; migration tests use the Prisma CLI to compare generated schema SQL.
+ */
 import { execFileSync } from "node:child_process";
+/*
+ * Import connection: node:module.
+ * Creates a Node-native module loader so generated Prisma/WASM or package-relative tools resolve from the
+ * intended directory.
+ */
 import { createRequire } from "node:module";
+/*
+ * Import connection: node:url.
+ * Converts module file URLs into local paths so file lookup is relative to the module rather than the
+ * terminal directory.
+ */
 import { fileURLToPath } from "node:url";
+/*
+ * Import connection: ../src/apply-migrations -> packages/db/src/apply-migrations.ts.
+ * applyMigrations: Reads numbered SQL files in filename order, skips recorded migrations, and records
+ * successful applications. It never rewrites migration files.
+ */
 import { applyMigrations } from "../src/apply-migrations";
 
 const require = createRequire(import.meta.url);
@@ -24,6 +66,105 @@ const catalog = async (db: PGlite) => ({
 });
 
 describe("SQL migration contract", () => {
+  it("backfills existing appointment service names and durations before enabling public bookings", async () => {
+    const db = new PGlite();
+    try {
+      for (const file of [
+        "0001_init.sql", "0002_business_tenancy.sql", "0003_reconcile_schema.sql",
+        "0004_schema_update.sql", "0005_github_auth.sql", "0006_owner_provisioning.sql",
+        "0007_website_templates.sql", "0008_website_editing.sql",
+        "0009_website_visual_customization.sql", "0010_website_section_images.sql",
+        "0011_website_about_text.sql", "0012_owner_billing_address.sql",
+        "0013_owner_website_plans_and_feature_requests.sql",
+      ]) await db.exec(await migration(file));
+      await db.exec(`
+        INSERT INTO "Business" ("id", "name", "business_type", "phone_number", "email", "updated_at")
+        VALUES ('booking-business', 'Booking business', 'OTHER', '555-1000', 'owner@example.test', CURRENT_TIMESTAMP);
+        INSERT INTO "User" ("id", "username") VALUES ('booking-user', 'booking-user');
+        INSERT INTO "Employee" ("id", "business_id", "user_id", "first_name", "last_name", "email", "phone_number", "hire_date")
+        VALUES ('booking-employee', 'booking-business', 'booking-user', 'Ada', 'Owner', 'employee@example.test', '555-1001', '2025-01-01');
+        INSERT INTO "Customer" ("id", "business_id", "first_name", "last_name", "phone_number", "email", "address", "preferred_contact_method", "updatedAt")
+        VALUES ('booking-customer', 'booking-business', 'Grace', 'Customer', '555-1002', 'customer@example.test', 'Main Street', 'EMAIL', CURRENT_TIMESTAMP);
+        INSERT INTO "Location" ("id", "business_id", "name", "address", "updated_at")
+        VALUES ('booking-location', 'booking-business', 'Main', '1 Main Street', CURRENT_TIMESTAMP);
+        INSERT INTO "Service" ("id", "business_id", "name", "category", "description", "duration_minutes", "base_price", "is_Active")
+        VALUES ('booking-service', 'booking-business', 'Consultation', 'General', 'Initial service', 45, 50, true);
+        INSERT INTO "Appointment" ("id", "customer_id", "employee_id", "location_id", "appointment_date", "start_time", "end_time", "notes", "updated_at")
+        VALUES ('booking-appointment', 'booking-customer', 'booking-employee', 'booking-location', '2025-01-01', '2025-01-01 09:00', '2025-01-01 09:45', 'Preserve', CURRENT_TIMESTAMP);
+        INSERT INTO "Appointment_Service" ("id", "appointment_id", "service_id", "quantity", "price_at_booking")
+        VALUES ('booking-line', 'booking-appointment', 'booking-service', 1, 50);
+      `);
+
+      await db.exec(await migration("0014_owner_schedules_and_public_booking.sql"));
+
+      expect((await db.query(`SELECT "source", "employee_id", "bookingStaffId", "notes"
+        FROM "Appointment" WHERE "id" = 'booking-appointment'`)).rows).toEqual([{
+        source: "INTERNAL",
+        employee_id: "booking-employee",
+        bookingStaffId: null,
+        notes: "Preserve",
+      }]);
+      expect((await db.query(`SELECT "service_name_at_booking", "duration_minutes_at_booking", "price_at_booking"::float8 AS "price_at_booking"
+        FROM "Appointment_Service" WHERE "id" = 'booking-line'`)).rows).toEqual([{
+        service_name_at_booking: "Consultation",
+        duration_minutes_at_booking: 45,
+        price_at_booking: 50,
+      }]);
+    } finally {
+      await db.close();
+    }
+  }, 30_000);
+
+  it("adds website editing without changing populated sites, credentials, or inquiries", async () => {
+    const db = new PGlite();
+    try {
+      for (const file of ["0001_init.sql", "0002_business_tenancy.sql", "0003_reconcile_schema.sql", "0004_schema_update.sql", "0005_github_auth.sql", "0006_owner_provisioning.sql", "0007_website_templates.sql"]) await db.exec(await migration(file));
+      await db.exec(`INSERT INTO "User" ("id", "email", "passwordHash") VALUES ('site-owner', 'owner@example.test', 'preserved-hash');
+        INSERT INTO "Business" ("id", "name", "description", "business_type", "phone_number", "email", "websiteTemplate", "updated_at")
+        VALUES ('existing-site', 'Existing salon', 'Keep this content', 'SALON', '2125550142', 'public@example.test', 'SALON', CURRENT_TIMESTAMP);
+        INSERT INTO "WebsiteInquiry" ("id", "businessId", "name", "email", "message") VALUES ('saved-inquiry', 'existing-site', 'Visitor', 'visitor@example.test', 'Keep this inquiry');`);
+      const before = await db.query(`SELECT "id", "name", "description", "business_type", "phone_number", "email",
+        "websiteTemplate", "publicAddress", "openingHours", "created_at", "updated_at"
+        FROM "Business" WHERE "id" = 'existing-site'`);
+      await db.exec(await migration("0008_website_editing.sql"));
+      await db.exec(`INSERT INTO "BusinessWebsiteContent"
+        ("businessId", "eyebrow", "headline", "sectionTitle", "buttonLabel", "features", "offerings", "version", "publishedById")
+        VALUES ('existing-site', 'Welcome', 'A saved headline', 'Our story', 'Contact us',
+          ARRAY['Friendly service'], ARRAY['Consultations'], 1, 'site-owner')`);
+      const oldContent = await db.query('SELECT "headline", "features", "version" FROM "BusinessWebsiteContent"');
+      await db.exec(await migration("0009_website_visual_customization.sql"));
+      await db.exec(`UPDATE "BusinessWebsiteContent" SET "logoImage" = 'existing-site/website/logo-12345678-1234-1234-1234-123456789abc.png',
+        "heroImage" = 'existing-site/website/hero-12345678-1234-1234-1234-123456789abc.png',
+        "additionalSections" = '[{"heading":"Our story","body":"Saved text"}]'::jsonb`);
+      await db.exec(await migration("0010_website_section_images.sql"));
+      await db.exec(await migration("0011_website_about_text.sql"));
+      await db.exec(await migration("0012_owner_billing_address.sql"));
+      await db.exec(await migration("0013_owner_website_plans_and_feature_requests.sql"));
+      expect((await db.query(`SELECT "id", "name", "description", "business_type", "phone_number", "email",
+        "websiteTemplate", "publicAddress", "openingHours", "created_at", "updated_at"
+        FROM "Business" WHERE "id" = 'existing-site'`)).rows).toEqual(before.rows);
+      expect((await db.query('SELECT "websitePlan" FROM "Business" WHERE "id" = \'existing-site\'')).rows).toEqual([{ websitePlan: null }]);
+      expect((await db.query('SELECT "passwordHash" FROM "User" WHERE "id" = \'site-owner\'')).rows).toEqual([{ passwordHash: "preserved-hash" }]);
+      expect((await db.query('SELECT "message" FROM "WebsiteInquiry" WHERE "id" = \'saved-inquiry\'')).rows).toEqual([{ message: "Keep this inquiry" }]);
+      expect((await db.query('SELECT "headline", "features", "version" FROM "BusinessWebsiteContent"')).rows).toEqual(oldContent.rows);
+      expect((await db.query('SELECT "fontFamily", "textColor", "textScale", "additionalSections", "aboutText", "logoImage", "heroImage" FROM "BusinessWebsiteContent"')).rows).toEqual([{
+        fontFamily: "SANS", textColor: "INK", textScale: "STANDARD",
+        additionalSections: [{ heading: "Our story", body: "Saved text", images: [] }],
+        aboutText: "Keep this content",
+        logoImage: "existing-site/website/logo-12345678-1234-1234-1234-123456789abc.png",
+        heroImage: "existing-site/website/hero-12345678-1234-1234-1234-123456789abc.png",
+      }]);
+      expect((await db.query('SELECT "sectionImages" FROM "BusinessWebsiteContent"')).rows).toEqual([{
+        sectionImages: {
+          header: ["existing-site/website/logo-12345678-1234-1234-1234-123456789abc.png"],
+          hero: ["existing-site/website/hero-12345678-1234-1234-1234-123456789abc.png"],
+          features: [], about: [], offerings: [], contact: [],
+        },
+      }]);
+      expect((await db.query('SELECT * FROM "BusinessWebsiteRevision"')).rows).toEqual([]);
+    } finally { await db.close(); }
+  }, 30000);
+
   it("replays and reruns cleanly, with columns, defaults, indexes and constraints matching schema.prisma", async () => {
     const migrated = new PGlite();
     const expected = new PGlite();
@@ -35,7 +176,7 @@ describe("SQL migration contract", () => {
         { encoding: "utf8", env: { ...process.env, DATABASE_URL: "postgresql://unused:unused@localhost:5433/unused" } });
       await expected.exec(sql);
       expect(await catalog(migrated)).toEqual(await catalog(expected));
-      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
+      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(14);
     } finally {
       await migrated.close();
       await expected.close();
@@ -103,7 +244,7 @@ describe("SQL migration contract", () => {
       await applyMigrations(db);
       expect((await db.query(`SELECT column_default FROM information_schema.columns
         WHERE table_name = 'Note' AND column_name = 'updated_at'`)).rows).toEqual([{ column_default: null }]);
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(14);
     } finally { await db.close(); }
   }, 30000);
 
@@ -120,7 +261,7 @@ describe("SQL migration contract", () => {
 
       await applyMigrations(db);
 
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(5);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(14);
       expect((await db.query(`SELECT udt_name FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = 'Employee' AND column_name = 'role_id'`)).rows)
         .toEqual([{ udt_name: "EmployeeRole" }]);

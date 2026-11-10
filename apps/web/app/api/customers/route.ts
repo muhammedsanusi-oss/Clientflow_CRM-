@@ -1,14 +1,47 @@
+/*
+ * Code guide: apps/web/app/api/customers/route.ts
+ * Authenticated camelCase customer JSON API. GET lists the authorized business customers; POST validates
+ * contact fields and creates a customer. Internal database metadata is copied into an explicit response
+ * shape.
+ */
+/*
+ * Import connection: @project/auth -> packages/auth/src/index.ts.
+ * currentUserId: Resolves the current database session and returns its user ID only for a regular, unexpired
+ * session. Activation-only tickets cannot authorize private CRM operations. Defined in
+ * packages/auth/src/current-user.ts.
+ */
 import { currentUserId } from "@project/auth";
+/*
+ * Import connection: @project/domain -> packages/domain/src/index.ts.
+ * apiError: Maps deliberate domain failures and known database conflicts into a safe public
+ * code/message/status. Unexpected exceptions become a generic error. Defined in
+ * packages/domain/src/errors.ts.
+ * createCustomerForUser: Resolves an authorized business before creating a customer. The businessId hint
+ * cannot assign the customer to an unrelated tenant. Defined in packages/domain/src/customers.ts.
+ * createCustomerInputSchema: Strict camelCase contact-field validator shared by customer forms and the
+ * customer JSON API. Defined in packages/domain/src/customers.ts.
+ * getCustomerCollectionForUser: Validates search text and loads the selected authorized business customer
+ * projection. Search terms match names, email, or phone; returns null when the business is unavailable.
+ * Defined in packages/domain/src/customers.ts.
+ */
 import {
   apiError,
   createCustomerForUser,
   createCustomerInputSchema,
   getCustomerCollectionForUser,
 } from "@project/domain";
+/*
+ * Import connection: @project/log -> packages/log/src/index.ts.
+ * log: Shared pino logger from packages/log for structured server diagnostics.
+ */
 import { log } from "@project/log";
 
+// Request-time rendering: the page/API is resolved for this request instead of serving one static response
+// for every user.
 export const dynamic = "force-dynamic";
 
+// Type contract: ApiCustomer. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 type ApiCustomer = {
   id: string;
   firstName: string;
@@ -19,6 +52,8 @@ type ApiCustomer = {
   preferredContactMethod: "PHONE" | "EMAIL" | "TEXT";
 };
 
+// Type contract: CustomerRecord. Describes values accepted/returned by the code below; TypeScript removes
+// this declaration from the runtime bundle.
 type CustomerRecord = {
   id: string;
   first_name: string;
@@ -31,6 +66,10 @@ type CustomerRecord = {
 
 // Build the public DTO field-by-field so tenant and persistence metadata can
 // never leak when the Prisma selection changes later.
+/*
+ * Copies the allowlisted database contact fields into the camelCase customer API response; internal
+ * persistence fields are omitted.
+ */
 function toApiCustomer(customer: CustomerRecord): ApiCustomer {
   return {
     id: customer.id,
@@ -43,15 +82,25 @@ function toApiCustomer(customer: CustomerRecord): ApiCustomer {
   };
 }
 
+/*
+ * Wraps the mapped public code/message in the shared JSON error shape with its HTTP status.
+ */
 function errorResponse(code: string, message: string, status: number) {
   return Response.json({ error: { code, message } }, { status });
 }
 
+/*
+ * GET handler. Authenticated camelCase customer JSON API. GET lists the authorized business customers; POST
+ * validates contact fields and creates a customer. Internal database metadata is copied into an explicit
+ * response shape.
+ */
 export async function GET(request: Request) {
   // Resolve identity before touching customer data; every domain query starts
   // from this server-derived user rather than a client-supplied tenant ID.
   let userId: string;
   try {
+    // Resolve identity from the persisted session before accessing private business data; a form/URL user ID is
+    // not trusted here.
     const signedInUserId = await currentUserId();
     if (!signedInUserId) return errorResponse("UNAUTHENTICATED", "Sign in first", 401);
     userId = signedInUserId;
@@ -89,9 +138,16 @@ export async function GET(request: Request) {
   }
 }
 
+/*
+ * POST handler. Authenticated camelCase customer JSON API. GET lists the authorized business customers; POST
+ * validates contact fields and creates a customer. Internal database metadata is copied into an explicit
+ * response shape.
+ */
 export async function POST(request: Request) {
   let userId: string;
   try {
+    // Resolve identity from the persisted session before accessing private business data; a form/URL user ID is
+    // not trusted here.
     const signedInUserId = await currentUserId();
     if (!signedInUserId) return errorResponse("UNAUTHENTICATED", "Sign in first", 401);
     userId = signedInUserId;

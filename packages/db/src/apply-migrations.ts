@@ -1,10 +1,30 @@
+/*
+ * Code guide: packages/db/src/apply-migrations.ts
+ * Shared migration runner used by local database startup, the migration CLI, and embedded test setup. Reads
+ * existing migration files and a database ledger; does not edit the applied SQL history.
+ */
 // Applies SQL migration files in order via a generic query interface.
 // Works with both PGlite (in-process, tests) and pg (server, dev+prod).
 
+/*
+ * Import connection: @project/log -> packages/log/src/index.ts.
+ * log: Shared pino logger from packages/log for structured server diagnostics.
+ */
 import { log } from "@project/log";
+/*
+ * Import connection: node:url.
+ * Converts module file URLs into local paths so file lookup is relative to the module rather than the
+ * terminal directory.
+ */
 import { fileURLToPath } from "node:url";
+/*
+ * Import connection: node:path.
+ * Built-in path utilities for resolving file locations; does not perform a filesystem operation by itself.
+ */
 import { dirname, join } from "node:path";
 
+// Type contract: Sql. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 interface Sql {
   exec(sql: string): Promise<void>;
   query(sql: string, params?: unknown[]): Promise<{ rows: unknown[] }>;
@@ -12,6 +32,10 @@ interface Sql {
 
 const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "prisma", "migrations");
 
+/*
+ * Checks the database catalog to recognize a fully completed historical schema transition before recording
+ * that migration as already applied.
+ */
 async function hasReconciledSchema(sql: Sql): Promise<boolean> {
   const { rows } = await sql.query(`
     SELECT
@@ -129,6 +153,10 @@ async function hasReconciledSchema(sql: Sql): Promise<boolean> {
   return row?.reconciled === true;
 }
 
+/*
+ * Reads numbered SQL files in filename order, skips recorded migrations, and records successful applications.
+ * It never rewrites migration files.
+ */
 export async function applyMigrations(sql: Sql, info = (msg: string) => {}) {
   // Ensure migrations table exists.
   await sql.exec(`
@@ -138,6 +166,8 @@ export async function applyMigrations(sql: Sql, info = (msg: string) => {}) {
     )
   `);
 
+  // Lazy import connection: node:fs/promises. Promise-based local filesystem access, primarily reading
+  // migration files or a local compiled action manifest in these modules.
   const { readdir } = await import("node:fs/promises");
   let files: string[];
   try {
@@ -161,6 +191,8 @@ export async function applyMigrations(sql: Sql, info = (msg: string) => {}) {
       info(`migration ${file} already reflected in schema — recording as applied`);
       continue;
     }
+    // Lazy import connection: node:fs/promises. Promise-based local filesystem access, primarily reading
+    // migration files or a local compiled action manifest in these modules.
     const { readFile } = await import("node:fs/promises");
     const migration = await readFile(join(MIGRATIONS_DIR, file), "utf-8");
     await sql.exec(migration);

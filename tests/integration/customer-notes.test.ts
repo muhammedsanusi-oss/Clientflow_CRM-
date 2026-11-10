@@ -1,3 +1,18 @@
+/*
+ * Code guide: tests/integration/customer-notes.test.ts
+ * Automated regression tests for customer notes. Assertions document expected behavior and failure cases;
+ * inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the running
+ * local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ */
 import { beforeAll, describe, expect, it } from "vitest";
 
 const businessAId = "test-notes-business-a";
@@ -23,18 +38,26 @@ describe("customer notes", () => {
   let getCustomerWithNotesForUser: (
     typeof import("@project/domain")
   )["getCustomerWithNotesForUser"];
+  let listBusinessNotesForUser: (
+    typeof import("@project/domain")
+  )["listBusinessNotesForUser"];
 
   beforeAll(async () => {
     process.env.PGLITE_DATA_DIR = "memory://";
     delete process.env.DATABASE_URL;
 
+    // Test import connection: @project/db -> packages/db/src/index.ts. Loads the real module or its configured
+    // mock for this scenario.
     const db = await import("@project/db");
+    // Test import connection: @project/domain -> packages/domain/src/index.ts. Loads the real module or its
+    // configured mock for this scenario.
     const domain = await import("@project/domain");
 
     prisma = db.prisma;
     createCustomerNoteForUser = domain.createCustomerNoteForUser;
     createCustomerNoteInputSchema = domain.createCustomerNoteInputSchema;
     getCustomerWithNotesForUser = domain.getCustomerWithNotesForUser;
+    listBusinessNotesForUser = domain.listBusinessNotesForUser;
 
 
     await prisma.business.createMany({
@@ -238,6 +261,50 @@ describe("customer notes", () => {
       "Newer conversation",
       "Older conversation",
     ]);
+
+    const businessNotes = await listBusinessNotesForUser(
+      activeUserAId,
+      businessAId,
+    );
+    expect(
+      businessNotes
+        .filter((note) => note.content.endsWith("conversation"))
+        .map((note) => note.content),
+    ).toEqual(["Newer conversation", "Older conversation"]);
+    expect(
+      businessNotes.find((note) => note.content === "Newer conversation"),
+    ).toMatchObject({
+      customer: {
+        id: customerAId,
+        first_name: "Customer",
+        last_name: "Alpha",
+      },
+      employee: { first_name: "Blair", last_name: "Brown" },
+    });
+  });
+
+  it("lists only notes from the user's active business membership", async () => {
+    await createCustomerNoteForUser(activeUserBId, {
+      customerId: customerBId,
+      content: "Private to business B",
+    });
+
+    const notesForA = await listBusinessNotesForUser(
+      activeUserAId,
+      businessAId,
+    );
+    expect(notesForA.every((note) => note.customer.id === customerAId)).toBe(
+      true,
+    );
+    expect(notesForA.map((note) => note.content)).not.toContain(
+      "Private to business B",
+    );
+    await expect(
+      listBusinessNotesForUser(inactiveUserId, businessAId),
+    ).resolves.toEqual([]);
+    await expect(
+      listBusinessNotesForUser(activeUserBId, businessAId),
+    ).resolves.toEqual([]);
   });
 
   it("does not reveal or write notes across businesses", async () => {

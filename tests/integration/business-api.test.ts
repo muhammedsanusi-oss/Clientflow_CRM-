@@ -1,3 +1,20 @@
+/*
+ * Code guide: tests/integration/business-api.test.ts
+ * Automated regression tests for business management HTTP handlers against migrated PGlite. Assertions
+ * document expected behavior and failure cases; inspect beforeAll/mocks for setup. Database suites use
+ * disposable PGlite rather than changing the running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * afterAll: Closes suite resources after testing.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ * vi: Provides test spies and module mocks; does not alter production authorization.
+ */
 import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
 
 const session = vi.hoisted(() => ({ userId: null as string | null }));
@@ -24,9 +41,19 @@ const businessInput = { name: "Acme", first_name: "Ada", last_name: "Owner", ema
 beforeAll(async () => {
   process.env.PGLITE_DATA_DIR = "memory://";
   delete process.env.DATABASE_URL;
+  // Test import connection: ../../packages/db/src/index -> packages/db/src/index.ts. Loads the real module or
+  // its configured mock for this scenario.
   db = await import("../../packages/db/src/index");
+  // Test import connection: ../../apps/web/app/api/Business/route -> apps/web/app/api/Business/route.ts. Loads
+  // the real module or its configured mock for this scenario.
   businesses = await import("../../apps/web/app/api/Business/route");
+  // Test import connection: ../../apps/web/app/api/Business/[id]/locations/route ->
+  // apps/web/app/api/Business/[id]/locations/route.ts. Loads the real module or its configured mock for this
+  // scenario.
   locations = await import("../../apps/web/app/api/Business/[id]/locations/route");
+  // Test import connection: ../../apps/web/app/api/Business/[id]/employees/route ->
+  // apps/web/app/api/Business/[id]/employees/route.ts. Loads the real module or its configured mock for this
+  // scenario.
   employees = await import("../../apps/web/app/api/Business/[id]/employees/route");
   ownerId = (await db.prisma.user.create({ data: { username: "owner" } })).id;
   outsiderId = (await db.prisma.user.create({ data: { username: "outsider" } })).id;
@@ -47,15 +74,15 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
     }
   });
 
-  it("creates a business and active owner transactionally; one user can own multiple businesses", async () => {
+  it("lists only the current owner's memberships and blocks owner provisioning", async () => {
+    // Test import connection: ../../packages/domain/src/index -> packages/domain/src/index.ts. Loads the real
+    // module or its configured mock for this scenario.
+    const { createBusiness } = await import("../../packages/domain/src/index");
+    const first = await createBusiness(ownerId, businessInput);
+    businessId = first.business.id;
+    await createBusiness(ownerId, { ...businessInput, name: "Second business" });
     session.userId = ownerId;
-    const response = await businesses.POST(request(businessInput));
-    expect(response.status).toBe(201);
-    const { business: result } = await response.json();
-    businessId = result.business.id;
-    expect(result.employee).toMatchObject({ user_id: ownerId, role: "OWNER", is_active: true });
-    const second = await businesses.POST(request({ ...businessInput, name: "Second business" }));
-    expect(second.status).toBe(201);
+    expect((await businesses.POST(request(businessInput))).status).toBe(404);
     expect((await (await businesses.GET()).json()).businesses).toHaveLength(2);
     session.userId = outsiderId;
     expect((await (await businesses.GET()).json()).businesses).toEqual([]);
@@ -123,8 +150,7 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
 
   it("returns stable 400 errors for malformed JSON and validation failures", async () => {
     session.userId = ownerId;
-    for (const call of [(req: Request) => businesses.POST(req),
-      (req: Request) => locations.POST(req, context()), (req: Request) => employees.POST(req, context())]) {
+    for (const call of [(req: Request) => locations.POST(req, context()), (req: Request) => employees.POST(req, context())]) {
       const invalid = await call(request({}));
       expect(invalid.status).toBe(400);
       expect((await invalid.json()).error.code).toBe("VALIDATION");

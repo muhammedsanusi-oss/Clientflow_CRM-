@@ -1,14 +1,30 @@
+/*
+ * Code guide: apps/migrate/src/seed.ts
+ * Optional pnpm db:seed command for Happy Paws demo business, locations, services, staff membership, and
+ * customers. Existing fixed-ID demo rows are updated by these upserts; this command does not provision
+ * password credentials.
+ */
 /**
  * Dev seed — idempotent. Run with: pnpm db:seed
  * The project owns the contents of this file; the skeleton ships no demo data.
  */
 
+/*
+ * Import connection: @project/db -> packages/db/src/index.ts.
+ * prisma: Shared database client from packages/db; queries reach PostgreSQL or the configured embedded test
+ * database. Defined in packages/db/src/client.ts.
+ */
 import { prisma } from "@project/db";
 
 const BUSINESS_ID = "demo-business";
 const USER_ID = "demo-user";
 const EMPLOYEE_ID = "demo-employee";
 
+/*
+ * Optional pnpm db:seed command for Happy Paws demo business, locations, services, staff membership, and
+ * customers. Existing fixed-ID demo rows are updated by these upserts; this command does not provision
+ * password credentials.
+ */
 async function main() {
   await prisma.$transaction(async (tx) => {
 

@@ -1,9 +1,47 @@
+/*
+ * Code guide: packages/domain/tests/crm-schemas.test.ts
+ * Automated regression tests for CRM schemas. Assertions document expected behavior and failure cases;
+ * inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the running
+ * local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ */
 import { describe, expect, it } from "vitest";
+/*
+ * Import connection: ../src/schemas/appointment -> packages/domain/src/schemas/appointment.ts.
+ * CreateAppointment: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateAppointment } from "../src/schemas/appointment";
+/*
+ * Import connection: ../src/schemas/interaction -> packages/domain/src/schemas/interaction.ts.
+ * CreateInteraction: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateInteraction } from "../src/schemas/interaction";
+/*
+ * Import connection: ../src/schemas/note -> packages/domain/src/schemas/note.ts.
+ * CreateNote: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateNote } from "../src/schemas/note";
+/*
+ * Import connection: ../src/schemas/payment -> packages/domain/src/schemas/payment.ts.
+ * CreatePayment: Zod contract for validating the resource request before its domain write.
+ */
 import { CreatePayment } from "../src/schemas/payment";
+/*
+ * Import connection: ../src/schemas/service -> packages/domain/src/schemas/service.ts.
+ * CreateService: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateService } from "../src/schemas/service";
+/*
+ * Import connection: ../src/schemas/task -> packages/domain/src/schemas/task.ts.
+ * CreateTask: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateTask } from "../src/schemas/task";
 
 describe("CRM schemas", () => {

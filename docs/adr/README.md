@@ -19,4 +19,11 @@ that supersedes the old one.
 | 0009 | [Validation + queries live in a web-only domain package](0009-domain-web-only.md) | Accepted |
 | 0010 | [Reviewer-agent lifecycle and authority](0010-reviewer-agent-lifecycle.md) | Accepted |
 | 0011 | [Ideation pipeline + @research subagent](0011-ideation-pipeline.md) | Accepted |
+| 0012 | [Business is the tenant and data-access boundary](0012-business-tenant-boundary.md) | Proposed |
+| 0013 | [Restore username-only demo sign-in](0013-restore-demo-sign-in.md) | Accepted |
+| 0014 | [Developer provisioning and password-based owner activation](0014-developer-provisioned-owner-access.md) | Accepted |
+| 0015 | [Browser role selection and ready-to-use project test accounts](0015-browser-role-login-for-project-testing.md) | Accepted |
+| 0016 | [Reusable public business templates with a private owner inbox](0016-business-website-templates.md) | Accepted |
+| 0017 | [Owner self-service signup and website ownership](0017-owner-self-service-signup.md) | Accepted |
+| 0018 | [Local-only unverified owner signup for demos](0018-local-demo-owner-signup.md) | Accepted |
 EOF

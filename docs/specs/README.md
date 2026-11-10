@@ -26,9 +26,22 @@ store issue state. See [CONTRIBUTING](../../CONTRIBUTING.md) for the full arc.
 | [seams](seams.md) | infrastructure | The unifying seam pattern: local stand-in by default, real cloud via env var | 0005, 0008, 0003 |
 | [storage](storage.md) | infrastructure | Local-vs-real Azure pattern across blob and queue | 0006, 0008, 0005 |
 | [web](web.md) | infrastructure | Health endpoint, async-honesty UI standard, server entry ritual + error shape (404-not-403) | 0003, 0009 |
-| [auth](auth.md) | infrastructure | Identity derivation: dev stub now, sessions later, same seam | 0003 |
+| [auth](auth.md) | infrastructure | Email/password identity, restricted owner activation, and database sessions | 0014 |
 | [deploy](deploy.md) | infrastructure | Container build + Azure topology, config via env only, kill-switches | 0008 |
 | [observability](observability.md) | infrastructure | Structured logs, request IDs, what gets measured | — |
+
+### Authentication (`auth/`)
+
+| Doc | Type | What it covers | Key ADRs |
+|---|---|---|---|
+| [developer provisioning](businesses/developer-provisioning.md) | feature | Browser role login, developer dashboard, business setup, and owner activation | 0014, 0015 |
+
+### Business websites
+
+| Doc | Type | What it covers | Key ADRs |
+|---|---|---|---|
+| [website templates](businesses/website-templates.md) | feature | Four reusable public sites, previews, sample details, and private owner inquiries | 0016 |
+| [website editing](businesses/website-editing.md) | feature | Owner and developer website content, styling, sections, image uploads, previews, and publication | 0016 |
 
 ### CRM domain (`crm/`)
 
@@ -70,3 +83,4 @@ Business creation and customer selection are described by [Create business](busi
 | Doc | Type | What it covers | Key ADRs |
 |---|---|---|---|
 | [customer calendar](appointments/customer-calendar.md) | feature | Schedule customer appointments on a shared monthly calendar | 0009, 0012 |
+| [customer booking](appointments/customer-booking.md) | feature | Owner-managed business hours, services, staff availability, and public customer booking | 0009, 0012 |

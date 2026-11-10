@@ -1,3 +1,18 @@
+/*
+ * Code guide: tests/integration/appointments.test.ts
+ * Automated regression tests for customer appointment calendar. Assertions document expected behavior and
+ * failure cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than
+ * changing the running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ */
 import { beforeAll, describe, expect, it } from "vitest";
 
 describe("customer appointment calendar", () => {
@@ -45,7 +60,11 @@ describe("customer appointment calendar", () => {
     process.env.PGLITE_DATA_DIR = "memory://";
     delete process.env.DATABASE_URL;
 
+    // Test import connection: @project/db -> packages/db/src/index.ts. Loads the real module or its configured
+    // mock for this scenario.
     const db = await import("@project/db");
+    // Test import connection: @project/domain -> packages/domain/src/index.ts. Loads the real module or its
+    // configured mock for this scenario.
     const domain = await import("@project/domain");
 
     prisma = db.prisma;
@@ -291,6 +310,17 @@ describe("customer appointment calendar", () => {
         }),
       ],
     });
+  });
+
+  it("rejects overlapping staff-created appointments", async () => {
+    const separateDateInput = { ...validInput, date: "2026-11-16" };
+    const startingCount = await prisma.appointment.count({ where: { location_id: locationAId } });
+    await createAppointmentForUser(activeUserAId, separateDateInput);
+    await expect(createAppointmentForUser(activeUserA2Id, {
+      ...separateDateInput,
+      startTime: "10:00",
+    })).rejects.toMatchObject({ code: "CONFLICT" });
+    expect(await prisma.appointment.count({ where: { location_id: locationAId } })).toBe(startingCount + 1);
   });
 
   it("shares ordered calendar entries with employees in the same business", async () => {

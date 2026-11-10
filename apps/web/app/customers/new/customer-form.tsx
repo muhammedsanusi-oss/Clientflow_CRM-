@@ -1,15 +1,46 @@
+/*
+ * Code guide: apps/web/app/customers/new/customer-form.tsx
+ * Browser form for selecting a business and entering customer contact details. useActionState submits to
+ * addCustomerAction and redisplays server validation/conflict errors.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
 
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useActionState: Connects a form to a Server Action and exposes its returned errors/receipt plus pending
+ * status.
+ * useState: Keeps temporary component state in the browser, such as draft fields, pending status, and
+ * messages.
+ */
 import { useActionState, useState } from "react";
 
+/*
+ * Import connection: ../actions -> apps/web/app/customers/actions.ts.
+ * addCustomerAction: Reads and validates the browser form, creates the customer in an authorized business,
+ * handles duplicates, and redirects to that business customer list.
+ * Type AddCustomerActionState: Type for retained form values, field errors, and customer-creation errors.
+ */
 import {
   addCustomerAction,
   type AddCustomerActionState,
 } from "../actions";
 
+// Initial browser form/action state before any submission; later validation messages and receipts come from
+// the server action.
 const initialState: AddCustomerActionState = {};
 
+// UI field metadata: connects stored/form keys to labels, input types, and length limits. It defines
+// controls, not saved database rows.
 const textFields = [
   {
     name: "firstName",
@@ -37,7 +68,13 @@ const textFields = [
   },
 ] as const;
 
+/*
+ * Browser form for selecting a business and entering customer contact details. useActionState submits to
+ * addCustomerAction and redisplays server validation/conflict errors.
+ */
 export function CustomerForm({ businesses, selectedBusinessId }: { businesses: { id: string; name: string }[]; selectedBusinessId: string }) {
+  // Connect the form to its imported Server Action: state contains the returned values/errors, the action
+  // submits, and pending disables duplicate clicks.
   const [state, formAction, pending] = useActionState(
     addCustomerAction,
     initialState,

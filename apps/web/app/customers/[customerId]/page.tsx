@@ -1,11 +1,54 @@
+/*
+ * Code guide: apps/web/app/customers/[customerId]/page.tsx
+ * Customer contact details and shared notes. Users can edit this customer, add a note, or follow the Schedule
+ * link; the server first verifies access to the customer business.
+ * This entry renders on the server and supplies data/props to interactive components.
+ */
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * redirect: Ends this server response with navigation to the supplied application route.
+ */
 import { redirect } from "next/navigation";
+/*
+ * Import connection: @project/auth -> packages/auth/src/index.ts.
+ * currentUserId: Resolves the current database session and returns its user ID only for a regular, unexpired
+ * session. Activation-only tickets cannot authorize private CRM operations. Defined in
+ * packages/auth/src/current-user.ts.
+ */
 import { currentUserId } from "@project/auth";
+/*
+ * Import connection: @project/domain -> packages/domain/src/index.ts.
+ * getCustomerWithNotesForUser: Loads an authorized customer and the allowed shared notes plus author display
+ * names for the detail and edit pages. Defined in packages/domain/src/customers.ts.
+ */
 import { getCustomerWithNotesForUser } from "@project/domain";
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * notFound: Ends rendering with the route not-found result; foreign and unknown resources use the same UI.
+ */
 import { notFound } from "next/navigation";
 
+/*
+ * Import connection: ./note-form -> apps/web/app/customers/[customerId]/note-form.tsx.
+ * NoteForm: Browser form that saves a note through addCustomerNoteAction. Carries the customer lookup ID and
+ * shows validation/pending states; authorship is derived on the server.
+ */
 import { NoteForm } from "./note-form";
+import { OwnerWorkspace } from "../../../components/owner-workspace";
 
+// Request-time rendering: the page/API is resolved for this request instead of serving one static response
+// for every user.
 export const dynamic = "force-dynamic";
 
 const noteDateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -13,12 +56,18 @@ const noteDateFormatter = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
 });
 
+/*
+ * Customer contact details and shared notes. Users can edit this customer, add a note, or follow the Schedule
+ * link; the server first verifies access to the customer business.
+ */
 export default async function CustomerDetailPage({
   params,
 }: {
   params: Promise<{ customerId: string }>;
 }) {
   const { customerId } = await params;
+  // Resolve identity from the persisted session before accessing private business data; a form/URL user ID is
+  // not trusted here.
   const userId = await currentUserId();
   if (!userId) redirect("/login");
   const customer = await getCustomerWithNotesForUser(userId, customerId);
@@ -27,7 +76,7 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  return (
+  const page = (
     <main className="mx-auto max-w-3xl space-y-8">
       <header className="space-y-2">
         <Link
@@ -118,4 +167,8 @@ export default async function CustomerDetailPage({
       </section>
     </main>
   );
+  return <OwnerWorkspace
+    business={{ id: customer.business_id, ...customer.business }}
+    active="customers"
+  >{page}</OwnerWorkspace>;
 }

@@ -1,6 +1,25 @@
+/*
+ * Code guide: packages/domain/src/appointments.ts
+ * UI-facing scheduling and month queries. Uses active customer-business membership, active
+ * services/locations, fixed half-hour slots, and transactional appointment/service-line writes. This version
+ * neither converts time zones nor rejects overlaps.
+ */
+/*
+ * Import connection: @project/db -> packages/db/src/index.ts.
+ * prisma: Shared database client from packages/db; queries reach PostgreSQL or the configured embedded test
+ * database. Defined in packages/db/src/client.ts.
+ */
 import { prisma } from "@project/db";
+import { DomainError } from "./errors";
+import { acquireBookingLock } from "./booking";
+/*
+ * Import connection: zod.
+ * Zod builds runtime validation schemas and infers TypeScript input types; it does not connect to storage.
+ */
 import { z } from "zod";
 
+// Constructs the supported half-hour start-time choices; this is a fixed UI list rather than a live
+// availability query.
 export const appointmentTimeSlots = Array.from({ length: 27 }, (_, index) => {
   const totalMinutes = 7 * 60 + index * 30;
   const hours = Math.floor(totalMinutes / 60);
@@ -10,6 +29,9 @@ export const appointmentTimeSlots = Array.from({ length: 27 }, (_, index) => {
     .padStart(2, "0")}`;
 }) as [string, ...string[]];
 
+/*
+ * Checks both the date format and calendar validity so impossible dates such as February 31 are rejected.
+ */
 function isValidDate(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
@@ -51,14 +73,23 @@ export const createAppointmentInputSchema = z
   })
   .strict();
 
+// Type contract: CreateAppointmentInput. Describes values accepted/returned by the code below; TypeScript
+// removes this declaration from the runtime bundle.
 export type CreateAppointmentInput = z.infer<
   typeof createAppointmentInputSchema
 >;
 
+/*
+ * Stores entered calendar date/time as UTC-shaped wall-clock values. This scheduling version does not convert
+ * business time zones.
+ */
 function wallClockDate(date: string, time: string) {
   return new Date(`${date}T${time}:00.000Z`);
 }
 
+/*
+ * Loads the accessible customer and the active locations/services needed by the scheduling form.
+ */
 export async function getAppointmentFormForUser(
   userId: string,
   customerId: string,
@@ -81,6 +112,9 @@ export async function getAppointmentFormForUser(
       last_name: true,
       business: {
         select: {
+          id: true,
+          name: true,
+          websiteTemplate: true,
           locations: {
             where: { is_active: true },
             select: { id: true, name: true },
@@ -101,6 +135,10 @@ export async function getAppointmentFormForUser(
   });
 }
 
+/*
+ * Derives the scheduler membership, checks customer/location/service ownership, calculates duration, and
+ * atomically creates the appointment with its service-price snapshot.
+ */
 export async function createAppointmentForUser(
   userId: string,
   input: CreateAppointmentInput,
@@ -146,6 +184,7 @@ export async function createAppointmentForUser(
         },
         select: {
           id: true,
+          name: true,
           duration_minutes: true,
           base_price: true,
         },
@@ -160,6 +199,19 @@ export async function createAppointmentForUser(
     const endTime = new Date(
       startTime.getTime() + service.duration_minutes * 60_000,
     );
+    await acquireBookingLock(tx, employee.business_id);
+    const conflictingAppointment = await tx.appointment.findFirst({
+      where: {
+        location: { business_id: employee.business_id },
+        status: { not: "CANCELED" },
+        start_time: { lt: endTime },
+        end_time: { gt: startTime },
+      },
+      select: { id: true },
+    });
+    if (conflictingAppointment) {
+      throw new DomainError("CONFLICT", "That time is already booked.");
+    }
 
     return tx.appointment.create({
       data: {
@@ -176,6 +228,8 @@ export async function createAppointmentForUser(
             service_id: service.id,
             quantity: 1,
             price_at_booking: service.base_price,
+            service_name_at_booking: service.name,
+            duration_minutes_at_booking: service.duration_minutes,
           },
         },
       },
@@ -199,6 +253,10 @@ export async function createAppointmentForUser(
   });
 }
 
+/*
+ * Loads month-bounded appointments through active membership predicates on related records for the shared
+ * calendar.
+ */
 export async function listAppointmentsForUserMonth(
   userId: string,
   month: string,
@@ -223,7 +281,10 @@ export async function listAppointmentsForUserMonth(
         lt: monthEnd,
       },
       customer: { business: activeEmployeeInBusiness },
-      employee: { business: activeEmployeeInBusiness },
+      OR: [
+        { employee: { is: { business: activeEmployeeInBusiness } } },
+        { employee: null, source: "PUBLIC" },
+      ],
       location: { business: activeEmployeeInBusiness },
       appointment_services: {
         some: {
@@ -249,6 +310,9 @@ export async function listAppointmentsForUserMonth(
           last_name: true,
         },
       },
+      bookingStaff: {
+        select: { name: true },
+      },
       location: {
         select: { name: true },
       },
@@ -260,6 +324,8 @@ export async function listAppointmentsForUserMonth(
           service: {
             select: { name: true },
           },
+          service_name_at_booking: true,
+          duration_minutes_at_booking: true,
         },
         take: 1,
       },

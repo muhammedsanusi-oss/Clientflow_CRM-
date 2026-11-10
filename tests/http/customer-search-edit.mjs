@@ -1,12 +1,24 @@
-// Run against disposable data with two real GitHub sessions; creates CRM rows.
+/*
+ * Code guide: tests/http/customer-search-edit.mjs
+ * Prevents the default login form submission, sends credentials to the login API, and navigates only after a
+ * successful server response.
+ */
+// Run against a disposable local app: creates isolated demo accounts and rows.
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
-import { sessionCookie } from "./session-cookies.mjs";
+/*
+ * Import connection: ./provisioned-session.mjs -> tests/http/provisioned-session.mjs.
+ * ownerFixture: Helper/value provided by the connected module; its use in this file is shown below.
+ */
+import { ownerFixture } from "./provisioned-session.mjs";
 
 const base = process.env.API_BASE_URL ?? "http://localhost:3000";
 const suffix = Date.now().toString(36);
 const request = (url, options = {}) => fetch(url, { ...options, signal: AbortSignal.timeout(60_000) });
 const decode = value => value.replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-
 async function json(path, cookie, body) {
   const response = await request(base + path, { method: "POST", headers: { cookie, "content-type": "application/json" }, body: JSON.stringify(body) });
   assert.equal(response.status, 201, await response.clone().text());
@@ -28,11 +40,10 @@ async function submit(path, cookie, values) {
   for (const [key, value] of Object.entries(values)) data.set(key, value);
   return request(base + path, { method: "POST", headers: { cookie, origin: new URL(base).origin }, body: data, redirect: "manual" });
 }
-const cookie = sessionCookie("A");
-const otherCookie = sessionCookie("B");
-const businessInput = { name: "Search/edit drill", first_name: "Test", last_name: "Owner", email: `${suffix}@example.test`, phone_number: "2125550123", business_type: "OTHER" };
-const business = (await json("/api/Business", cookie, businessInput)).business.business;
-const other = (await json("/api/Business", otherCookie, businessInput)).business.business;
+const first = await ownerFixture("search-edit");
+const second = await ownerFixture("search-other");
+const cookie = first.cookie, otherCookie = second.cookie;
+const business = first.business, other = second.business;
 const values = { firstName: "Maria", lastName: "Lopez", email: "maria@example.test", phoneNumber: "555-1234", address: "10 Main St", preferredContactMethod: "EMAIL" };
 const created = (await json(`/api/customers?businessId=${business.id}`, cookie, values)).data.customer;
 await json(`/api/customers?businessId=${business.id}`, cookie, { ...values, firstName: "Aaron", email: "aaron@example.test", phoneNumber: "555-9999" });
@@ -51,7 +62,7 @@ assert.ok(edit.includes('value="Maria"'));
 assert.ok(edit.includes(`href="/customers/${created.id}"`));
 assert.ok(!edit.includes('name="businessId"'));
 const invalid = await submit(path, cookie, { ...values, email: "invalid" });
-assert.equal(invalid.status, 200);
+assert.equal(invalid.status, 200, `Invalid form redirected to ${invalid.headers.get("location")}`);
 assert.ok((await invalid.text()).includes("Enter a valid email"));
 const duplicate = await submit(path, cookie, { ...values, email: "aaron@example.test" });
 assert.equal(duplicate.status, 200);
