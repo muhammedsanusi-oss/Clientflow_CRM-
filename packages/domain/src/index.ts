@@ -63,6 +63,22 @@ export { ensureLocalTestAccounts } from "./local-test-accounts";
 // Importing this entry exposes definitions; it does not call them.
 export { getPublicWebsite, getPublicWebsiteImage, WebsiteContact, submitWebsiteInquiry, listOwnerInquiries, getWebsiteEditor, assertWebsiteEditorAccess, assertWebsiteImageUploadAllowed, submitWebsiteFeatureRequest, publishWebsite, getOwnerWebsite, listOwnerWebsites, listOwnerDashboardBusinesses } from "./websites";
 export { WEBSITE_PLANS, WebsitePlanSchema, WebsiteFeatureRequest, countWebsiteImages, type WebsitePlanKey, type WebsiteFeatureRequestInput } from "./website-plans";
+export {
+  CustomCrmRequest,
+  DeveloperNotificationRead,
+  ExternalMonitorEvent,
+  submitCustomCrmRequest,
+  listCustomCrmRequests,
+  getCustomCrmRequestForPortalSetup,
+  listDeveloperNotifications,
+  getUnreadDeveloperNotificationCount,
+  markDeveloperNotificationRead,
+  markAllDeveloperNotificationsRead,
+  listDeveloperBusinessRequests,
+  listExternalMonitorStates,
+  receiveExternalMonitorEvent,
+} from "./developer-notifications";
+export { DomainError } from "./errors";
 // Re-export connection: { PublishWebsite, type PublishWebsiteInput } ->
 // packages/domain/src/website-editing.ts. Importing this entry exposes definitions; it does not call them.
 export {
@@ -165,3 +181,8 @@ export {
 // Re-export connection: { CreateCustomerInput as CustomerFormInput, CreateCustomerNoteInput } ->
 // packages/domain/src/customers.ts. Importing this entry exposes definitions; it does not call them.
 export type { CreateCustomerInput as CustomerFormInput, CreateCustomerNoteInput } from "./customers";
+
+export { DemoSubscriptionAction, addCalendarMonth, listSubscriptionBusinesses, getDemoSubscription, simulateSubscription } from "./demo-subscriptions";
+export * from "./subscription-access";
+
+export { getManagedService, listManagedServiceBusinesses, mutateManagedService, ManagedServiceMutation, managedMonth } from "./managed-service";

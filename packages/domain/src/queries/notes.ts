@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/notes.ts
  * Database query module for notes. Uses the shared Prisma client and business/user predicates; HTTP callers
@@ -21,7 +22,7 @@ import type { CreateNoteInput } from "../schemas/note";
 // route may perform additional active-access checks.
 const ownedCustomerWhere = (businessId: string, userId: string) => ({
   business_id: businessId,
-  business: { employees: { some: { user_id: userId } } },
+  business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
 });
 
 /*
@@ -45,6 +46,7 @@ export function listBusinessNotesForUser(userId: string, businessId: string) {
       customer: {
         business_id: businessId,
         business: {
+          ...crmEntitlementWhere(),
           employees: { some: { user_id: userId, is_active: true } },
         },
       },
@@ -86,7 +88,7 @@ export async function createNote(customerId: string, businessId: string, userId:
   const [customer, employee] = await Promise.all([
     prisma.customer.findFirst({ where: { id: customerId, ...ownedCustomerWhere(businessId, userId) }, select: { id: true } }),
     prisma.employee.findFirst({
-      where: { business_id: businessId, user_id: userId },
+      where: { business_id: businessId, user_id: userId, is_active: true },
       select: { id: true },
     }),
   ]);

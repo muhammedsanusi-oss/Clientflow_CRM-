@@ -19,6 +19,10 @@ The project developers prepare business portals for owners. Owners manage custom
 ## Behavior
 
 - The existing dashboard layout remains the developer portal. Owners visiting / redirect to /owner.
+- The developer entry action and form are labeled Set up client portal.
+  Tailored requests offer Set up portal with editable owner/business prefills;
+  see [developer provisioning](developer-provisioning.md). The existing
+  `/businesses/new` route and transactional creation behavior remain in use.
 - Create business collects business name, type, description, contact email and phone, owner first/last names, and owner login email. Only developers may provision businesses.
 - Provisioning creates the owner account, business, OWNER membership, and both developers' access grants atomically. Developers do not become employee owners.
 - The form includes Bakery, Barbershop, Salon, and Contact templates, a live preview dialog, and Use sample details. Creation saves the website settings and contact information; see [website templates](website-templates.md).

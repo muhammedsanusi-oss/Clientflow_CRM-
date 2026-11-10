@@ -54,10 +54,6 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
     if (!(await hasBusinessAccess(businessId, userId))) return notFoundResponse();
     return Response.json({ appointments: await listAppointments(businessId, userId) });
   } catch (error) {
-    const mapped = apiError(error);
-    if (mapped.code === "CONFLICT") {
-      return Response.json({ error: { code: mapped.code, message: mapped.message } }, { status: mapped.status });
-    }
     return routeErrorResponse(error);
   }
 }
@@ -79,6 +75,10 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
     if (!appointment) return notFoundResponse();
     return Response.json({ appointment }, { status: 201 });
   } catch (error) {
+    const mapped = apiError(error);
+    if (mapped.code === "CONFLICT") {
+      return Response.json({ error: { code: mapped.code, message: mapped.message } }, { status: mapped.status });
+    }
     return routeErrorResponse(error);
   }
 }

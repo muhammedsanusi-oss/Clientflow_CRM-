@@ -114,3 +114,26 @@ export async function replaceTemporaryPassword(token: string, password: string) 
     return createSession(tx, session.userId, false);
   });
 }
+
+// The fragment token is not a session: only a successful POST can activate it.
+export async function completeOwnerSetup(token: string, password: string) {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
+    throw new AuthenticationError("UNAUTHENTICATED", "This setup link is invalid or expired. Ask your developer for a new link.");
+  }
+  if (password.length < 15 || password.length > 128) throw new AuthenticationError("VALIDATION", "Use 15 to 128 characters.");
+  await checkAttempt(`setup:${tokenHash(token)}`);
+  const passwordHash = await hashPassword(password);
+  return prisma.$transaction(async tx => {
+    const owner = await tx.user.findUnique({ where: { setupTokenHash: tokenHash(token) }, select: { id: true } });
+    if (!owner) throw new AuthenticationError("UNAUTHENTICATED", "This setup link is invalid or expired. Ask your developer for a new link.");
+    const claimed = await tx.user.updateMany({
+      where: { id: owner.id, setupTokenHash: tokenHash(token), mustChangePassword: true,
+        isDeveloper: false, temporaryExpiresAt: { gt: new Date() } },
+      data: { passwordHash, mustChangePassword: false, setupTokenHash: null,
+        temporaryExpiresAt: null, temporaryConsumedAt: null },
+    });
+    if (!claimed.count) throw new AuthenticationError("UNAUTHENTICATED", "This setup link is invalid or expired. Ask your developer for a new link.");
+    await tx.session.deleteMany({ where: { userId: owner.id } });
+    return createSession(tx, owner.id, false);
+  });
+}

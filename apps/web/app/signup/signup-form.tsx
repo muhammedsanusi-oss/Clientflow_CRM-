@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WEBSITE_TEMPLATES, type WebsiteTemplateKey } from "../../../../packages/domain/src/website-templates";
-import { WEBSITE_PLANS, type WebsitePlanKey } from "../../../../packages/domain/src/website-plans";
+import type { WebsitePlanKey } from "../../../../packages/domain/src/website-plans";
 import { BusinessWebsite } from "../../components/business-sites/business-website";
 import { WebsiteTemplatePicker } from "../../components/business-sites/website-template-picker";
 
@@ -40,10 +40,11 @@ const billingFields = [
   { name: "billing_zip", label: "ZIP code", autoComplete: "postal-code", maxLength: 20, required: true },
 ] as const;
 
-const planBenefits: Record<WebsitePlanKey, string[]> = {
-  FREE: ["Edit the sections already available in your website template", "Upload up to 10 images"],
-  PLUS: ["Upload up to 20 images", "Add up to 6 custom sections", "Submit up to 5 feature requests", "24/7 support (demo benefit)"],
-  PREMIUM: ["Upload up to 50 images", "Add up to 6 custom sections", "Unlimited feature requests", "24/7 support (demo benefit)"],
+// Signup selects a service; stored website-plan keys retain their existing content limits.
+const planListings: Record<WebsitePlanKey, { label: string; price: string; benefits: string[] }> = {
+  FREE: { label: "Standard website", price: "$39/month", benefits: ["Template website and owner editing", "Hosting and maintenance", "Business-hours email support"] },
+  PLUS: { label: "Website + standard CRM", price: "$79/month", benefits: ["Everything in Standard website", "Customer management", "Bookings, calendar, and notes"] },
+  PREMIUM: { label: "Managed service", price: "$149/month", benefits: ["Website and standard CRM", "30 minutes of content changes monthly", "Additional work quoted separately"] },
 };
 
 export function OwnerSignupForm() {
@@ -128,7 +129,7 @@ export function OwnerSignupForm() {
 
       <fieldset className="space-y-4 border-t border-slate-200 pt-6">
         <legend className="text-lg font-semibold text-[#172b4d]">Choose your website design</legend>
-        <p className="text-sm text-slate-500">Select a starting template. You can edit the website and publish it after signup.</p>
+        <p className="text-sm text-slate-500">Select a starting template. You can edit and publish after simulated checkout.</p>
         <WebsiteTemplatePicker
           value={template}
           onChange={key => setValues(current => ({ ...current, website_template: key, business_type: WEBSITE_TEMPLATES[key].businessType }))}
@@ -166,11 +167,11 @@ export function OwnerSignupForm() {
       </fieldset>
 
       <fieldset className="space-y-4 border-t border-slate-200 pt-6">
-        <legend className="text-lg font-semibold text-[#172b4d]">Choose a website plan</legend>
-        <p className="text-sm text-slate-500">Demo plans only. No payment details are collected and no charges are made.</p>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {(Object.keys(WEBSITE_PLANS) as WebsitePlanKey[]).map(planKey => {
-            const plan = WEBSITE_PLANS[planKey];
+        <legend className="text-lg font-semibold text-[#172b4d]">Proposed service pricing</legend>
+        <p className="text-sm leading-6 text-slate-500">Demo: no real charges. Signup opens simulated checkout. An active service controls website editing and CRM access; no payment details are collected. Hosting deployment and staffed support are not delivered by this demo.</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {(Object.keys(planListings) as WebsitePlanKey[]).map(planKey => {
+            const plan = planListings[planKey];
             const selected = values.website_plan === planKey;
             return <label key={planKey} className={`cursor-pointer rounded-xl border p-4 transition ${selected ? "border-indigo-600 bg-indigo-50 ring-2 ring-indigo-100" : "border-slate-200 hover:border-indigo-300"}`}>
               <span className="flex items-start justify-between gap-3">
@@ -188,12 +189,21 @@ export function OwnerSignupForm() {
                 />
               </span>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                {planBenefits[planKey].map(benefit => <li key={benefit}>• {benefit}</li>)}
+                {plan.benefits.map(benefit => <li key={benefit}>• {benefit}</li>)}
               </ul>
             </label>;
           })}
+          <article className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div><h3 className="font-semibold text-[#172b4d]">Tailored website/CRM</h3><p className="mt-1 text-lg font-bold text-indigo-700">Project quote + monthly maintenance</p></div>
+            <ul className="space-y-2 text-sm text-slate-600">
+              <li>Custom development priced after consultation</li>
+              <li>Built around your business’s specific requirements</li>
+              <li>Hosting and ongoing work explicitly defined in your quote</li>
+            </ul>
+            <a href="/signup?option=tailored" className="inline-flex rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Request a consultation</a>
+          </article>
         </div>
-        <p className="text-xs leading-5 text-slate-500">Plan benefits are a demo preview. Feature requests are not guaranteed to be implemented, and support is not connected.</p>
+        <p className="text-xs leading-5 text-slate-500">Custom features and additional work are quoted separately. Managed includes CRM software access; tracked content-change requests include 30 developer minutes per UTC calendar month.</p>
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6">

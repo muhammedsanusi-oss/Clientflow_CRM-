@@ -5,7 +5,7 @@ type: feature
 
 ## Why
 
-The project team creates a business's private CRM portal before handing it to the owner. The owner uses an email and a temporary password to choose a personal password before accessing business data.
+The project team creates a business's private CRM portal before handing it to the owner. The developer UI provides a password-setup link for the team to send privately; the owner must choose a personal password before accessing business data. Previously issued temporary passwords remain supported.
 
 ## Where it lives
 
@@ -28,20 +28,45 @@ The project team creates a business's private CRM portal before handing it to th
 - `/login` accepts an email, password, and optional account-type selector. The selector must match the stored role and never assigns permissions; emails are trimmed and lowercased, passwords are not silently trimmed or lowercased. Developer sessions open the existing `/` dashboard; activated owner sessions open their business workspace.
 - Public input cannot assign a developer role. Fixed local test fixtures are the only automatic developer accounts. Owners cannot open developer pages or invoke provisioning actions; unknown and unauthorized business resources return 404.
 - Both explicitly provisioned project developers receive developer-access grants for businesses created through this flow. Developer queries scope records through the signed-in developer's grants. Developer access is separate from an employee OWNER membership.
-- The existing dashboard keeps its layout and displays business name, owner email, and activation state: pending, expired, or active. Its primary action is `Create business`.
+- The existing dashboard keeps its layout and displays business name, owner email, and activation state: pending, expired, or active. Its primary action is `Set up client portal`.
+- Directory cards and totals include only granted businesses with a configured
+  Clientflow website, including websites created during owner signup. Records
+  without websites are excluded even if they are examples or their owners have
+  activated accounts. Owner state is labeled Owner access; a missing owner is
+  not assigned. See [website-backed directory](website-backed-directory.md).
 
 ### Create a business portal
 
+- The developer action and form heading say Set up client portal. Each tailored
+  request has a Set up portal action that opens the same form with the request's
+  business name, owner name, and private owner email prefilled and editable.
+  Contact names are split at the first space for review; a missing last name
+  remains blank and must be supplied before saving.
+- Request-prefill links carry only a request ID. The server checks developer
+  access before loading contact details; missing requests return 404. Opening
+  the form creates no account and does not change or mark the request complete.
+- The request's callback phone and requested work appear as private reference
+  information. A developer can explicitly use the contact phone as the public
+  business phone. Private fallback email and requested work are not silently
+  copied into public website fields. Existing validation applies on submission.
 - The form collects business name, business type, a short description of what it does, business contact email and phone, and the owner's first name, last name, and login email. Business contact email and owner login email are separate labeled fields.
 - Business name is 1-100 characters, description 1-1000, owner names 1-50 each, and phone follows the existing 10-15 character validation. Emails are validated and normalized; business type uses the existing enum.
 - The server derives the developer from the session. It does not accept owner user IDs, developer roles, or access grants from form input.
-- One transaction creates the business, owner account and hashed temporary credential, active OWNER employee membership, and developer-access grants. Failure rolls back all records.
+- One transaction creates the business, pending owner account and hashed setup token, active OWNER employee membership, and developer-access grants. Failure rolls back all records. The compatibility provisioning API retains temporary-password issuance; the developer UI requests setup links.
 - An owner email already associated with a login or legacy employee identity returns a safe 409 conflict. Provisioning never resets, claims, links, or transfers an existing account by email. Multiple-business invitations for existing accounts are separate work.
-- Successful creation opens a confirmation screen with business name, owner login email, login URL, expiration, and a generated temporary password shown once. The response is not cached; passwords never appear in URLs, logs, business listings, or database plaintext.
-- Developers copy and share the credentials themselves. Automatic email sending is outside this feature.
+- Successful creation opens a confirmation screen with business name, owner email, expiration, and a password-setup link shown once. Its token is a URL fragment, never a server query parameter or plaintext password. Setup hashes and passwords never appear in listings or logs.
+- Developers copy and send the setup link to the owner privately. Automatic email sending is outside this feature. Pending-owner regeneration provides a new setup link and invalidates previous credentials and unfinished setup sessions.
 - Each newly provisioned business also receives the selected Bakery, Barbershop, Salon, or Contact public website at /sites/<businessId>. The private owner workspace and credentials remain separate. See [website templates](website-templates.md) for public fields and inquiries.
 
 ### Owner activation
+
+- A setup-link owner opens `/setup-password`, chooses and confirms a password,
+  and receives access only after the token is successfully claimed. Opening
+  the page does not consume the link; it expires after 24 hours and works once.
+  The activation POST atomically consumes the token, sets the password, revokes
+  existing sessions, and creates the regular owner session. See [auth](../auth.md)
+  and [tailored signup](custom-website-signup.md).
+- The following temporary-password flow remains available for compatibility:
 
 - A randomly generated temporary password expires after 24 hours. It is stored only as a salted password hash.
 - Its first successful use atomically consumes it and creates a restricted 15-minute activation session. Concurrent attempts cannot consume the same credential twice.
@@ -78,6 +103,9 @@ The project team creates a business's private CRM portal before handing it to th
 
 ## Verify
 
+- `pnpm exec vitest run tests/integration/portal-request-prefill.test.ts`
+  verifies prefilled form rendering, private/public contact separation,
+  older requests, no writes on opening, and authorization for request IDs.
 - Run `pnpm test`, `pnpm typecheck`, and `pnpm build`.
 - On a disposable instance, provision both developer accounts, sign in separately, create a business, and confirm both can see its provisioning record without becoming its employee owner.
 - Copy the one-time credential, sign out, log in as the owner, and verify every private page/action/API denies CRM access until password replacement.

@@ -66,6 +66,95 @@ const catalog = async (db: PGlite) => ({
 });
 
 describe("SQL migration contract", () => {
+  it("adds managed-service storage without changing subscriptions, websites, or CRM data", async () => {
+    const db = new PGlite();
+    try {
+      const { readdir } = await import("node:fs/promises");
+      const files = (await readdir(new URL("../prisma/migrations/", import.meta.url)))
+        .filter(file => file.endsWith(".sql") && file < "0018_").sort();
+      for (const file of files) await db.exec(await migration(file));
+      await db.exec(`INSERT INTO "Business" ("id", "name", "business_type", "phone_number", "email", "updated_at", "websiteTemplate")
+        VALUES ('managed-preserve', 'Existing website', 'OTHER', '2125550111', 'preserve@example.test', CURRENT_TIMESTAMP, 'CONTACT');
+        INSERT INTO "DemoSubscription" ("businessId", "plan", "status", "updatedAt")
+        VALUES ('managed-preserve', 'MANAGED', 'ACTIVE', CURRENT_TIMESTAMP);`);
+      const before = (await db.query('SELECT * FROM "Business" ORDER BY "id"')).rows;
+      const subscriptions = (await db.query('SELECT * FROM "DemoSubscription"')).rows;
+      const customers = (await db.query('SELECT * FROM "Customer" ORDER BY "id"')).rows;
+      await db.exec(await migration("0018_managed_service.sql"));
+      expect((await db.query('SELECT * FROM "Business" ORDER BY "id"')).rows).toEqual(before);
+      expect((await db.query('SELECT * FROM "DemoSubscription"')).rows).toEqual(subscriptions);
+      expect((await db.query('SELECT * FROM "Customer" ORDER BY "id"')).rows).toEqual(customers);
+      expect((await db.query('SELECT * FROM "ManagedServiceRequest"')).rows).toEqual([]);
+      expect((await db.query('SELECT * FROM "ManagedServiceTime"')).rows).toEqual([]);
+      expect((await db.query('SELECT * FROM "ManagedServiceEvent"')).rows).toEqual([]);
+    } finally { await db.close(); }
+  }, 30_000);
+  it("adds demo billing without enrolling or changing existing businesses and customers", async () => {
+    const db = new PGlite();
+    try {
+      const { readdir } = await import("node:fs/promises");
+      const files = (await readdir(new URL("../prisma/migrations/", import.meta.url)))
+        .filter(file => file.endsWith(".sql") && file < "0017_").sort();
+      for (const file of files) await db.exec(await migration(file));
+      await db.exec(`INSERT INTO "Business" ("id", "name", "business_type", "phone_number", "email", "updated_at", "websitePlan")
+        VALUES ('billing-legacy-business', 'Preserved', 'OTHER', '2125550111', 'legacy@example.test', CURRENT_TIMESTAMP, 'PLUS');
+        INSERT INTO "Customer" ("id", "business_id", "first_name", "last_name", "phone_number", "email", "address", "preferred_contact_method", "updatedAt")
+        VALUES ('billing-legacy-customer', 'billing-legacy-business', 'Keep', 'Customer', '2125550111', 'customer@example.test', 'Main Street', 'EMAIL', CURRENT_TIMESTAMP);`);
+      const businesses = (await db.query('SELECT * FROM "Business"')).rows;
+      const customers = (await db.query('SELECT * FROM "Customer"')).rows;
+      await db.exec(await migration("0017_demo_subscriptions.sql"));
+      expect((await db.query('SELECT * FROM "Business"')).rows).toEqual(businesses);
+      expect((await db.query('SELECT * FROM "Customer"')).rows).toEqual(customers);
+      expect((await db.query('SELECT * FROM "DemoSubscription"')).rows).toEqual([]);
+      expect((await db.query('SELECT * FROM "DemoSubscriptionEvent"')).rows).toEqual([]);
+    } finally { await db.close(); }
+  }, 30_000);
+  it("preserves existing leads and pending owners when callback and setup fields are added", async () => {
+    const db = new PGlite();
+    try {
+      const { readdir } = await import("node:fs/promises");
+      const files = (await readdir(new URL("../prisma/migrations/", import.meta.url)))
+        .filter(file => file.endsWith(".sql") && file < "0016_").sort();
+      for (const file of files) await db.exec(await migration(file));
+      await db.exec(`INSERT INTO "CustomCrmRequest" ("id", "name", "email", "description")
+        VALUES ('legacy-lead', 'Existing owner', 'existing@example.test', 'Keep this request');
+        INSERT INTO "User" ("id", "email", "passwordHash", "mustChangePassword")
+        VALUES ('legacy-pending', 'pending@example.test', 'preserved-hash', true);`);
+      await db.exec(await migration("0016_custom_signup_callback_and_setup.sql"));
+      expect((await db.query('SELECT "description", "phone", "callbackAt", "callbackTimeZone" FROM "CustomCrmRequest"')).rows)
+        .toEqual([{ description: "Keep this request", phone: null, callbackAt: null, callbackTimeZone: null }]);
+      expect((await db.query('SELECT "passwordHash", "mustChangePassword", "setupTokenHash" FROM "User"')).rows)
+        .toEqual([{ passwordHash: "preserved-hash", mustChangePassword: true, setupTokenHash: null }]);
+    } finally { await db.close(); }
+  }, 30_000);
+
+  it.each([
+    ["0001_init.sql", "Customer"],
+    ["0002_business_tenancy.sql", "Business"],
+  ])("rolls back %s when its ledger write fails and can retry", async (file, table) => {
+    const db = new PGlite();
+    try {
+      await db.exec(`
+        CREATE TABLE _migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ DEFAULT now());
+        CREATE FUNCTION reject_migration_entry() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN
+          IF NEW.name = '${file}' THEN RAISE EXCEPTION 'injected ledger failure'; END IF;
+          RETURN NEW;
+        END $$;
+        CREATE TRIGGER reject_migration BEFORE INSERT ON _migrations
+          FOR EACH ROW EXECUTE FUNCTION reject_migration_entry();
+      `);
+      await expect(applyMigrations(db)).rejects.toThrow("injected ledger failure");
+      expect((await db.query(`SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = '${table}'`)).rows).toEqual([]);
+      expect((await db.query("SELECT name FROM _migrations WHERE name = $1", [file])).rows).toEqual([]);
+      await db.exec("DROP TRIGGER reject_migration ON _migrations; DROP FUNCTION reject_migration_entry();");
+      await applyMigrations(db);
+      await applyMigrations(db);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
+    } finally { await db.close(); }
+  }, 30_000);
+
   it("backfills existing appointment service names and durations before enabling public bookings", async () => {
     const db = new PGlite();
     try {
@@ -176,7 +265,7 @@ describe("SQL migration contract", () => {
         { encoding: "utf8", env: { ...process.env, DATABASE_URL: "postgresql://unused:unused@localhost:5433/unused" } });
       await expected.exec(sql);
       expect(await catalog(migrated)).toEqual(await catalog(expected));
-      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(14);
+      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
     } finally {
       await migrated.close();
       await expected.close();
@@ -244,7 +333,7 @@ describe("SQL migration contract", () => {
       await applyMigrations(db);
       expect((await db.query(`SELECT column_default FROM information_schema.columns
         WHERE table_name = 'Note' AND column_name = 'updated_at'`)).rows).toEqual([{ column_default: null }]);
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(14);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
     } finally { await db.close(); }
   }, 30000);
 
@@ -261,7 +350,7 @@ describe("SQL migration contract", () => {
 
       await applyMigrations(db);
 
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(14);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
       expect((await db.query(`SELECT udt_name FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = 'Employee' AND column_name = 'role_id'`)).rows)
         .toEqual([{ udt_name: "EmployeeRole" }]);

@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/location.ts
  * Database query module for location. Uses the shared Prisma client and business/user predicates; HTTP
@@ -33,7 +34,7 @@ export function listLocations(businessId: string, userId: string) {
     return tx.location.findMany({
       where: {
         business_id: businessId,
-        business: { employees: { some: { user_id: userId, is_active: true } } },
+        business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
       },
       orderBy: { created_at: "desc" },
     });
@@ -49,7 +50,7 @@ export function getLocationById(id: string, businessId: string, userId: string) 
     where: {
       id,
       business_id: businessId,
-      business: { employees: { some: { user_id: userId, is_active: true } } },
+      business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
     },
   });
 }

@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "./subscription-access";
 import { createHash } from "node:crypto";
 import { prisma, type Prisma } from "@project/db";
 import { z } from "zod";
@@ -61,6 +62,7 @@ export const publicBookingInputSchema = z.object({
 export type PublicBookingInput = z.infer<typeof publicBookingInputSchema>;
 
 const ownerMembership = (userId: string) => ({
+  ...crmEntitlementWhere(),
   employees: { some: { user_id: userId, is_active: true, role: "OWNER" as const } },
 });
 
@@ -88,6 +90,7 @@ export async function getOwnerBookingSettings(userId: string, businessId: string
       id: true,
       name: true,
       websiteTemplate: true,
+      demoSubscription: true,
       hoursIntervals: {
         orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
         select: { id: true, dayOfWeek: true, startTime: true, endTime: true },
@@ -260,7 +263,7 @@ export async function setOwnerServiceActive(userId: string, businessId: string, 
 
 export async function getPublicBookingOptions(businessId: string) {
   const business = await prisma.business.findFirst({
-    where: { id: businessId, websiteTemplate: { not: null } },
+    where: { ...crmEntitlementWhere(), id: businessId, websiteTemplate: { not: null } },
     select: {
       id: true,
       name: true,

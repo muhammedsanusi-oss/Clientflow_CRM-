@@ -13,6 +13,7 @@
  */
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 /*
  * Import connection: ../../../packages/auth/src/index -> packages/auth/src/index.ts.
  * currentSession: Reads the opaque cookie, hashes its token, and loads its persisted session plus limited
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
  */
 async function SessionHeader() {
   const userId = await currentSession();
-  return userId ? <header className="fixed right-5 top-3 z-50 rounded-lg bg-white shadow-sm"><SignOutButton /></header> : null;
+  return userId ? <header className="fixed right-5 top-3 z-50 flex items-center gap-2 rounded-lg bg-white shadow-sm"><Link href="/subscription" className="px-3 py-2 text-sm font-medium text-indigo-700">Demo subscription</Link><SignOutButton /></header> : null;
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -9,6 +9,7 @@ import { DomainError } from "./errors";
 import { CreateBusiness } from "./schemas/business";
 import { WEBSITE_TEMPLATE_KEYS } from "./website-templates";
 import { WebsitePlanSchema } from "./website-plans";
+import { createPendingDemoSubscription } from "./demo-subscriptions";
 
 const email = z.string().trim().toLowerCase().email().max(254);
 
@@ -91,6 +92,8 @@ export async function createLocalOwnerSignup(input: OwnerSignupInput) {
     } });
 
     const developers = await tx.user.findMany({ where: { isDeveloper: true }, select: { id: true } });
+    await createPendingDemoSubscription(tx, business.id, owner.id,
+      ({ FREE: "STANDARD", PLUS: "CRM", PREMIUM: "MANAGED" } as const)[signup.website_plan]);
     if (developers.length) {
       await tx.developerBusinessAccess.createMany({
         data: developers.map(developer => ({ developerId: developer.id, businessId: business.id })),

@@ -88,8 +88,8 @@ describe.sequential("developer provisioning and owner authentication", () => {
     // apps/web/app/businesses/new/actions.ts. Loads the real module or its configured mock for this scenario.
     const action = (await import("../../apps/web/app/businesses/new/actions")).addBusinessAction;
     const state = await action({}, form(input));
-    expect(state.error).toBeUndefined(); expect(state.receipt?.temporaryPassword).toBeTruthy();
-    receipt = { business: await db.prisma.business.findUniqueOrThrow({ where: { id: state.receipt!.businessId } }), temporaryPassword: state.receipt!.temporaryPassword, ownerEmail: state.receipt!.ownerEmail, expiresAt: state.receipt!.expiresAt };
+    expect(state.error).toBeUndefined(); expect(state.receipt?.setupPath).toMatch(/^\/setup-password#token=/);
+    receipt = await domain.regenerateOwnerPassword(developerId, state.receipt!.businessId); // Retain coverage of legacy temporary-password activation.
     expect(await db.prisma.developerBusinessAccess.count({ where: { businessId: receipt.business.id } })).toBe(2);
     const members = await db.prisma.employee.findMany({ where: { business_id: receipt.business.id } });
     expect(members).toHaveLength(1); expect(members[0].user_id).not.toBe(developerId); expect(members[0].role).toBe("OWNER");
@@ -137,7 +137,7 @@ describe.sequential("developer provisioning and owner authentication", () => {
     expect((await login.POST(request({ email: input.owner_email, password: receipt.temporaryPassword }))).status).toBe(401);
     const routes = import.meta.glob("../../apps/web/app/api/**/route.ts");
     for (const [path,load] of Object.entries(routes)) {
-      if (path.includes("/auth/") || path.includes("/health/") || path.includes("/api/sites/")) continue;
+      if (path.includes("/auth/") || path.includes("/health/") || path.includes("/api/sites/") || path.includes("/custom-crm-requests/") || path.includes("/monitoring/")) continue;
       const route = await load() as Record<string, (...args: unknown[]) => Promise<Response>>;
       for (const method of ["GET","POST","PUT","PATCH","DELETE"]) if (route[method]) {
         expect((await route[method](new Request("http://localhost/api/private",{ method, ...(method === "GET" ? {} : { body: "{" }) }),{ params: Promise.resolve({}) })).status,path).toBe(401);
@@ -239,6 +239,8 @@ describe.sequential("developer provisioning and owner authentication", () => {
       expect(response.status).toBe(200); expect((await response.json()).redirectTo).toBe("/");
       expect(await authentication.currentUserId()).toBe(LOCAL_TEST_ACCOUNTS.developer.id);
       const { WEBSITE_TEMPLATE_KEYS, WEBSITE_TEMPLATES } = await import("../../packages/domain/src/website-templates");
+      const demoSubscription = await db.prisma.demoSubscription.findUniqueOrThrow({ where: { businessId: "local-test-business" } });
+      expect(demoSubscription).toMatchObject({ plan: "CRM", status: "ACTIVE", version: 1 });
       const demoBusiness = await db.prisma.business.findUniqueOrThrow({ where: { id: "local-test-business" } });
       expect(WEBSITE_TEMPLATE_KEYS).toContain(demoBusiness.websiteTemplate);
       const bookingOptions = await domain.getPublicBookingOptions(demoBusiness.id);
@@ -268,6 +270,8 @@ describe.sequential("developer provisioning and owner authentication", () => {
       const before = await db.prisma.user.count();
       await login.POST(request({ email: LOCAL_TEST_ACCOUNTS.developer.email, password: LOCAL_TEST_PASSWORD, accountType: "developer" }));
       expect(await db.prisma.user.count()).toBe(before);
+      expect(await db.prisma.demoSubscription.findUnique({ where: { businessId: "local-test-business" } })).toEqual(demoSubscription);
+      expect(await db.prisma.demoSubscriptionEvent.count({ where: { businessId: "local-test-business" } })).toBe(2);
       expect((await db.prisma.business.findUniqueOrThrow({ where: { id: demoBusiness.id } })).websiteTemplate).toBe(demoBusiness.websiteTemplate);
       await db.prisma.business.create({
         data: {
@@ -337,7 +341,7 @@ describe.sequential("developer provisioning and owner authentication", () => {
     const routes = import.meta.glob("../../apps/web/app/api/**/route.ts");
     let count = 0;
     for (const [path, load] of Object.entries(routes)) {
-      if (path.includes("/auth/") || path.includes("/health/") || path.includes("/api/sites/")) continue;
+      if (path.includes("/auth/") || path.includes("/health/") || path.includes("/api/sites/") || path.includes("/custom-crm-requests/") || path.includes("/monitoring/")) continue;
       const route = await load() as Record<string, (...args: unknown[]) => Promise<Response>>;
       for (const method of ["GET", "POST", "PATCH", "PUT", "DELETE"]) {
         if (!route[method]) continue;
@@ -354,7 +358,7 @@ describe.sequential("developer provisioning and owner authentication", () => {
     context.values.clear();
     const pages = import.meta.glob("../../apps/web/app/**/page.tsx");
     for (const [path, load] of Object.entries(pages)) {
-      if (path.includes("/login/") || path.includes("/signup/") || path.includes("/app/sites/") || path.includes("/app/book/")) continue;
+      if (path.includes("/login/") || path.includes("/signup/") || path.includes("/setup-password/") || path.includes("/request-custom-crm/") || path.includes("/app/sites/") || path.includes("/app/book/")) continue;
       const page = await load() as { default: (props: unknown) => Promise<unknown> };
       await expect(page.default({ params: Promise.resolve({}), searchParams: Promise.resolve({}) }), path).rejects.toThrow("REDIRECT:/login");
     }

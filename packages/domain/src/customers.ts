@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "./subscription-access";
 /*
  * Code guide: packages/domain/src/customers.ts
  * UI-facing customer workflow shared by pages, Server Actions, and /api/customers. Resolves active business
@@ -58,10 +59,11 @@ export type CreateCustomerNoteInput = z.infer<
 export async function getCustomerBusinessForUser(userId: string, businessId?: string) {
   return prisma.business.findFirst({
     where: {
+      ...crmEntitlementWhere(),
       ...(businessId !== undefined ? { id: businessId } : {}),
       employees: { some: { user_id: userId, is_active: true } },
     },
-    select: { id: true, name: true, description: true, websiteTemplate: true },
+    select: { id: true, name: true, description: true, websiteTemplate: true, demoSubscription: true },
     orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
 }
@@ -131,7 +133,7 @@ export async function updateCustomerForUser(userId: string, customerId: string, 
   const result = await prisma.customer.updateMany({
     where: {
       id: customerId,
-      business: { employees: { some: { user_id: userId, is_active: true } } },
+      business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
     },
     data: {
       first_name: values.firstName,
@@ -197,6 +199,7 @@ export async function getCustomerWithNotesForUser(
     where: {
       id: customerId,
       business: {
+        ...crmEntitlementWhere(),
         employees: {
           some: {
             user_id: userId,
@@ -208,7 +211,7 @@ export async function getCustomerWithNotesForUser(
     select: {
       id: true,
       business_id: true,
-      business: { select: { name: true, websiteTemplate: true } },
+      business: { select: { name: true, websiteTemplate: true, demoSubscription: true } },
       first_name: true,
       last_name: true,
       phone_number: true,
@@ -219,6 +222,7 @@ export async function getCustomerWithNotesForUser(
         where: {
           employee: {
             business: {
+              ...crmEntitlementWhere(),
               employees: {
                 some: {
                   user_id: userId,
@@ -260,7 +264,7 @@ export async function createCustomerNoteForUser(
       where: {
         user_id: userId,
         is_active: true,
-        business: { customers: { some: { id: input.customerId } } },
+        business: { ...crmEntitlementWhere(), customers: { some: { id: input.customerId } } },
       },
       select: {
         id: true,

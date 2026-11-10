@@ -24,6 +24,7 @@ import { hashPassword } from "@project/auth/password";
  */
 import { LOCAL_TEST_ACCOUNTS, LOCAL_TEST_PASSWORD } from "@project/auth/test-accounts";
 import { WEBSITE_TEMPLATE_KEYS } from "./website-templates";
+import { createPendingDemoSubscription, simulateSubscription } from "./demo-subscriptions";
 
 // This fixed fixture is never an arbitrary account registration endpoint.
 /*
@@ -33,6 +34,7 @@ import { WEBSITE_TEMPLATE_KEYS } from "./website-templates";
 export async function ensureLocalTestAccounts(email: string) {
   if (process.env.NODE_ENV !== "development" || !Object.values(LOCAL_TEST_ACCOUNTS).some(account => account.email === email)) return;
   const passwordHash = await hashPassword(LOCAL_TEST_PASSWORD);
+  let activateSubscription = false;
   await prisma.$transaction(async tx => {
     for (const [role, account] of Object.entries(LOCAL_TEST_ACCOUNTS)) {
       await tx.user.upsert({ where: { id: account.id }, update: {}, create: {
@@ -110,5 +112,13 @@ export async function ensureLocalTestAccounts(email: string) {
     for (const developer of [LOCAL_TEST_ACCOUNTS.developer, LOCAL_TEST_ACCOUNTS.teammate]) {
       await tx.developerBusinessAccess.createMany({ data: businesses.map(item => ({ developerId: developer.id, businessId: item.id })), skipDuplicates: true });
     }
+    await tx.$queryRaw`SELECT "id" FROM "Business" WHERE "id" = ${business.id} FOR UPDATE`;
+    if (!await tx.demoSubscription.findUnique({ where: { businessId: business.id } })) {
+      await createPendingDemoSubscription(tx, business.id, LOCAL_TEST_ACCOUNTS.developer.id, "CRM");
+      activateSubscription = true;
+    }
+  });
+  if (activateSubscription) await simulateSubscription(LOCAL_TEST_ACCOUNTS.developer.id, {
+    businessId: "local-test-business", scenario: "PAY_SUCCESS", plan: "CRM", expectedVersion: 0,
   });
 }
