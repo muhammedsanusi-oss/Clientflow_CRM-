@@ -1,0 +1,192 @@
+.owner-workspace {
+  --owner-bg: #f5f5eb;
+  --owner-surface: #fffef8;
+  --owner-text: #263a2f;
+  --owner-muted: #687362;
+  --owner-accent: #3e5945;
+  --owner-accent-text: #fffef8;
+  --owner-border: #d2dac7;
+  min-height: 100vh;
+  background: var(--owner-bg);
+  color: var(--owner-text);
+}
+
+.owner-workspace[data-theme="BAKERY"] {
+  --owner-bg: #fbf5e9;
+  --owner-surface: #fffaf1;
+  --owner-text: #403025;
+  --owner-muted: #7e6c5e;
+  --owner-accent: #88451e;
+  --owner-accent-text: #fffaf1;
+  --owner-border: #ded1bd;
+}
+
+.owner-workspace[data-theme="BARBERSHOP"] {
+  --owner-bg: #151c1b;
+  --owner-surface: #202927;
+  --owner-text: #f2e8d5;
+  --owner-muted: #b9b7a7;
+  --owner-accent: #d3ad73;
+  --owner-accent-text: #151c1b;
+  --owner-border: #3a433c;
+}
+
+.owner-workspace[data-theme="SALON"] {
+  --owner-bg: #faf6f0;
+  --owner-surface: #fffaf5;
+  --owner-text: #493c3a;
+  --owner-muted: #84716d;
+  --owner-accent: #85594d;
+  --owner-accent-text: #fffaf5;
+  --owner-border: #e1d0c6;
+}
+
+.owner-workspace[data-theme="CONTACT"] {
+  --owner-bg: #f5f5eb;
+  --owner-surface: #fffef8;
+  --owner-text: #263a2f;
+  --owner-muted: #687362;
+  --owner-accent: #3e5945;
+  --owner-accent-text: #fffef8;
+  --owner-border: #d2dac7;
+}
+
+.owner-workspace-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--owner-border);
+  background: var(--owner-surface);
+  padding: 1rem max(1.25rem, calc((100% - 76rem) / 2));
+}
+
+.owner-workspace-business {
+  color: var(--owner-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.owner-workspace-description {
+  margin-top: 0.5rem;
+  color: var(--owner-muted);
+  font-size: 0.875rem;
+}
+
+.owner-workspace-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.owner-workspace-nav-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--owner-border);
+  border-radius: 0.5rem;
+  background: var(--owner-surface);
+  padding: 0.625rem 1rem;
+  color: var(--owner-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.owner-workspace-nav-link:hover,
+.owner-workspace-nav-link[aria-current="page"] {
+  border-color: var(--owner-accent);
+  background: var(--owner-accent);
+  color: var(--owner-accent-text);
+}
+
+.owner-workspace :is(main, section, article, aside, li) {
+  border-color: var(--owner-border);
+}
+
+.owner-workspace :is(
+  [class~="text-slate-700"],
+  [class~="text-neutral-700"],
+  [class~="text-blue-950"]
+) {
+  color: var(--owner-text);
+}
+
+.owner-workspace :is(
+  [class~="text-slate-600"],
+  [class~="text-slate-500"],
+  [class~="text-neutral-600"],
+  [class~="text-neutral-500"]
+) {
+  color: var(--owner-muted);
+}
+
+.owner-workspace :is(
+  [class~="text-blue-600"],
+  [class~="text-blue-700"],
+  [class~="text-indigo-700"],
+  [class~="text-indigo-900"],
+  [class~="text-indigo-950"]
+) {
+  color: var(--owner-accent);
+}
+
+.owner-workspace :is(
+  [class~="bg-white"],
+  [class~="bg-slate-50"],
+  [class~="bg-neutral-50"],
+  [class~="bg-indigo-50"],
+  [class~="bg-blue-50"],
+  [class~="bg-indigo-100"]
+) {
+  background-color: var(--owner-surface);
+}
+
+.owner-workspace :is(
+  [class~="border-slate-200"],
+  [class~="border-slate-300"],
+  [class~="border-neutral-200"],
+  [class~="border-neutral-300"]
+) {
+  border-color: var(--owner-border);
+}
+
+.owner-workspace :is(
+  [class~="bg-blue-700"],
+  [class~="bg-indigo-700"]
+) {
+  background-color: var(--owner-accent);
+  color: var(--owner-accent-text);
+}
+
+.owner-workspace :is(input, select, textarea) {
+  border-color: var(--owner-border);
+  background-color: var(--owner-surface);
+  color: var(--owner-text);
+}
+
+.owner-workspace :is(input, select, textarea):focus {
+  outline-color: var(--owner-accent);
+}
+
+.owner-workspace :is(input, textarea)::placeholder {
+  color: var(--owner-muted);
+}
+
+.owner-workspace main {
+  color: var(--owner-text);
+}
+
+@media (max-width: 640px) {
+  .owner-workspace-header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1rem 1.25rem;
+  }
+
+  .owner-workspace-nav-link {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+}

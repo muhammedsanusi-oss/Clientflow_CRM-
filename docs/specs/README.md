@@ -41,6 +41,7 @@ store issue state. See [CONTRIBUTING](../../CONTRIBUTING.md) for the full arc.
 | Doc | Type | What it covers | Key ADRs |
 |---|---|---|---|
 | [website templates](businesses/website-templates.md) | feature | Four reusable public sites, previews, sample details, and private owner inquiries | 0016 |
+| [website editing](businesses/website-editing.md) | feature | Owner and developer website content, styling, sections, image uploads, previews, and publication | 0016 |
 
 ### CRM domain (`crm/`)
 
@@ -82,3 +83,4 @@ Business creation and customer selection are described by [Create business](busi
 | Doc | Type | What it covers | Key ADRs |
 |---|---|---|---|
 | [customer calendar](appointments/customer-calendar.md) | feature | Schedule customer appointments on a shared monthly calendar | 0009, 0012 |
+| [customer booking](appointments/customer-booking.md) | feature | Owner-managed business hours, services, staff availability, and public customer booking | 0009, 0012 |

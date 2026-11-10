@@ -1,4 +1,12 @@
+/*
+ * Code guide: packages/domain/src/website-templates.ts
+ * Standard Bakery, Barbershop, Salon, and Contact/personal-services website catalogue. Contains reusable
+ * presentation defaults and fictional sample values, not saved business rows. The creation form and shared
+ * renderer both import it.
+ */
 // Presentation-safe catalogue: no database, credentials, or request dependencies.
+// The four standard designs and their fictional defaults. The Contact design also serves personal-service
+// websites.
 export const WEBSITE_TEMPLATES = {
   BAKERY: {
     label: "Bakery", businessType: "BAKERY", name: "Golden Crumb Bakery", eyebrow: "Made with care. Shared with joy.",
@@ -37,9 +45,16 @@ export const WEBSITE_TEMPLATES = {
     email: "hello@northside.example", phone: "2125550145", address: "By appointment", hours: "Monday–Friday · 9am–5pm",
   },
 } as const;
+// Type contract: WebsiteTemplateKey. Describes values accepted/returned by the code below; TypeScript removes
+// this declaration from the runtime bundle.
 export type WebsiteTemplateKey = keyof typeof WEBSITE_TEMPLATES;
+// Accepted template keys shared by form choices and server validation.
 export const WEBSITE_TEMPLATE_KEYS = ["BAKERY", "BARBERSHOP", "SALON", "CONTACT"] as const;
 
+/*
+ * Builds fictional form values for the selected template, including a unique test owner email. Filling these
+ * values does not save or publish a business.
+ */
 export function sampleBusinessDetails(template: WebsiteTemplateKey, unique: string) {
   const sample = WEBSITE_TEMPLATES[template];
   return { name: sample.name, description: sample.description, business_type: sample.businessType,

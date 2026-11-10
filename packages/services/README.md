@@ -28,9 +28,12 @@ All exports come from `src/index.ts`:
 |---|---|
 | `uploadAttachment(entityId, filename, contentType, data)` | Uploads a blob; returns the blob name |
 | `downloadAttachment(blobName)` | Downloads a blob; returns `{ data, contentType }` or `null` |
+| `uploadWebsiteImage(businessId, section, contentType, data)` | Validates and uploads a JPG, PNG, or WebP image under a unique business/section-scoped name |
+| `websiteImageExtension(contentType, data)` | Checks the 5 MB cap, declared MIME type, and image signature before storage |
 | `storageAvailable()` | Checks whether blob storage is reachable |
 | `safeBlobName(entityId, filename)` | Creates a safe, namespaced blob name from a user-supplied filename |
 | `MAX_ATTACHMENT_BYTES` | 5 MB — the attachment size cap |
+| `MAX_WEBSITE_IMAGE_BYTES` | 5 MB — the website image size cap |
 
 ### Notify (`src/notify.ts`)
 

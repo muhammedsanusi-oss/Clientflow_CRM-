@@ -1,11 +1,39 @@
+/*
+ * Code guide: apps/web/app/login/login-form.tsx
+ * Browser form for choosing Developer or Business owner and entering credentials. Submits JSON to
+ * /api/auth/login, displays errors, and navigates to the server-selected destination.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
 
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useState: Keeps temporary component state in the browser, such as draft fields, pending status, and
+ * messages.
+ */
 import { useState } from "react";
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * useRouter: Navigates or refreshes the browser after an API/action succeeds.
+ */
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
+// Type contract: AccountType. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 type AccountType = "developer" | "owner";
+// Type contract: TestAccount. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 type TestAccount = { email: string; password: string };
-export default function LoginForm({ testAccounts }: { testAccounts?: Record<AccountType, TestAccount> }) {
+/*
+ * Browser form for choosing Developer or Business owner and entering credentials. Submits JSON to
+ * /api/auth/login, displays errors, and navigates to the server-selected destination.
+ */
+export default function LoginForm({ testAccounts, allowDemoSignup = false }: { testAccounts?: Record<AccountType, TestAccount>; allowDemoSignup?: boolean }) {
   const router = useRouter();
   const [accountType, setAccountType] = useState<AccountType>("developer");
   const [email, setEmail] = useState("");
@@ -13,6 +41,10 @@ export default function LoginForm({ testAccounts }: { testAccounts?: Record<Acco
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  /*
+   * Prevents the default login form submission, sends credentials to the login API, and navigates only after
+   * a successful server response.
+   */
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -145,13 +177,16 @@ export default function LoginForm({ testAccounts }: { testAccounts?: Record<Acco
             </button>
           </form>
 
-          <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          {allowDemoSignup ? <p className="mt-4 text-center text-sm text-slate-600">
+            Business owner? Don&apos;t have an account?{" "}
+            <Link href="/signup" className="font-semibold text-indigo-700 underline underline-offset-2">Sign up here!</Link>
+          </p> : <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
             <p className="text-sm font-semibold text-amber-950">Your first sign-in</p>
             <p className="mt-1.5 text-xs leading-5 text-amber-900/80">
               Business owners receive a temporary password from the Clientflow team.
               You will choose your own password before opening your business portal.
             </p>
-          </div>
+          </div>}
 
           <p className="mt-8 text-center text-xs text-slate-400">
             Clientflow CRM <span className="mx-1.5">·</span> Built for better client relationships

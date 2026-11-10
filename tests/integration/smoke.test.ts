@@ -1,3 +1,19 @@
+/*
+ * Code guide: tests/integration/smoke.test.ts
+ * Automated regression tests for prisma client (PGlite door). Assertions document expected behavior and
+ * failure cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than
+ * changing the running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * afterAll: Closes suite resources after testing.
+ */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 // All reads use a database built by the actual SQL migrations.
@@ -9,6 +25,8 @@ beforeAll(async () => {
   process.env.PGLITE_DATA_DIR = "memory://";
   delete process.env.DATABASE_URL;
   // Boot PGlite WASM before the test runs so the test is instant
+  // Test import connection: @project/db -> packages/db/src/index.ts. Loads the real module or its configured
+  // mock for this scenario.
   const db = await import("@project/db");
   prisma = db.prisma;
 }, 30000);
@@ -26,7 +44,9 @@ describe("prisma client (PGlite door)", () => {
       prisma.employee.findMany(), prisma.appointment.findMany(), prisma.appointment_Service.findMany(),
       prisma.service.findMany(), prisma.interaction.findMany(), prisma.payment.findMany(),
       prisma.business.findMany(), prisma.location.findMany(), prisma.user.findMany(),
-    ])).resolves.toHaveLength(12);
+      prisma.businessBillingAddress.findMany(),
+      prisma.websiteFeatureRequest.findMany(),
+    ])).resolves.toHaveLength(14);
   });
 
   it("writes the complete CRM relationship graph with the schema's types and defaults", async () => {
@@ -40,7 +60,7 @@ describe("prisma client (PGlite door)", () => {
       const note = await tx.note.create({ data: { customer_id: customer.id, employee_id: employee.id, content: "First note" } });
       const appointment = await tx.appointment.create({ data: { customer_id: customer.id, employee_id: employee.id, location_id: location.id, appointment_date: new Date(), start_time: new Date(), end_time: new Date(), notes: "Booking" } });
       const service = await tx.service.create({ data: { business_id: business.id, name: "Massage", category: "SPA", description: "Massage", duration_minutes: 60, base_price: 50 } });
-      const booking = await tx.appointment_Service.create({ data: { appointment_id: appointment.id, service_id: service.id, quantity: 1, price_at_booking: 50 } });
+      const booking = await tx.appointment_Service.create({ data: { appointment_id: appointment.id, service_id: service.id, quantity: 1, price_at_booking: 50, service_name_at_booking: service.name, duration_minutes_at_booking: service.duration_minutes } });
       const interaction = await tx.interaction.create({ data: { customer_id: customer.id, employee_id: employee.id, type: "CALL", subject: "Booking", content: "Confirmed" } });
       const payment = await tx.payment.create({ data: { appointment_id: appointment.id, payment_method: "CARD", status: "COMPLETED" } });
       const updatedNote = await tx.note.update({ where: { id: note.id }, data: { content: "Updated note" } });

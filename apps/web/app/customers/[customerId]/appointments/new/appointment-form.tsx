@@ -1,22 +1,53 @@
+/*
+ * Code guide: apps/web/app/customers/[customerId]/appointments/new/appointment-form.tsx
+ * Formats the stored or entered clock value for the appointment UI without adding business-timezone
+ * conversion.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
 
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useActionState: Connects a form to a Server Action and exposes its returned errors/receipt plus pending
+ * status.
+ */
 import { useActionState } from "react";
 
+/*
+ * Import connection: ./actions -> apps/web/app/customers/[customerId]/appointments/new/actions.ts.
+ * scheduleAppointmentAction: Validates submitted scheduling fields, calls the protected appointment write,
+ * and redirects to the matching calendar month.
+ * Type ScheduleAppointmentActionState: Type for retained appointment inputs and scheduling errors.
+ */
 import {
   scheduleAppointmentAction,
   type ScheduleAppointmentActionState,
 } from "./actions";
 
+// Type contract: Option. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 type Option = {
   id: string;
   name: string;
 };
 
+// Type contract: ServiceOption. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 type ServiceOption = Option & {
   duration_minutes: number;
 };
 
+// Type contract: AppointmentFormProps. Describes values accepted/returned by the code below; TypeScript
+// removes this declaration from the runtime bundle.
 type AppointmentFormProps = {
   customerId: string;
   defaultDate: string;
@@ -25,8 +56,14 @@ type AppointmentFormProps = {
   timeSlots: string[];
 };
 
+// Initial browser form/action state before any submission; later validation messages and receipts come from
+// the server action.
 const initialState: ScheduleAppointmentActionState = {};
 
+/*
+ * Formats the stored or entered clock value for the appointment UI without adding business-timezone
+ * conversion.
+ */
 function displayTime(value: string) {
   const [hours, minutes] = value.split(":").map(Number);
   const suffix = hours >= 12 ? "PM" : "AM";
@@ -34,6 +71,10 @@ function displayTime(value: string) {
   return `${displayHours}:${minutes.toString().padStart(2, "0")} ${suffix}`;
 }
 
+/*
+ * Choose a date, service, start time, location, and optional details for this customer. Submits to
+ * scheduleAppointmentAction; an active service and location are required.
+ */
 export function AppointmentForm({
   customerId,
   defaultDate,
@@ -41,12 +82,17 @@ export function AppointmentForm({
   services,
   timeSlots,
 }: AppointmentFormProps) {
+  // Connect the form to its imported Server Action: state contains the returned values/errors, the action
+  // submits, and pending disables duplicate clicks.
   const [state, formAction, pending] = useActionState(
     scheduleAppointmentAction,
     initialState,
   );
   const noOptions = locations.length === 0 || services.length === 0;
 
+  /*
+   * Selects the first server validation message for one scheduling field.
+   */
   function fieldError(field: keyof NonNullable<typeof state.fieldErrors>) {
     return state.fieldErrors?.[field]?.[0];
   }

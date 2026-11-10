@@ -1,0 +1,9 @@
+BEGIN;
+ALTER TABLE "BusinessWebsiteContent"
+  ADD COLUMN "fontFamily" TEXT NOT NULL DEFAULT 'SANS',
+  ADD COLUMN "textColor" TEXT NOT NULL DEFAULT 'INK',
+  ADD COLUMN "textScale" TEXT NOT NULL DEFAULT 'STANDARD',
+  ADD COLUMN "additionalSections" JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN "logoImage" TEXT,
+  ADD COLUMN "heroImage" TEXT;
+COMMIT;

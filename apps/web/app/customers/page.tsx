@@ -1,12 +1,63 @@
+/*
+ * Code guide: apps/web/app/customers/page.tsx
+ * Owner workspace at /customers. Select an accessible business, search customers by name/email/phone, add a
+ * customer, open customer details, and navigate to calendar, inquiries, or website.
+ * This entry renders on the server and supplies data/props to interactive components.
+ */
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * redirect: Ends this server response with navigation to the supplied application route.
+ * notFound: Ends rendering with the route not-found result; foreign and unknown resources use the same UI.
+ */
 import { redirect, notFound } from "next/navigation";
+  /*
+   * Import connection: next/link.
+   * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+   * data.
+   * Link: Client-side application navigation component; the destination still performs its own access checks.
+   */
   import Link from "next/link";
+  /*
+   * Import connection: @project/auth -> packages/auth/src/index.ts.
+   * currentUserId: Resolves the current database session and returns its user ID only for a regular,
+   * unexpired session. Activation-only tickets cannot authorize private CRM operations. Defined in
+   * packages/auth/src/current-user.ts.
+   */
   import { currentUserId } from "@project/auth";
+  /*
+   * Import connection: @project/domain -> packages/domain/src/index.ts.
+   * listCustomersForUser: Adapts the authorized customer collection to a list for the customer page, using an
+   * empty list when no collection is available. Defined in packages/domain/src/customers.ts.
+   * getCustomerBusinessForUser: Resolves the selected business through the user active membership, or chooses
+   * the newest authorized business when no selection is supplied. Defined in
+   * packages/domain/src/customers.ts.
+   * listBusinesses: Reads the resource through the connected query module; the business/user predicates are
+   * implemented there. Defined in packages/domain/src/queries/business.ts.
+   * customerSearchInputSchema: Trims and limits the customer search query before building database filters.
+   * Defined in packages/domain/src/customers.ts.
+   */
   import { listCustomersForUser, getCustomerBusinessForUser, listBusinesses, customerSearchInputSchema } from "@project/domain";
+  /*
+   * Import connection: ./business-selector -> apps/web/app/customers/business-selector.tsx.
+   * BusinessSelector: GET form that changes the businessId query parameter on /customers. The selection is a
+   * lookup hint; the destination page verifies the user membership again.
+   */
   import { BusinessSelector } from "./business-selector";
+  import { OwnerWorkspace } from "../../components/owner-workspace";
 
+  // Request-time rendering: the page/API is resolved for this request instead of serving one static response
+  // for every user.
   export const dynamic = "force-dynamic";
 
+  /*
+   * Owner workspace at /customers. Select an accessible business, search customers by name/email/phone, add a
+   * customer, open customer details, and navigate to calendar, inquiries, or website.
+   */
   export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ businessId?: string | string[]; q?: string | string[] }> }) {
+    // Resolve identity from the persisted session before accessing private business data; a form/URL user ID is
+    // not trusted here.
     const userId = await currentUserId();
   if (!userId) redirect("/login");
     const parameters = await searchParams;
@@ -20,12 +71,12 @@ import { redirect, notFound } from "next/navigation";
     const customers = search.success ? await listCustomersForUser(userId, business.id, query) : [];
     const selectedQuery = `?businessId=${encodeURIComponent(business.id)}`;
 
-    return (
+    const page = (
       <main className="mx-auto max-w-5xl space-y-8 px-5 py-10">
         <header className="space-y-2">
           <Link
             href="/"
-            className="text-sm text-blue-600 underline underline-offset-2"
+            className="inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
           >
             ← Dashboard
           </Link>
@@ -50,7 +101,7 @@ import { redirect, notFound } from "next/navigation";
             Calendar
           </Link>
         </header>
-        <nav aria-label="Business website" className="flex flex-wrap gap-3"><Link href={`/inquiries${selectedQuery}`} className="rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">Website inquiries</Link>{business.websiteTemplate && <Link href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300 px-4 py-2 text-sm text-indigo-700">Open website</Link>}</nav>
+        <nav aria-label="Business website" className="flex flex-wrap gap-3"><Link href={`/inquiries${selectedQuery}`} className="rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">Website inquiries</Link>{business.websiteTemplate && <><Link href={`/website${selectedQuery}`} className="rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">Website</Link><Link href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300 px-4 py-2 text-sm text-indigo-700">Open website</Link></>}</nav>
         <BusinessSelector businesses={businesses} selectedId={business.id} />
 
         <form method="get" action="/customers" className="flex flex-wrap items-end gap-3">
@@ -141,4 +192,5 @@ import { redirect, notFound } from "next/navigation";
         )}
       </main>
     );
+    return <OwnerWorkspace business={business} active="customers">{page}</OwnerWorkspace>;
   }

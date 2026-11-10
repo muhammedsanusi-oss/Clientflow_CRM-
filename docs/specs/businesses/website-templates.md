@@ -42,6 +42,7 @@ The project team needs repeatable starting points for business websites instead 
 - Saving transactionally creates the business, selected website settings, owner account and OWNER membership, and developer grants through the existing provisioning flow.
 - A newly created template site is available at `/sites/<businessId>` on the same local app. The confirmation retains the one-time owner credential handoff and adds `Open website` and `Back to dashboard` actions.
 - The business detail screen and dashboard card provide the saved website link. Different businesses using the same template render their own supplied details.
+- A configured website includes a `Book online` link to that business's public booking page. The page exposes only that business's active booking choices and available times; owner-managed hours, services, staff display names, and appointment rules are described in [customer booking](../appointments/customer-booking.md).
 - Existing businesses without website settings do not become public automatically. Their public site returns 404. This feature does not backfill or publish legacy business records.
 - No cloud deployment, custom domain, or separate generated application is required. The website is an additional route in Clientflow backed by the saved business record.
 
@@ -97,4 +98,6 @@ The public-route and provisioning contracts explicitly include these website rou
 
 ## Out of scope
 
-Website editing after creation, drag-and-drop builders, uploaded logos/photos, custom domains, independent deployments, subscriptions, ecommerce, online payment, appointment availability or booking, automated email/SMS, customer auto-creation from inquiries, and changing existing CRM workflows. The current business and auth specifications continue to own provisioning and account activation.
+Editing after creation is governed by [website editing](website-editing.md): authorized developers and active owners preview and publish supported content, visual styles, text sections, and image changes. Untouched sites continue to use the original template defaults.
+
+Drag-and-drop builders, arbitrary code or CSS, custom domains, independent deployments, subscriptions, ecommerce, online payment, appointment availability or booking, automated email/SMS, customer auto-creation from inquiries, and changing existing CRM workflows remain out of scope. The current business and auth specifications continue to own provisioning and account activation.

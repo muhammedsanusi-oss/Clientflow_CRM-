@@ -1,8 +1,32 @@
+/*
+ * Code guide: apps/migrate/src/create-developer.ts
+ * Interactive maintenance command that creates a developer login with a hidden password prompt. Existing
+ * accounts are rejected rather than overwritten; existing explicit project business grants are copied for the
+ * new developer.
+ */
 // Explicit local account bootstrap. Password input is hidden and never logged.
+/*
+ * Import connection: node:readline/promises.
+ * Interactive terminal prompts used by the explicit developer-account setup command.
+ */
 import { createInterface } from "node:readline/promises";
+/*
+ * Import connection: @project/db -> packages/db/src/index.ts.
+ * prisma: Shared database client from packages/db; queries reach PostgreSQL or the configured embedded test
+ * database. Defined in packages/db/src/client.ts.
+ */
 import { prisma } from "@project/db";
+/*
+ * Import connection: @project/auth/password -> packages/auth/src/password.ts.
+ * hashPassword: Creates a random salt and derives a scrypt key. Returns a stored hash format, never the
+ * plaintext password.
+ */
 import { hashPassword } from "@project/auth/password";
 
+/*
+ * Reads a terminal password without echoing it. Restores normal terminal input after completion or
+ * cancellation.
+ */
 async function hiddenPassword(label: string): Promise<string> {
   if (!process.stdin.isTTY) throw new Error("Run this command in an interactive terminal.");
   process.stdout.write(label);
@@ -23,6 +47,11 @@ async function hiddenPassword(label: string): Promise<string> {
   });
 }
 
+/*
+ * Interactive maintenance command that creates a developer login with a hidden password prompt. Existing
+ * accounts are rejected rather than overwritten; existing explicit project business grants are copied for the
+ * new developer.
+ */
 async function main() {
   const prompt = createInterface({ input: process.stdin, output: process.stdout });
   const email = (await prompt.question("Developer email: ")).trim().toLowerCase();

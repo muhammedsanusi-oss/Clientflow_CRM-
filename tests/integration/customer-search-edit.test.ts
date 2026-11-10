@@ -1,3 +1,20 @@
+/*
+ * Code guide: tests/integration/customer-search-edit.test.ts
+ * Automated regression tests for customer search. Assertions document expected behavior and failure cases;
+ * inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the running
+ * local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * afterEach: Restores scenario state after each test.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ * vi: Provides test spies and module mocks; does not alter production authorization.
+ */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const auth = vi.hoisted(() => ({ userId: "search-user" as string | null }));
@@ -30,8 +47,15 @@ function edit(id: string, previous: Parameters<typeof editAction>[0], data: Form
 beforeAll(async () => {
   process.env.PGLITE_DATA_DIR = "memory://";
   delete process.env.DATABASE_URL;
+  // Test import connection: @project/domain -> packages/domain/src/index.ts. Loads the real module or its
+  // configured mock for this scenario.
   domain = await import("@project/domain");
+  // Test import connection: @project/db -> packages/db/src/index.ts. Loads the real module or its configured
+  // mock for this scenario.
   prisma = (await import("@project/db")).prisma;
+  // Test import connection: ../../apps/web/app/customers/[customerId]/edit/actions ->
+  // apps/web/app/customers/[customerId]/edit/actions.ts. Loads the real module or its configured mock for this
+  // scenario.
   editAction = (await import("../../apps/web/app/customers/[customerId]/edit/actions")).editCustomerAction;
   await prisma.business.createMany({ data: [businessId, "search-foreign"].map((id) => ({ id, name: id, business_type: "OTHER", phone_number: "555", email: `${id}@example.test` })) });
   await prisma.user.createMany({ data: ["search-user", "search-inactive"].map((id) => ({ id, username: id })) });
@@ -125,6 +149,8 @@ describe("customer editing", () => {
     for (const id of ["search-foreign-customer", "unknown"]) await expect(edit(id, {}, form(input))).rejects.toThrow("not-found");
   });
   it("revalidates and redirects only after persisting a successful save", async () => {
+    // Test import connection: ../../apps/web/node_modules/next/cache.js -> apps/web/node_modules/next/cache.js.
+    // Loads the real module or its configured mock for this scenario.
     const { revalidatePath } = await import("../../apps/web/node_modules/next/cache.js");
     await expect(edit("search-maria", {}, form({ ...input, address: "Saved through action" }))).rejects.toThrow("redirect:/customers/search-maria");
     expect(await prisma.customer.findUnique({ where: { id: "search-maria" } })).toMatchObject({ address: "Saved through action" });

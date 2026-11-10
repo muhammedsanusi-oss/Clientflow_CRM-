@@ -1,3 +1,20 @@
+/*
+ * Code guide: tests/integration/business-onboarding.test.ts
+ * Automated regression tests for business creation and customer linking. Assertions document expected
+ * behavior and failure cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather
+ * than changing the running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * beforeEach: Prepares scenario state before each test.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ * vi: Provides test spies and module mocks; does not alter production authorization.
+ */
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const auth = vi.hoisted(() => ({ userId: "onboarding-owner" as string | null }));
@@ -30,10 +47,20 @@ describe("business creation and customer linking", () => {
   beforeAll(async () => {
     process.env.PGLITE_DATA_DIR = "memory://";
     delete process.env.DATABASE_URL;
+    // Test import connection: ../../packages/db/src/index -> packages/db/src/index.ts. Loads the real module or
+    // its configured mock for this scenario.
     db = await import("../../packages/db/src/index");
+    // Test import connection: ../../packages/domain/src/index -> packages/domain/src/index.ts. Loads the real
+    // module or its configured mock for this scenario.
     domain = await import("../../packages/domain/src/index");
+    // Test import connection: ../../apps/web/app/businesses/new/actions ->
+    // apps/web/app/businesses/new/actions.ts. Loads the real module or its configured mock for this scenario.
     addBusiness = (await import("../../apps/web/app/businesses/new/actions")).addBusinessAction;
+    // Test import connection: ../../apps/web/app/customers/actions -> apps/web/app/customers/actions.ts. Loads
+    // the real module or its configured mock for this scenario.
     addCustomer = (await import("../../apps/web/app/customers/actions")).addCustomerAction;
+    // Test import connection: ../../apps/web/app/api/customers/route -> apps/web/app/api/customers/route.ts.
+    // Loads the real module or its configured mock for this scenario.
     api = await import("../../apps/web/app/api/customers/route");
     await db.prisma.user.createMany({ data: ["onboarding-owner", "onboarding-stranger", "onboarding-empty"].map(id => ({ id, username: id })) });
     const first = await domain.createBusiness("onboarding-owner", businessInput);

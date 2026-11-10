@@ -24,6 +24,13 @@ production behavior diverge, controlled by configuration, not code branches.
 | Queue | Azurite | Azure Storage Queue | `AZURE_STORAGE_CONNECTION_STRING` |
 | Identity | Email/password and database sessions | Same identity mechanism | Explicit account provisioning; see auth.md |
 
+Local PostgreSQL listens on port 15432 by default. The database client, migration
+command, and notification listener use the matching local URL. A custom port
+requires both `DB_PORT` for the server and a matching `DATABASE_URL` for clients.
+Restart the development processes after changing connection settings; do not
+reset stored data to repair a port binding failure. See the
+[Windows startup runbook](../runbooks/run-local-windows.md).
+
 ## Design intent
 
 - **No code branches.** The seam is never an `if (isLocal)`. The stand-in and

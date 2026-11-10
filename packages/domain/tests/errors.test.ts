@@ -1,4 +1,24 @@
+/*
+ * Code guide: packages/domain/tests/errors.test.ts
+ * Automated regression tests for API error contract. Assertions document expected behavior and failure cases;
+ * inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the running
+ * local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ */
 import { describe, it, expect } from "vitest";
+/*
+ * Import connection: ../src/errors -> packages/domain/src/errors.ts.
+ * apiError: Maps deliberate domain failures and known database conflicts into a safe public
+ * code/message/status. Unexpected exceptions become a generic error.
+ * DomainError: Deliberate safe domain failure carrying an allowed public code/message.
+ */
 import { apiError, DomainError } from "../src/errors";
 
 describe("API error contract", () => {

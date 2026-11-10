@@ -1,13 +1,40 @@
+/*
+ * Code guide: apps/web/app/sign-out-button.tsx
+ * Posts to /api/auth/logout to revoke the database session, then returns to /login. Shows a retryable error
+ * when the request fails.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
 
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * useRouter: Navigates or refreshes the browser after an API/action succeeds.
+ */
 import { useRouter } from "next/navigation";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useState: Keeps temporary component state in the browser, such as draft fields, pending status, and
+ * messages.
+ */
 import { useState } from "react";
 
+/*
+ * Posts to /api/auth/logout to revoke the database session, then returns to /login. Shows a retryable error
+ * when the request fails.
+ */
 export function SignOutButton() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  /*
+   * Calls the logout endpoint and refreshes browser navigation after success, retaining a visible error if
+   * revocation fails.
+   */
   async function signOut() {
     setBusy(true);
     setError(null);

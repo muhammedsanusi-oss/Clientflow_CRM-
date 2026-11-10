@@ -1,4 +1,14 @@
+/*
+ * Code guide: tests/http/website-templates.mjs
+ * HTTP verification for website templates. Connects to API_BASE_URL or localhost and checks real
+ * endpoint/page responses. Fixture helpers may create synthetic accounts/businesses; use a disposable
+ * development instance.
+ */
 // Creates synthetic template demos on a disposable local development app.
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
 const base = process.env.API_BASE_URL ?? "http://localhost:3000";
 const demoPassword = "Template-owner-2026!";

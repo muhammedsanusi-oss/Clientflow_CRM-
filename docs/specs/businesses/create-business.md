@@ -18,12 +18,13 @@ The project developers prepare business portals for owners. Owners manage custom
 
 ## Behavior
 
-- The existing dashboard layout remains the developer portal. Owners visiting / redirect to /customers.
+- The existing dashboard layout remains the developer portal. Owners visiting / redirect to /owner.
 - Create business collects business name, type, description, contact email and phone, owner first/last names, and owner login email. Only developers may provision businesses.
 - Provisioning creates the owner account, business, OWNER membership, and both developers' access grants atomically. Developers do not become employee owners.
 - The form includes Bakery, Barbershop, Salon, and Contact templates, a live preview dialog, and Use sample details. Creation saves the website settings and contact information; see [website templates](website-templates.md).
 - The success screen displays the temporary owner password once and an Open website link rather than redirecting the developer into the CRM. Business cards open developer-only provisioning details. Full credential and activation behavior is defined in [developer provisioning](developer-provisioning.md).
 - Owners sign in with email and temporary password, replace it, and then open their business customer list. The portal displays its business name and description.
+- Local development also includes a separate self-service owner demo signup. It skips email verification only in development; production signup remains disabled. See [owner self-service signup](owner-self-service-signup.md).
 - CRM queries select only active employee memberships. The business selector, when several memberships exist, selects a resource, not authorization.
 - Customer creation preserves the authorized business selection and writes the customer with that business relationship. Unknown or foreign business IDs return 404.
 - Notes and scheduling resolve the employee membership in the customer's business; existing customers keep their business relationship.

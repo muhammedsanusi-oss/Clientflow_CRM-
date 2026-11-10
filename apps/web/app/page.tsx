@@ -1,8 +1,37 @@
+/*
+ * Code guide: apps/web/app/page.tsx
+ * Developer dashboard at /. Shows only businesses with a developer access grant. Developers can create a
+ * business, review owner activation, edit a configured website, and open its public URL. Owners are
+ * redirected to /owner.
+ * This entry renders on the server and supplies data/props to interactive components.
+ */
 // The signed-in home page. Business records are always scoped to the current user.
+/*
+ * Import connection: @project/auth -> packages/auth/src/index.ts.
+ * currentUserId: Resolves the current database session and returns its user ID only for a regular, unexpired
+ * session. Activation-only tickets cannot authorize private CRM operations. Defined in
+ * packages/auth/src/current-user.ts.
+ */
 import { currentUserId } from "@project/auth";
+/*
+ * Import connection: @project/domain -> packages/domain/src/index.ts.
+ * getUser: Reads the limited identity fields used by the developer dashboard, including developer status;
+ * this is not a credential-authentication function. Defined in packages/domain/src/queries/users.ts.
+ * listProvisionedBusinesses: Lists provisioning records through this developer own explicit business grants.
+ * This powers the developer dashboard, not owner CRM membership. Defined in
+ * packages/domain/src/provisioning.ts.
+ */
 import { getUser, listProvisionedBusinesses } from "@project/domain";
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * redirect: Ends this server response with navigation to the supplied application route.
+ */
 import { redirect } from "next/navigation";
 
+// Request-time rendering: the page/API is resolved for this request instead of serving one static response
+// for every user.
 export const dynamic = "force-dynamic";
 
 const businessTypes: Record<string, string> = {
@@ -14,13 +43,20 @@ const businessTypes: Record<string, string> = {
   BAKERY: "Bakery",
 };
 
+/*
+ * Developer dashboard at /. Shows only businesses with a developer access grant. Developers can create a
+ * business, review owner activation, edit a configured website, and open its public URL. Owners are
+ * redirected to /owner.
+ */
 export default async function Home() {
+  // Resolve identity from the persisted session before accessing private business data; a form/URL user ID is
+  // not trusted here.
   const userId = await currentUserId();
   if (!userId) redirect("/login");
 
   const user = await getUser(userId);
   if (!user) redirect("/login");
-  if (!user.isDeveloper) redirect("/customers");
+  if (!user.isDeveloper) redirect("/owner");
   const businesses = await listProvisionedBusinesses(userId);
 
   const initials = (user.name ?? user.email ?? user.username ?? "Developer").slice(0, 2).toUpperCase();
@@ -179,7 +215,7 @@ export default async function Home() {
                         <p>Owner: {business.employees[0]?.email ?? "Not assigned"}</p>
                         <p>{!business.employees[0]?.user.mustChangePassword ? "Active" : business.employees[0]?.user.temporaryExpiresAt && business.employees[0].user.temporaryExpiresAt <= new Date() ? "Invitation expired" : "Pending first sign-in"}</p>
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><a href={`/businesses/${business.id}`} className="underline">Business details</a>{business.websiteTemplate && <a href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</a>}</div>
+                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><a href={`/businesses/${business.id}`} className="underline">Business details</a>{business.websiteTemplate && <><a href={`/businesses/${business.id}/website`} className="underline">Edit website</a><a href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</a></>}</div>
                     </article>
                   ))}
                 </div>

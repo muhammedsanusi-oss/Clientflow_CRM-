@@ -1,5 +1,24 @@
+/*
+ * Code guide: vitest.config.ts
+ * Integration-test configuration. Resolves workspace imports to source and Next.js request-context mocks to
+ * the web app dependency; limits workers because each suite starts an embedded WASM database.
+ */
+/*
+ * Import connection: vitest/config.
+ * Typed Vitest configuration helper for source aliases and test-runner options.
+ */
 import { defineConfig } from "vitest/config";
+/*
+ * Import connection: node:fs.
+ * Built-in filesystem access for local code/configuration/migration files; individual calls below show
+ * whether they read or write.
+ */
 import { readFileSync } from "node:fs";
+/*
+ * Import connection: node:url.
+ * Converts module file URLs into local paths so file lookup is relative to the module rather than the
+ * terminal directory.
+ */
 import { fileURLToPath } from "node:url";
 
 // Resolve workspace sources in the same test module graph, including mocks.

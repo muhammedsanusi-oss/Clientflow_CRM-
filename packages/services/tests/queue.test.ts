@@ -1,7 +1,27 @@
+/*
+ * Code guide: packages/services/tests/queue.test.ts
+ * Automated regression tests for encodeJobMessage / decodeJobMessage. Assertions document expected behavior
+ * and failure cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than
+ * changing the running local project data.
+ */
 // Round-trip contract for Azure Storage Queue messages. Verifies that
 // encodeJobMessage produces base64 and that decodeJobMessage reverses it,
 // locking in the contract between the producer (web app) and consumer (worker).
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ */
 import { describe, it, expect } from "vitest";
+/*
+ * Import connection: ../src/queue -> packages/services/src/queue.ts.
+ * encodeJobMessage: Serializes a job object as base64 JSON for Azure Queue Storage.
+ * decodeJobMessage: Decodes base64 JSON and checks that the result is an object with a string job type before
+ * a worker uses it.
+ */
 import { encodeJobMessage, decodeJobMessage } from "../src/queue";
 
 describe("encodeJobMessage / decodeJobMessage", () => {

@@ -1,6 +1,29 @@
+/*
+ * Code guide: apps/web/app/change-password/password-form.tsx
+ * Collects the new password and confirmation, posts to /api/auth/change-password, and refreshes the
+ * destination after the server issues a regular session.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useState: Keeps temporary component state in the browser, such as draft fields, pending status, and
+ * messages.
+ */
 import { useState } from "react";
+/*
+ * Import connection: next/navigation.
+ * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
+ * navigation after form requests.
+ * useRouter: Navigates or refreshes the browser after an API/action succeeds.
+ */
 import { useRouter } from "next/navigation";
+/*
+ * Collects the new password and confirmation, posts to /api/auth/change-password, and refreshes the
+ * destination after the server issues a regular session.
+ */
 export function PasswordForm() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);

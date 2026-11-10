@@ -1,3 +1,12 @@
+/*
+ * Code guide: apps/web/app/calendar/loading.tsx
+ * Next.js route loading placeholder while the surrounding page resolves its data. No records are read or
+ * changed by this visual skeleton.
+ */
+/*
+ * Automatic loading UI for this route while its page is waiting for server data; no business records are
+ * changed.
+ */
 export default function CalendarLoading() {
   return (
     <main className="space-y-6" role="status" aria-label="Loading calendar">

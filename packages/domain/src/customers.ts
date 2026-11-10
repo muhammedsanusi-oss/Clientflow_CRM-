@@ -1,4 +1,18 @@
+/*
+ * Code guide: packages/domain/src/customers.ts
+ * UI-facing customer workflow shared by pages, Server Actions, and /api/customers. Resolves active business
+ * memberships, validates contact/search/note input, and selects only the fields each screen needs.
+ */
+/*
+ * Import connection: @project/db -> packages/db/src/index.ts.
+ * prisma: Shared database client from packages/db; queries reach PostgreSQL or the configured embedded test
+ * database. Defined in packages/db/src/client.ts.
+ */
 import { prisma } from "@project/db";
+/*
+ * Import connection: zod.
+ * Zod builds runtime validation schemas and infers TypeScript input types; it does not connect to storage.
+ */
 import { z } from "zod";
 
 export const createCustomerInputSchema = z
@@ -12,6 +26,8 @@ export const createCustomerInputSchema = z
   })
   .strict();
 
+// Type contract: CreateCustomerInput. Describes values accepted/returned by the code below; TypeScript
+// removes this declaration from the runtime bundle.
 export type CreateCustomerInput = z.infer<
   typeof createCustomerInputSchema
 >;
@@ -29,10 +45,16 @@ export const createCustomerNoteInputSchema = z
   })
   .strict();
 
+// Type contract: CreateCustomerNoteInput. Describes values accepted/returned by the code below; TypeScript
+// removes this declaration from the runtime bundle.
 export type CreateCustomerNoteInput = z.infer<
   typeof createCustomerNoteInputSchema
 >;
 
+/*
+ * Resolves the selected business through the user active membership, or chooses the newest authorized
+ * business when no selection is supplied.
+ */
 export async function getCustomerBusinessForUser(userId: string, businessId?: string) {
   return prisma.business.findFirst({
     where: {
@@ -44,6 +66,10 @@ export async function getCustomerBusinessForUser(userId: string, businessId?: st
   });
 }
 
+/*
+ * Validates search text and loads the selected authorized business customer projection. Search terms match
+ * names, email, or phone; returns null when the business is unavailable.
+ */
 export async function getCustomerCollectionForUser(userId: string, businessId?: string, query = "") {
   const search = customerSearchInputSchema.parse(query);
   // Starting at the active employee relation makes business tenancy part of
@@ -86,10 +112,18 @@ export async function getCustomerCollectionForUser(userId: string, businessId?: 
   return employee?.business.customers ?? null;
 }
 
+/*
+ * Adapts the authorized customer collection to a list for the customer page, using an empty list when no
+ * collection is available.
+ */
 export async function listCustomersForUser(userId: string, businessId?: string, query = "") {
   return (await getCustomerCollectionForUser(userId, businessId, query)) ?? [];
 }
 
+/*
+ * Updates only contact fields, with active membership included in the database update predicate. Returns
+ * whether exactly one authorized customer was updated.
+ */
 export async function updateCustomerForUser(userId: string, customerId: string, input: CreateCustomerInput) {
   const values = createCustomerInputSchema.parse(input);
   // Membership is part of the UPDATE predicate, including when it changes
@@ -111,6 +145,10 @@ export async function updateCustomerForUser(userId: string, customerId: string, 
   return result.count === 1;
 }
 
+/*
+ * Resolves an authorized business before creating a customer. The businessId hint cannot assign the customer
+ * to an unrelated tenant.
+ */
 export async function createCustomerForUser(
   userId: string,
   input: CreateCustomerInput,
@@ -147,6 +185,10 @@ export async function createCustomerForUser(
   });
 }
 
+/*
+ * Loads an authorized customer and the allowed shared notes plus author display names for the detail and edit
+ * pages.
+ */
 export async function getCustomerWithNotesForUser(
   userId: string,
   customerId: string,
@@ -166,7 +208,7 @@ export async function getCustomerWithNotesForUser(
     select: {
       id: true,
       business_id: true,
-      business: { select: { name: true } },
+      business: { select: { name: true, websiteTemplate: true } },
       first_name: true,
       last_name: true,
       phone_number: true,
@@ -203,6 +245,10 @@ export async function getCustomerWithNotesForUser(
   });
 }
 
+/*
+ * Resolves the active author membership and checks the customer business inside a transaction before
+ * inserting the note.
+ */
 export async function createCustomerNoteForUser(
   userId: string,
   input: CreateCustomerNoteInput,

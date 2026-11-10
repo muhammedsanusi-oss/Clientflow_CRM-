@@ -1,3 +1,7 @@
+// Database model guide. Prisma generates the typed client from these declarations; the append-only SQL
+// migration files apply database changes. Business is the tenant; User is a login identity and Employee is a
+// business membership. Editing comments does not change tables.
+
 // The data model for the customer and appointment management app.
 
 generator client {
@@ -12,8 +16,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// A contact owned by one Business. Notes, tasks, interactions, and appointments link to this record;
+// phone/email uniqueness is per business.
 model Customer {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id                       String        @id @default(cuid())
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
   business_id              String
   business                 Business      @relation(fields: [business_id], references: [id], onDelete: Restrict)
   first_name               String
@@ -34,9 +42,13 @@ model Customer {
   @@index([business_id, last_name, first_name])
 }
 
+// A customer follow-up assigned to an Employee membership, with a due date and workflow status.
 model Task {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id          String     @id @default(cuid())
+  // Customer relationship key checked against the selected business by domain writes.
   customer_id String
+  // Employee membership used as author, assignee, or scheduler for this record.
   employee_id String
   customer    Customer   @relation(fields: [customer_id], references: [id], onDelete: Restrict)
   employee    Employee   @relation(fields: [employee_id], references: [id], onDelete: Restrict)
@@ -51,9 +63,14 @@ model Task {
   @@index([customer_id])
 }
 
+// Shared customer note with the author Employee membership and note timestamps. UI/domain code checks
+// business access before reading or writing it.
 model Note {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id          String   @id @default(cuid())
+  // Customer relationship key checked against the selected business by domain writes.
   customer_id String
+  // Employee membership used as author, assignee, or scheduler for this record.
   employee_id String
   customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Restrict)
   employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Restrict)
@@ -65,17 +82,25 @@ model Note {
   @@index([customer_id, note_date])
 }
 
+// A User membership in one Business, carrying role and active state plus staff contact details. It is not a
+// separate password account.
 model Employee {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id           String        @id @default(cuid())
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
   business_id  String
+  // Connects this business membership to a shared User login identity.
   user_id      String
   business     Business      @relation(fields: [business_id], references: [id], onDelete: Restrict)
   user         User          @relation(fields: [user_id], references: [id], onDelete: Restrict)
   first_name   String
   last_name    String
+  // Staff business-contact email; this field alone does not provision credentials.
   email        String
   phone_number String
+  // Business membership role, separate from the User platform developer flag.
   role         EmployeeRole  @default(STAFF) @map("role_id")
+  // Whether this membership/location is enabled for the relevant access or scheduling queries.
   is_active    Boolean       @default(true)
   hire_date    DateTime      @db.Date
   created_at   DateTime      @default(now()) @map("create_at")
@@ -91,18 +116,65 @@ model Employee {
   @@index([business_id])
 }
 
+model BusinessHoursInterval {
+  id         String   @id @default(cuid())
+  businessId String
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, dayOfWeek, startTime])
+  @@index([businessId, dayOfWeek])
+}
+
+model BookingStaff {
+  id           String                 @id @default(cuid())
+  businessId   String
+  name         String
+  isActive     Boolean                @default(true)
+  business     Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  hours        BookingStaffHours[]
+  appointments Appointment[]
+
+  @@unique([businessId, name])
+  @@index([businessId, isActive])
+}
+
+model BookingStaffHours {
+  id             String      @id @default(cuid())
+  bookingStaffId String
+  dayOfWeek      Int
+  startTime      String
+  endTime        String
+  bookingStaff   BookingStaff @relation(fields: [bookingStaffId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingStaffId, dayOfWeek, startTime])
+  @@index([bookingStaffId, dayOfWeek])
+}
+
+// A scheduled customer visit linked to an Employee membership and Location. UI scheduling records the
+// employee who scheduled it, plus one service line.
 model Appointment {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id                   String                @id @default(cuid())
+  // Customer relationship key checked against the selected business by domain writes.
   customer_id          String
-  employee_id          String
+  // Employee membership used as author, assignee, or scheduler for this record.
+  employee_id          String?
+  bookingStaffId       String?
+  // Physical business location for the appointment.
   location_id          String
   customer             Customer              @relation(fields: [customer_id], references: [id], onDelete: Restrict)
-  employee             Employee              @relation(fields: [employee_id], references: [id], onDelete: Restrict)
+  // Employee membership recorded as scheduler by the current UI workflow.
+  employee             Employee?             @relation(fields: [employee_id], references: [id], onDelete: Restrict)
+  bookingStaff         BookingStaff?          @relation(fields: [bookingStaffId], references: [id], onDelete: SetNull)
   location             Location              @relation(fields: [location_id], references: [id], onDelete: Restrict)
   appointment_date     DateTime
   start_time           DateTime
   end_time             DateTime
   status               AppointmentStatus     @default(SCHEDULED) @map("status_id")
+  source               AppointmentSource     @default(INTERNAL)
   notes                String
   created_at           DateTime              @default(now())
   updated_at           DateTime              @updatedAt
@@ -111,31 +183,46 @@ model Appointment {
 
   @@index([customer_id, appointment_date])
   @@index([employee_id, appointment_date])
+  @@index([bookingStaffId, appointment_date])
   @@index([location_id, appointment_date])
 }
 
+// Appointment-to-Service line with quantity and a price snapshot taken at booking time, so later
+// catalogue-price changes do not rewrite old bookings.
 model Appointment_Service {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id               String      @id @default(cuid())
+  // Appointment relationship key for this service line or recorded payment.
   appointment_id   String
   appointment      Appointment @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+  // Catalogue service selected for this booked service line.
   service_id       String
   service          Service     @relation(fields: [service_id], references: [id], onDelete: Restrict)
   quantity         Int
+  service_name_at_booking String
+  duration_minutes_at_booking Int
+  // Service price copied at booking time so later catalogue changes do not rewrite the booking.
   price_at_booking Decimal
 
   @@unique([appointment_id, service_id])
   @@index([service_id])
 }
 
+// Business-owned service catalogue entry used for appointment choices, duration calculation, and price
+// snapshots.
 model Service {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id                   String                @id @default(cuid())
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
   business_id          String
   business             Business              @relation(fields: [business_id], references: [id], onDelete: Restrict)
   name                 String
   category             String
   description          String
   duration_minutes     Int
+  // Current catalogue price copied into new appointment service lines.
   base_price           Decimal
+  // Stored service active flag used by the scheduling UI service chooser.
   is_Active            Boolean               @default(false)
   appointment_services Appointment_Service[]
 
@@ -143,9 +230,13 @@ model Service {
   @@index([business_id])
 }
 
+// A dated customer communication such as a call/text/email/DM, attributed to an Employee membership.
 model Interaction {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id               String          @id @default(cuid())
+  // Customer relationship key checked against the selected business by domain writes.
   customer_id      String
+  // Employee membership used as author, assignee, or scheduler for this record.
   employee_id      String
   customer         Customer        @relation(fields: [customer_id], references: [id], onDelete: Restrict)
   employee         Employee        @relation(fields: [employee_id], references: [id], onDelete: Restrict)
@@ -158,8 +249,12 @@ model Interaction {
   @@index([customer_id, interaction_date])
 }
 
+// Method/status/reference recorded against an appointment. This is not the business subscription to
+// Clientflow, and this model does not charge a card.
 model Payment {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id                    String        @id @default(cuid())
+  // Appointment relationship key for this service line or recorded payment.
   appointment_id        String
   appointment           Appointment   @relation(fields: [appointment_id], references: [id], onDelete: Restrict)
   payment_method        PaymentMethod
@@ -170,17 +265,24 @@ model Payment {
   @@index([appointment_id])
 }
 
+// The tenant boundary. Owns memberships, customers, locations, services, public website configuration,
+// inquiries, and explicit developer access grants.
 model Business {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id            String       @id @default(cuid())
   name          String
   description   String       @default("")
+  // Configured public template; null keeps older business records unpublished.
   websiteTemplate WebsiteTemplate?
+  // Optional public website address, separate from private owner login information.
   publicAddress String       @default("")
+  // Public display text, not a machine-enforced availability schedule.
   openingHours  String       @default("")
   inquiries     WebsiteInquiry[]
   developerAccess DeveloperBusinessAccess[]
   business_type BusinessType
   phone_number  String
+  // Public business contact email; changing it does not change the owner login email.
   email         String
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
@@ -188,16 +290,40 @@ model Business {
   employees     Employee[]
   customers     Customer[]
   services      Service[]
+  websiteContent BusinessWebsiteContent?
+  websiteRevisions BusinessWebsiteRevision[]
+  billingAddress BusinessBillingAddress?
+  websitePlan WebsitePlan?
+  featureRequests WebsiteFeatureRequest[]
+  hoursIntervals BusinessHoursInterval[]
+  bookingStaff BookingStaff[]
 }
 
+// Private billing details are separated from Business so ordinary business queries do not expose them.
+model BusinessBillingAddress {
+  businessId    String   @id
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  street        String
+  apartmentSuite String  @default("")
+  city          String
+  state         String
+  zipCode       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Physical business location used by appointments. Active locations can be selected by the scheduling form.
 model Location {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id           String        @id @default(cuid())
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
   business_id  String
   business     Business      @relation(fields: [business_id], references: [id], onDelete: Restrict)
   name         String
   phone_number String?
   email        String?
   address      String
+  // Whether this membership/location is enabled for the relevant access or scheduling queries.
   is_active    Boolean       @default(true)
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
@@ -208,28 +334,45 @@ model Location {
   @@index([business_id])
 }
 
+// Login identity shared across business memberships. Password/session data is separate from public business
+// and staff/customer contact details.
 model User {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id            String     @id @default(cuid())
   // Legacy usernames and memberships remain stored; password accounts use email.
+  // Retained legacy identifier still referenced by older staff/seed helpers; current password login uses
+  // email.
   username      String?    @unique
   name          String?
+  // Login email for password authentication; public business contact email is stored separately.
   email         String?    @unique
   emailVerified DateTime?
   image         String?
+  // Platform role flag; per-business developer grants remain a separate authorization check.
   isDeveloper   Boolean    @default(false)
+  // Salted scrypt credential representation, never the plaintext password.
   passwordHash  String?
+  // Marks an account that must complete temporary-password activation before CRM access.
   mustChangePassword Boolean @default(false)
+  // Deadline for the pending temporary credential.
   temporaryExpiresAt DateTime?
+  // Single-use temporary-credential consumption marker.
   temporaryConsumedAt DateTime?
   developerAccess DeveloperBusinessAccess[]
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime   @default(now())
   employees     Employee[]
+  publishedWebsites BusinessWebsiteContent[]
+  websiteRevisions BusinessWebsiteRevision[]
+  submittedWebsiteFeatureRequests WebsiteFeatureRequest[]
 }
 
 // GitHub account IDs stay stable when a profile name or email changes.
+// Retained provider/OAuth account linkage from the older identity setup. The current login flow uses
+// email/password credentials and Session instead.
 model Account {
+  // Connects this record to its User login identity.
   userId            String
   type              String
   provider          String
@@ -247,14 +390,21 @@ model Account {
 }
 
 // Random tokens are revocable database tickets, never application user IDs.
+// Revocable database ticket. sessionToken holds a digest of the random browser cookie; restricted tickets
+// only support password activation.
 model Session {
+  // True for a password-activation ticket that cannot access the CRM.
   restricted   Boolean  @default(false)
+  // Digest of the opaque browser ticket; authentication never treats it as a user ID.
   sessionToken String   @unique
+  // Connects this record to its User login identity.
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Retained legacy verification-token storage. The current temporary-password activation flow uses restricted
+// Session records.
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -263,12 +413,14 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum EmployeeRole {
   OWNER
   MANAGER
   STAFF
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum AppointmentStatus {
   SCHEDULED
   CONFIRMED
@@ -277,6 +429,12 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
+enum AppointmentSource {
+  INTERNAL
+  PUBLIC
+}
+
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum TaskStatus {
   PENDING
   IN_PROGRESS
@@ -284,6 +442,7 @@ enum TaskStatus {
   CANCELED
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum InteractionType {
   CALL
   TEXT
@@ -291,18 +450,21 @@ enum InteractionType {
   DM
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum ContactMethod {
   PHONE
   EMAIL
   TEXT
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum PaymentMethod {
   CASH
   CARD
   BANK_TRANSFER
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum PaymentStatus {
   PENDING
   COMPLETED
@@ -310,6 +472,7 @@ enum PaymentStatus {
   REFUNDED
 }
 
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum BusinessType {
   SPA
   SALON
@@ -319,6 +482,13 @@ enum BusinessType {
   BAKERY
 }
 
+enum WebsitePlan {
+  FREE
+  PLUS
+  PREMIUM
+}
+
+// Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum WebsiteTemplate {
   BAKERY
   BARBERSHOP
@@ -326,8 +496,12 @@ enum WebsiteTemplate {
   CONTACT
 }
 
+// Message from one configured public website. Owners read it through an active OWNER membership; it does not
+// automatically become a customer or appointment.
 model WebsiteInquiry {
+  // Primary identifier for this record; private access still requires the relevant authorization check.
   id           String   @id @default(cuid())
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
   businessId   String
   business     Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
   name         String
@@ -339,8 +513,12 @@ model WebsiteInquiry {
   @@index([businessId, createdAt])
 }
 
+// Explicit developer-to-business provisioning/editor grant. Developer status alone does not make every
+// business accessible or create owner CRM membership.
 model DeveloperBusinessAccess {
+  // Developer identity receiving this explicit business grant.
   developerId String
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
   businessId String
   developer User @relation(fields: [developerId], references: [id], onDelete: Cascade)
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
@@ -348,8 +526,75 @@ model DeveloperBusinessAccess {
   @@index([businessId])
 }
 
+// Persisted hashed-key counters shared by credential/activation limits and website contact limits. The key
+// avoids storing raw email/ticket values here.
 model AuthThrottle {
   key String @id
+  // Persisted attempt count for this hashed throttling key.
   attempts Int @default(0)
+  // Start of the fixed rate-limit window used by the corresponding request check.
   windowStart DateTime @default(now())
+}
+
+// Optional current published custom text for one business. Missing content means the renderer uses the
+// selected template defaults.
+model BusinessWebsiteContent {
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
+  businessId String @id
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  eyebrow String
+  headline String
+  sectionTitle String
+  buttonLabel String
+  features String[]
+  offerings String[]
+  fontFamily String @default("SANS")
+  textColor String @default("INK")
+  textScale String @default("STANDARD")
+  sectionImages Json @default("{\"header\":[],\"hero\":[],\"features\":[],\"about\":[],\"offerings\":[],\"contact\":[]}")
+  additionalSections Json @default("[]")
+  aboutText String @default("")
+  logoImage String?
+  heroImage String?
+  // Publication version used to reject stale edits; revision keys pair it with the business.
+  version Int
+  // Publication timestamp displayed on the private owner website view.
+  publishedAt DateTime @default(now())
+  // Publishing developer identity retained for the publication audit trail.
+  publishedById String
+  publishedBy User @relation(fields: [publishedById], references: [id], onDelete: Restrict)
+}
+
+// Historical before/after public-content snapshots saved in the same transaction as publication, with author,
+// time, and monotonically checked version.
+model BusinessWebsiteRevision {
+  // Owning business key; private reads/writes still verify the user membership or developer grant.
+  businessId String
+  // Publication version used to reject stale edits; revision keys pair it with the business.
+  version Int
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  // Publishing developer identity retained for the publication audit trail.
+  publishedById String
+  publishedBy User @relation(fields: [publishedById], references: [id], onDelete: Restrict)
+  // Publication timestamp displayed on the private owner website view.
+  publishedAt DateTime @default(now())
+  // Previous allowlisted public-content snapshot, saved transactionally with publication.
+  before Json
+  // Published allowlisted public-content snapshot, not a credential snapshot.
+  after Json
+
+  @@id([businessId, version])
+}
+
+model WebsiteFeatureRequest {
+  id            String   @id @default(cuid())
+  businessId    String
+  submittedById String
+  title         String
+  description   String
+  createdAt     DateTime @default(now())
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  submittedBy   User     @relation(fields: [submittedById], references: [id], onDelete: Restrict)
+
+  @@index([businessId, createdAt])
 }

@@ -18,7 +18,11 @@ See the [implementation spec](docs/specs/businesses/developer-provisioning.md) a
 
 Developers select Bakery, Barbershop, Salon, or Contact during business creation. Each template has a distinct reusable design, sample details, and a preview. Saving creates the public site, owner account, and private workspace together. Visitors can leave messages through the site's contact form; the linked owner reads them in Website inquiries.
 
-## Boundaries
+## Website customization
+
+Developers with access to a business select Edit website from its dashboard card or details. They edit supported public information and template content, preview without publishing, then Save and publish. Publication records revision history and rejects stale versions. Owners view the same published content from Website in their portal. Customization is an extra service with a manually agreed quote and payment; the app does not bill for publication. See [website editing](docs/specs/businesses/website-editing.md).
+
+## Service boundaries
 
 Creating a business provisions a private workspace inside Clientflow. Its public template site shares the same application; it does not generate an independent deployment, custom domain, or drag-and-drop theme. Automatic email delivery, public signup, staff invitation flows, and subscription billing remain outside this project increment.
 

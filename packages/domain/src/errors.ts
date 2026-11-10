@@ -1,9 +1,18 @@
+/*
+ * Code guide: packages/domain/src/errors.ts
+ * Public domain-error vocabulary and safe database-error mapping. Routes/actions use this boundary to avoid
+ * exposing raw database details to the browser.
+ */
 export class DomainError extends Error {
   constructor(public readonly code: "NOT_FOUND" | "FORBIDDEN" | "CONFLICT" | "RATE_LIMITED", message: string) {
     super(message);
   }
 }
 
+/*
+ * Maps deliberate domain failures and known database conflicts into a safe public code/message/status.
+ * Unexpected exceptions become a generic error.
+ */
 export function apiError(error: unknown) {
   // Only deliberate domain errors may carry a public message. Database
   // exceptions can contain private row values or connection details.

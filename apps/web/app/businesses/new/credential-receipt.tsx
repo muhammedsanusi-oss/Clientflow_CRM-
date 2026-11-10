@@ -1,6 +1,27 @@
+/*
+ * Code guide: apps/web/app/businesses/new/credential-receipt.tsx
+ * Shows the newly provisioned owner email, one-time temporary password, expiry, and website link. Leaving the
+ * screen hides the plaintext credential; it is not a permanent password viewer.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: ./actions -> apps/web/app/businesses/new/actions.ts.
+ * Type BusinessActionState: Type for business-form errors and the one-time provisioning receipt returned by
+ * its Server Action.
+ */
 import type { BusinessActionState } from "./actions";
+/*
+ * Shows the newly provisioned owner email, one-time temporary password, expiry, and website link. Leaving the
+ * screen hides the plaintext credential; it is not a permanent password viewer.
+ */
 export function CredentialReceipt({ receipt }: { receipt: NonNullable<BusinessActionState["receipt"]> }) {
   return <section className="space-y-5 rounded-2xl border border-indigo-200 bg-indigo-50 p-6" aria-live="polite">
     <h2 className="text-xl font-semibold">Owner login ready</h2>

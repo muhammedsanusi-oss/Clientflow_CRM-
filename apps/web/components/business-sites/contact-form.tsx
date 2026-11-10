@@ -1,6 +1,23 @@
+/*
+ * Code guide: apps/web/components/business-sites/contact-form.tsx
+ * Public contact form. Sends JSON to /api/sites/[businessId]/contact; the server saves it in the correct
+ * owner inbox. Preview mode disables sending. No email or booking is created.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useState: Keeps temporary component state in the browser, such as draft fields, pending status, and
+ * messages.
+ */
 import { useState } from "react";
 
+/*
+ * Public contact form. Sends JSON to /api/sites/[businessId]/contact; the server saves it in the correct
+ * owner inbox. Preview mode disables sending. No email or booking is created.
+ */
 export function ContactForm({ businessId, preview = false }: { businessId?: string; preview?: boolean }) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
@@ -28,7 +45,7 @@ export function ContactForm({ businessId, preview = false }: { businessId?: stri
     <div className="site-honeypot" aria-hidden="true"><label>Leave this blank<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
     {error && <p role="alert" className="site-form-error">{error}</p>}
     {status === "sent" && <p role="status" className="site-form-success">Thanks for reaching out. Your message has been delivered to the business.</p>}
-    <button className="site-button" disabled={status === "sending"} type="submit">{status === "sending" ? "Sending…" : "Send a message"}<span aria-hidden="true">↗</span></button>
+    <button className="site-button" disabled={preview || status === "sending"} type="submit">{preview ? "Messages disabled in preview" : status === "sending" ? "Sending…" : "Send a message"}<span aria-hidden="true">↗</span></button>
     <p className="site-form-note">Your message goes directly to this business&apos;s private Clientflow inbox.</p>
   </form>;
 }

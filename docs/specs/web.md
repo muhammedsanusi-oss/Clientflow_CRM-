@@ -16,10 +16,12 @@ on every branch, for every feature.
 
 ## Workspace homepage
 
-- The existing / dashboard is for developers. Owners visiting it redirect to /customers; signed-out requests redirect to /login.
+- The / homepage is role-aware: developers see the developer dashboard, business owners go to `/owner` and then the newest business calendar, and signed-out requests redirect to /login.
 - The dashboard shows businesses authorized by the current developer's access grants, plus owner email and activation status. Its existing visual layout remains in place.
 - Create business opens /businesses/new. Business cards open /businesses/<id> for provisioning details. See [business creation](businesses/create-business.md).
-- Owners access the existing customer and calendar pages through active business membership. The owner customer page identifies the business by name and description.
+- `/owner` is the owner entry route. It redirects to the calendar for the newest business with an active OWNER membership; if no business is linked, it shows an access-help message. Owners can navigate the workspace from the selected business's themed navigation.
+- Local development exposes the owner website signup at `/signup`; it skips email verification for demos and creates an owner account, one business, billing details, and membership together. Other runtimes return 404 until production email verification is implemented. See [owner self-service signup](businesses/owner-self-service-signup.md).
+- Owners access customer and calendar pages through active business membership. The owner customer page identifies the business by name and description.
 - Activation-only sessions cannot access CRM data. Login routes them to /change-password until they finish setup.
 - Customer and calendar pages and actions check identity before accessing tenant data.
 - Signing out uses the same-origin logout endpoint and revokes the persisted session.
@@ -31,10 +33,15 @@ on every branch, for every feature.
 - The contact form posts to /api/sites/<businessId>/contact and persists business-bound inquiries; it does not send email or create CRM customers.
 - The owner's /inquiries page is private and scopes messages to an active OWNER membership. The owner workspace links to its website and inbox.
 - Developer business cards and creation confirmation include Open website for configured sites. Preview dialogs use unsaved form details and never submit real messages.
+- Configured developer business cards and detail pages also link to `/businesses/<id>/website`. Reads and publication require the current developer's explicit business grant. Supported website edits and revision history are saved atomically; stale publications return a conflict. See [website editing](businesses/website-editing.md).
+- Active owners access `/website?businessId=<id>` through their business portal to view published website content and its publication time. This private view is read-only; customization charges are manually agreed outside the app.
 - The root sign-out control remains available to signed-in visitors; website content exposes no session identity or private owner information.
 
 ## Async honesty (UI standard)
 
+- The app-level route-loading UI displays an accessible "Loading page..." message and a page-shaped skeleton while a destination page resolves. Route-specific loading UIs remain in place for their routes; this fallback covers routes without a more specific loading UI.
+- The shared session-aware header resolves behind its own Suspense boundary so session lookup does not block the route-loading UI.
+- This page-loading indicator covers route loads and navigation, not in-place form submissions or save actions.
 - Every async region has three states: loading (skeleton), empty (with a
   primary action), error (retry card that refetches). Sections stream in their
   own Suspense boundaries — no full-page spinners.

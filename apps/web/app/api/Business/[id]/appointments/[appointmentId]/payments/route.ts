@@ -1,4 +1,35 @@
+/*
+ * Code guide: apps/web/app/api/Business/[id]/appointments/[appointmentId]/payments/route.ts
+ * GET/POST /api/Business/[id]/appointments/[appointmentId]/payments: business-scoped CRM JSON endpoint. The
+ * route derives session identity, validates IDs/data through domain helpers, and returns safe JSON/not-found
+ * errors. GET reads records; POST creates the validated resource.
+ */
+/*
+ * Import connection: @project/domain -> packages/domain/src/index.ts.
+ * CreatePayment: Zod contract for validating the resource request before its domain write. Defined in
+ * packages/domain/src/schemas/payment.ts.
+ * createPayment: Records method/status/reference under an authorized appointment. This helper does not
+ * contact a payment processor. Defined in packages/domain/src/queries/payments.ts.
+ * getAppointment: Reads the resource through the connected query module; the business/user predicates are
+ * implemented there. Defined in packages/domain/src/queries/appointments.ts.
+ * listPayments: Reads the resource through the connected query module; the business/user predicates are
+ * implemented there. Defined in packages/domain/src/queries/payments.ts.
+ */
 import { CreatePayment, createPayment, getAppointment, listPayments } from "@project/domain";
+/*
+ * Import connection: @/app/api/_lib/route-helpers -> apps/web/app/api/_lib/route-helpers.ts.
+ * authenticatedUserId: API helper that delegates identity resolution to the persisted-session auth package.
+ * hasBusinessAccess: Verifies active membership through getBusinessById before business-scoped collection
+ * operations.
+ * notFoundResponse: Builds the shared 404 JSON envelope without revealing whether an unknown or foreign
+ * record exists.
+ * parseRequestBody: Parses JSON and applies the supplied shared schema. Returns either validated data or the
+ * standard client-error response.
+ * routeErrorResponse: Maps known Prisma conflicts/not-found failures and logs unexpected errors before
+ * returning a safe generic API response.
+ * unauthenticatedResponse: Builds the shared 401 JSON error envelope when a private API has no authenticated
+ * user.
+ */
 import {
   authenticatedUserId,
   hasBusinessAccess,
@@ -8,10 +39,19 @@ import {
   unauthenticatedResponse,
 } from "@/app/api/_lib/route-helpers";
 
+// Request-time rendering: the page/API is resolved for this request instead of serving one static response
+// for every user.
 export const dynamic = "force-dynamic";
 
+// Type contract: RouteContext. Describes values accepted/returned by the code below; TypeScript removes this
+// declaration from the runtime bundle.
 type RouteContext = { params: Promise<{ id: string; appointmentId: string }> };
 
+/*
+ * GET handler. GET/POST /api/Business/[id]/appointments/[appointmentId]/payments: business-scoped CRM JSON
+ * endpoint. The route derives session identity, validates IDs/data through domain helpers, and returns safe
+ * JSON/not-found errors. GET reads records; POST creates the validated resource.
+ */
 export async function GET(_: Request, ctx: RouteContext) {
   const userId = await authenticatedUserId();
   if (!userId) return unauthenticatedResponse();
@@ -25,6 +65,11 @@ export async function GET(_: Request, ctx: RouteContext) {
   }
 }
 
+/*
+ * POST handler. GET/POST /api/Business/[id]/appointments/[appointmentId]/payments: business-scoped CRM JSON
+ * endpoint. The route derives session identity, validates IDs/data through domain helpers, and returns safe
+ * JSON/not-found errors. GET reads records; POST creates the validated resource.
+ */
 export async function POST(request: Request, ctx: RouteContext) {
   const userId = await authenticatedUserId();
   if (!userId) return unauthenticatedResponse();

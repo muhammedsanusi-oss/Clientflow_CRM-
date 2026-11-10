@@ -1,4 +1,17 @@
+/*
+ * Code guide: tests/http/business-api.mjs
+ * HTTP verification for business api. Connects to API_BASE_URL or localhost and checks real endpoint/page
+ * responses. Fixture helpers may create synthetic accounts/businesses; use a disposable development instance.
+ */
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
+/*
+ * Import connection: ./provisioned-session.mjs -> tests/http/provisioned-session.mjs.
+ * ownerFixture: Helper/value provided by the connected module; its use in this file is shown below.
+ */
 import { ownerFixture } from "./provisioned-session.mjs";
 
 // Run against a disposable instance: this drill creates users and CRM rows.

@@ -20,19 +20,32 @@ Use a local app with its database migrations applied. Use synthetic information 
 
 Messages are saved in Clientflow; this increment does not send email, create customers automatically, reserve appointments, or take payment. Example offering cards are marked as examples.
 
-## Automated verification
+## Customize and publish
+
+1. In the developer dashboard, choose **Edit website** on a configured business; the business detail page offers the same action.
+2. Edit the public details, template, headings, feature labels, or offering titles. Public contact email is separate from owner login email.
+3. Choose **Preview changes**. Verify the unsaved text, use keyboard navigation to inspect the controls, and confirm preview messages are disabled. **Cancel** leaves the live website unchanged.
+4. Return to the editor, make the changes again, and choose **Save and publish**. Expect a success announcement and updated public content at the same website URL.
+5. Sign in as that business's owner, choose **Website**, and verify the published text and timestamp. The owner sees no publishing controls.
+6. Load the editor in two developer sessions; publish one, then submit the older version in the other. Expect a conflict with inputs retained. Copy any text to retain before reloading.
+7. Quote and collect any extra customization fee manually; publication performs no charge and creates no appointment payment.
+
+## Automated checks
 
 ```sh
 pnpm test
 pnpm typecheck
 pnpm build
 node tests/http/website-templates.mjs
+node tests/http/website-editing.mjs
 ```
 
 The HTTP drill targets a disposable local development app at `API_BASE_URL` (default `http://localhost:3000`). It uses the public project test developer account, creates four synthetic businesses and owners, activates the owners, checks public pages, sends contact messages, and verifies isolated private inboxes. It prints only demo site URLs and intentionally public test account details. It must not target production or real customer data.
+
+The website-editing drill also requires `DEVELOPER_EMAIL` and `DEVELOPER_PASSWORD` for an existing developer on the disposable instance. It reads that instance's local Next.js action manifest, so run it from the same checkout that serves the app. It provisions synthetic owners, calls the real publication action, checks owner/public visibility, conflicts, same-origin protection, escaped content, and business isolation. It does not target a remote deployment.
 
 When browser tooling is available, verify mobile layouts, keyboard navigation, focus visibility, preview dialog behavior, sample-fill interaction, and contact pending/error/success states. Record unavailable visual checks in the handoff.
 
 ## Verification record
 
-The local HTTP drill passes for all four designs, contact delivery, owner activation, and inbox isolation. Build and typecheck pass. The 126 package/integration tests pass when the pre-existing duplicate `0003_business_services.sql` is temporarily excluded from fresh-database replay; that file is restored unchanged. Browser automation was unavailable, so visual/mobile inspection and the keyboard-only preview/sample-fill drill remain unverified.
+The automated suite includes fresh-schema parity, a populated website upgrade, transactional revision rollback, concurrent publication, and developer/owner authorization checks. Browser automation was stopped because the current browser URL could not be identified reliably; visual/mobile inspection and keyboard-only interaction remain unverified.

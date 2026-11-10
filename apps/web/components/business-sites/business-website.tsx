@@ -1,12 +1,64 @@
+/*
+ * Code guide: apps/web/components/business-sites/business-website.tsx
+ * Renders the template-specific decorative SVG locally. These illustrations require no image download,
+ * database query, or external asset service.
+ */
+/*
+ * Import connection: ../../../../packages/domain/src/website-templates ->
+ * packages/domain/src/website-templates.ts.
+ * WEBSITE_TEMPLATES: Catalogue of standard layouts, display copy, fictional sample contact details, and
+ * template metadata.
+ * Type WebsiteTemplateKey: Type restricting template selection to the supported catalogue keys.
+ */
 import { WEBSITE_TEMPLATES, type WebsiteTemplateKey } from "../../../../packages/domain/src/website-templates";
+import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
+/*
+ * Import connection: ./contact-form -> apps/web/components/business-sites/contact-form.tsx.
+ * ContactForm: Public contact form. Sends JSON to /api/sites/[businessId]/contact; the server saves it in the
+ * correct owner inbox. Preview mode disables sending. No email or booking is created.
+ */
 import { ContactForm } from "./contact-form";
+/*
+ * Import connection: ../../../../packages/domain/src/website-content ->
+ * packages/domain/src/website-content.ts.
+ * defaultWebsiteContent: Copies the selected template default headings, button text, feature labels, and
+ * offerings into an editable content object. Does not read or write the database.
+ * Type WebsiteContent: Type for editable website headings, button text, feature labels, and offering titles.
+ */
+import { defaultWebsiteContent, type WebsiteContent } from "../../../../packages/domain/src/website-content";
+/*
+ * Import connection: ./website.css -> apps/web/components/business-sites/website.css.
+ * Loads this stylesheet for the component/page; it supplies styles only.
+ */
 import "./website.css";
 
+// Type contract: PublicSiteDetails. Describes values accepted/returned by the code below; TypeScript removes
+// this declaration from the runtime bundle.
 export type PublicSiteDetails = {
   id?: string; name: string; description: string; websiteTemplate: WebsiteTemplateKey;
   email: string; phone_number: string; publicAddress: string; openingHours: string;
+  websiteContent?: WebsiteContent | null;
+};
+type EditableSection = string;
+
+const textColorValues: Record<WebsiteContent["textColor"], string> = {
+  INK: "",
+  OCEAN: "#1e3a8a",
+  FOREST: "#14532d",
+  TERRACOTTA: "#9a3412",
+  PLUM: "#6b21a8",
+};
+const darkTextColorValues: Record<Exclude<WebsiteContent["textColor"], "INK">, string> = {
+  OCEAN: "#93c5fd",
+  FOREST: "#86efac",
+  TERRACOTTA: "#fdba74",
+  PLUM: "#d8b4fe",
 };
 
+/*
+ * Renders the template-specific decorative SVG locally. These illustrations require no image download,
+ * database query, or external asset service.
+ */
 function BrandArtwork({ template }: { template: WebsiteTemplateKey }) {
   return <div className={`site-art site-art-${template.toLowerCase()}`} aria-hidden="true">
     <svg viewBox="0 0 480 440" fill="none" className="site-art-svg">
@@ -47,29 +99,92 @@ function BrandArtwork({ template }: { template: WebsiteTemplateKey }) {
   </div>;
 }
 
-export function BusinessWebsite({ site, preview = false }: { site: PublicSiteDetails; preview?: boolean }) {
+/*
+ * Shared rendering for live sites, creation previews, editor previews, and owner previews. Combines public
+ * business fields with saved content or template defaults and includes ContactForm.
+ */
+export function BusinessWebsite({ site, preview = false, draftImagePreviews = {}, onSelectSection, selectedSection }: {
+  site: PublicSiteDetails;
+  preview?: boolean;
+  draftImagePreviews?: Record<string, string>;
+  onSelectSection?: (section: EditableSection) => void;
+  selectedSection?: string;
+}) {
   const template = WEBSITE_TEMPLATES[site.websiteTemplate];
-  return <div className={`business-site site-theme-${site.websiteTemplate.toLowerCase()}`}>
-    {preview && <div className="site-preview-banner">Template preview · your saved business details replace this sample content.</div>}
+  const defaults = defaultWebsiteContent(site.websiteTemplate, site.description);
+  const content = site.websiteContent ?? defaults;
+  const customized = Boolean(site.websiteContent) && JSON.stringify(content.offerings) !== JSON.stringify(defaults.offerings);
+  const isDark = site.websiteTemplate === "BARBERSHOP";
+  const chosenTextColor = content.textColor === "INK"
+    ? undefined
+    : isDark
+      ? darkTextColorValues[content.textColor]
+      : textColorValues[content.textColor];
+  const style = {
+    "--site-font": content.fontFamily === "SERIF" ? "Georgia, 'Times New Roman', serif" : "Arial, Helvetica, sans-serif",
+    "--site-text-scale": content.textScale === "SMALL" ? "0.9" : content.textScale === "LARGE" ? "1.1" : "1",
+    ...(chosenTextColor ? { "--site-text": chosenTextColor, "--site-muted": chosenTextColor, "--site-accent": chosenTextColor } : {}),
+  } as CSSProperties;
+  const imageSections = content.sectionImages;
+  const imageLocator = (section: string, index: number) => `${section}-${index}`;
+  const imageSource = (section: string, index: number) => {
+    const locator = imageLocator(section, index);
+    return draftImagePreviews[locator] ?? (site.id ? `/api/sites/${encodeURIComponent(site.id)}/image/${locator}` : undefined);
+  };
+  const imageGallery = (section: string, refs: string[], label: string, className = "", startIndex = 0) => refs.length > 0
+    ? <div className={`site-image-gallery ${className}`} aria-label={`${label} images`}>
+        {refs.map((_, offset) => {
+          const index = startIndex + offset;
+          const src = imageSource(section, index);
+          return src ? <img key={`${section}-${index}`} src={src} alt={`${site.name} ${label} image ${index + 1}`} /> : null;
+        })}
+      </div>
+    : null;
+  const editorClass = (section: string) => onSelectSection
+    ? ` site-editable-section${selectedSection === section ? " site-selected-section" : ""}`
+    : "";
+  const sectionProps = (section: string, label: string) => onSelectSection ? {
+    "data-website-editor-section": section,
+    "aria-label": `Select ${label} section to edit`,
+    role: "group" as const,
+    tabIndex: 0,
+    onClick: (event: MouseEvent<HTMLElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onSelectSection(section);
+    },
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+      if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+      event.preventDefault();
+      onSelectSection(section);
+    },
+  } : {};
+  return <div className={`business-site site-theme-${site.websiteTemplate.toLowerCase()}`} style={style}>
+    {preview && <div className="site-preview-banner">Preview · contact messages are disabled.</div>}
     <div className="site-shell">
-      <header className="site-nav"><a href="#home" className="site-brand"><span className="site-brand-mark" aria-hidden="true">{site.name.slice(0,1)}</span>{site.name}</a>
-        <nav aria-label="Business website"><a href="#about">Our story</a><a href="#contact" className="site-nav-contact">Get in touch <span aria-hidden="true">↗</span></a></nav>
+      <header className={`site-nav${editorClass("header")}`} {...sectionProps("header", "header")}><a href="#home" className="site-brand">{imageSections.header[0] ? <img src={imageSource("header", 0)} alt="" className="site-logo" /> : <span className="site-brand-mark" aria-hidden="true">{site.name.slice(0,1)}</span>}{site.name}</a>
+        <nav aria-label="Business website"><a href="#about">Our story</a>{!preview && site.id ? <a href={`/book/${encodeURIComponent(site.id)}`} className="site-nav-contact">Book online <span aria-hidden="true">↗</span></a> : null}<a href="#contact" className="site-nav-contact">Get in touch <span aria-hidden="true">↗</span></a></nav>
       </header>
+      {imageGallery("header", imageSections.header.slice(1), "header", "site-header-gallery", 1)}
       <main>
-        <section id="home" className="site-hero">
-          <div className="site-hero-copy"><p className="site-eyebrow">{template.eyebrow}</p><h1>{template.headline}</h1><p className="site-description">{site.description}</p>
-            <a href="#contact" className="site-button">{site.websiteTemplate === "CONTACT" ? "Start a conversation" : "Say hello"}<span aria-hidden="true">↗</span></a>
+        <section id="home" className={`site-hero${editorClass("hero")}`} {...sectionProps("hero", "hero")}>
+          <div className="site-hero-copy"><p className="site-eyebrow">{content.eyebrow}</p><h1>{content.headline}</h1><p className="site-description">{site.description}</p>
+            <a href="#contact" className="site-button">{content.buttonLabel}<span aria-hidden="true">↗</span></a>
             <div className="site-hero-footnote"><span className="site-tiny-line" />{site.name} · {template.label === "Contact" ? "Independent & approachable" : "Your neighborhood, thoughtfully served"}</div>
           </div>
-          <BrandArtwork template={site.websiteTemplate} />
+          {imageSections.hero.length > 0 ? imageGallery("hero", imageSections.hero, "hero", "site-hero-gallery") : <BrandArtwork template={site.websiteTemplate} />}
         </section>
-        <div className="site-feature-strip">{template.features.map(feature => <span key={feature}><span aria-hidden="true">✳</span>{feature}</span>)}</div>
-        <section id="about" className="site-about"><div><p className="site-eyebrow">A little about us</p><h2>{template.sectionTitle}</h2></div><p>{site.description}</p></section>
-        {template.offerings.length > 0 && <section className="site-offerings" aria-label="Example offerings">
-          <div className="site-section-heading"><h2>A taste of what&apos;s possible.</h2><p>Example offerings · contact the business for its current services.</p></div>
-          <div className="site-offering-grid">{template.offerings.map((offering,index) => <article key={offering}><span className="site-offering-number">0{index+1}</span><h3>{offering}</h3><p>Made personal. Get in touch to learn more.</p><a href="#contact" aria-label={`Ask about ${offering}`}>Let&apos;s talk <span aria-hidden="true">↗</span></a></article>)}</div>
+        {(content.features.length > 0 || imageSections.features.length > 0) && <div className={`site-feature-strip${editorClass("features")}`} {...sectionProps("features", "features")}>{content.features.map((feature,index) => <span key={index}><span aria-hidden="true">✳</span>{feature}</span>)}{imageGallery("features", imageSections.features, "features")}</div>}
+        <section id="about" className={`site-about${editorClass("about")}`} {...sectionProps("about", "about")}><div><p className="site-eyebrow">A little about us</p><h2>{content.sectionTitle}</h2>{imageGallery("about", imageSections.about, "about")}</div><p>{content.aboutText}</p></section>
+        {(content.offerings.length > 0 || imageSections.offerings.length > 0) && <section className={`site-offerings${editorClass("offerings")}`} aria-label={customized ? "Our offerings" : "Example offerings"} {...sectionProps("offerings", "offerings")}>
+          <div className="site-section-heading"><h2>{customized ? "What we offer." : "A taste of what's possible."}</h2><p>{customized ? "Contact us to learn more." : "Example offerings · contact the business for its current services."}</p></div>
+          {imageGallery("offerings", imageSections.offerings, "offerings")}
+          <div className="site-offering-grid">{content.offerings.map((offering,index) => <article key={index}><span className="site-offering-number">0{index+1}</span><h3>{offering}</h3><p>{customized ? "Get in touch to learn more." : "Made personal. Get in touch to learn more."}</p><a href="#contact" aria-label={`Ask about ${offering}`}>Let&apos;s talk <span aria-hidden="true">↗</span></a></article>)}</div>
         </section>}
-        <section id="contact" className="site-contact"><div className="site-contact-copy"><p className="site-eyebrow">We&apos;d love to hear from you</p><h2>Good things start<br />with a hello.</h2><p>Questions, ideas, or just getting to know us? Send a note and start a conversation.</p>
+        {content.additionalSections.map((section, index) => <section key={`${section.heading}-${index}`} className={`site-custom-section${editorClass(`custom-${index}`)}`} {...sectionProps(`custom-${index}`, `custom section ${index + 1}`)}>
+          <h2>{section.heading}</h2><p>{section.body}</p>{imageGallery(`custom-${index}`, section.images, section.heading)}
+        </section>)}
+        <section id="contact" className={`site-contact${editorClass("contact")}`} {...sectionProps("contact", "contact")}><div className="site-contact-copy"><p className="site-eyebrow">We&apos;d love to hear from you</p><h2>Good things start<br />with a hello.</h2><p>Questions, ideas, or just getting to know us? Send a note and start a conversation.</p>{imageGallery("contact", imageSections.contact, "contact")}
           <dl><div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div><div><dt>Phone</dt><dd><a href={`tel:${site.phone_number.replace(/[^+\d]/g, "")}`}>{site.phone_number}</a></dd></div>
             {site.publicAddress && <div><dt>Find us</dt><dd>{site.publicAddress}</dd></div>}{site.openingHours && <div><dt>Hours</dt><dd>{site.openingHours}</dd></div>}</dl>
         </div><div className="site-form-card"><h3>Leave us a note.</h3><ContactForm businessId={site.id} preview={preview} /></div></section>

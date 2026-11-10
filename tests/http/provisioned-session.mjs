@@ -1,3 +1,13 @@
+/*
+ * Code guide: tests/http/provisioned-session.mjs
+ * HTTP verification for provisioned session. Connects to API_BASE_URL or localhost and checks real
+ * endpoint/page responses. Fixture helpers may create synthetic accounts/businesses; use a disposable
+ * development instance.
+ */
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
 export const base = process.env.API_BASE_URL ?? "http://localhost:3000";
 const nonce = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;

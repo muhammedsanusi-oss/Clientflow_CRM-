@@ -1,8 +1,34 @@
+/*
+ * Code guide: packages/domain/tests/Business-schema.test.ts
+ * Automated regression tests for CreateBusiness schema. Assertions document expected behavior and failure
+ * cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the
+ * running local project data.
+ */
 // Boundary contracts: what the API accepts. If these change, the client and
 // the server change together — that's why they live in one shared package.
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ */
 import { describe, it, expect } from "vitest";
+/*
+ * Import connection: ../src/schemas/business -> packages/domain/src/schemas/business.ts.
+ * CreateBusiness: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateBusiness } from "../src/schemas/business";
+/*
+ * Import connection: ../src/schemas/employee -> packages/domain/src/schemas/employee.ts.
+ * CreateEmployee: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateEmployee } from "../src/schemas/employee";
+/*
+ * Import connection: ../src/schemas/location -> packages/domain/src/schemas/location.ts.
+ * CreateLocation: Zod contract for validating the resource request before its domain write.
+ */
 import { CreateLocation } from "../src/schemas/location";
 
 describe("CreateBusiness schema", () => {

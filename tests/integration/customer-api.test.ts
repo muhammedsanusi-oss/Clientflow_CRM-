@@ -1,3 +1,20 @@
+/*
+ * Code guide: tests/integration/customer-api.test.ts
+ * Automated regression tests for customer JSON API. Assertions document expected behavior and failure cases;
+ * inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the running
+ * local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * afterEach: Restores scenario state after each test.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ * vi: Provides test spies and module mocks; does not alter production authorization.
+ */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const authState = vi.hoisted(() => ({
@@ -33,8 +50,14 @@ describe("customer JSON API", () => {
     process.env.PGLITE_DATA_DIR = "memory://";
     delete process.env.DATABASE_URL;
 
+    // Test import connection: @project/db -> packages/db/src/index.ts. Loads the real module or its configured
+    // mock for this scenario.
     const db = await import("@project/db");
+    // Test import connection: @project/domain -> packages/domain/src/index.ts. Loads the real module or its
+    // configured mock for this scenario.
     domain = await import("@project/domain");
+    // Test import connection: ../../apps/web/app/api/customers/route -> apps/web/app/api/customers/route.ts.
+    // Loads the real module or its configured mock for this scenario.
     const route = await import("../../apps/web/app/api/customers/route");
 
     prisma = db.prisma;

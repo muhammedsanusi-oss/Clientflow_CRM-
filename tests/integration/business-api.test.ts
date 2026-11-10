@@ -1,3 +1,20 @@
+/*
+ * Code guide: tests/integration/business-api.test.ts
+ * Automated regression tests for business management HTTP handlers against migrated PGlite. Assertions
+ * document expected behavior and failure cases; inspect beforeAll/mocks for setup. Database suites use
+ * disposable PGlite rather than changing the running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * afterAll: Closes suite resources after testing.
+ * describe: Groups related regression scenarios in the test runner.
+ * it: Defines a scenario whose assertions must pass.
+ * expect: Checks actual values or failures against the expected behavior.
+ * vi: Provides test spies and module mocks; does not alter production authorization.
+ */
 import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
 
 const session = vi.hoisted(() => ({ userId: null as string | null }));
@@ -24,9 +41,19 @@ const businessInput = { name: "Acme", first_name: "Ada", last_name: "Owner", ema
 beforeAll(async () => {
   process.env.PGLITE_DATA_DIR = "memory://";
   delete process.env.DATABASE_URL;
+  // Test import connection: ../../packages/db/src/index -> packages/db/src/index.ts. Loads the real module or
+  // its configured mock for this scenario.
   db = await import("../../packages/db/src/index");
+  // Test import connection: ../../apps/web/app/api/Business/route -> apps/web/app/api/Business/route.ts. Loads
+  // the real module or its configured mock for this scenario.
   businesses = await import("../../apps/web/app/api/Business/route");
+  // Test import connection: ../../apps/web/app/api/Business/[id]/locations/route ->
+  // apps/web/app/api/Business/[id]/locations/route.ts. Loads the real module or its configured mock for this
+  // scenario.
   locations = await import("../../apps/web/app/api/Business/[id]/locations/route");
+  // Test import connection: ../../apps/web/app/api/Business/[id]/employees/route ->
+  // apps/web/app/api/Business/[id]/employees/route.ts. Loads the real module or its configured mock for this
+  // scenario.
   employees = await import("../../apps/web/app/api/Business/[id]/employees/route");
   ownerId = (await db.prisma.user.create({ data: { username: "owner" } })).id;
   outsiderId = (await db.prisma.user.create({ data: { username: "outsider" } })).id;
@@ -48,6 +75,8 @@ describe.sequential("business management HTTP handlers against migrated PGlite",
   });
 
   it("lists only the current owner's memberships and blocks owner provisioning", async () => {
+    // Test import connection: ../../packages/domain/src/index -> packages/domain/src/index.ts. Loads the real
+    // module or its configured mock for this scenario.
     const { createBusiness } = await import("../../packages/domain/src/index");
     const first = await createBusiness(ownerId, businessInput);
     businessId = first.business.id;

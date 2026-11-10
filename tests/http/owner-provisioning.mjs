@@ -1,5 +1,21 @@
+/*
+ * Code guide: tests/http/owner-provisioning.mjs
+ * HTTP verification for owner provisioning. Connects to API_BASE_URL or localhost and checks real
+ * endpoint/page responses. Fixture helpers may create synthetic accounts/businesses; use a disposable
+ * development instance.
+ */
 // Run on a disposable instance; this creates businesses and synthetic owners.
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
+/*
+ * Import connection: ./provisioned-session.mjs -> tests/http/provisioned-session.mjs.
+ * base: Helper/value provided by the connected module; its use in this file is shown below.
+ * call: Helper/value provided by the connected module; its use in this file is shown below.
+ * ownerFixture: Helper/value provided by the connected module; its use in this file is shown below.
+ */
 import { base, call, ownerFixture } from "./provisioned-session.mjs";
 
 const first = await ownerFixture("first");

@@ -1,3 +1,12 @@
+/*
+ * Code guide: apps/web/app/customers/business-selector.tsx
+ * GET form that changes the businessId query parameter on /customers. The selection is a lookup hint; the
+ * destination page verifies the user membership again.
+ */
+/*
+ * GET form that changes the businessId query parameter on /customers. The selection is a lookup hint; the
+ * destination page verifies the user membership again.
+ */
 export function BusinessSelector({ businesses, selectedId }: {
   businesses: { id: string; name: string }[]; selectedId: string;
 }) {

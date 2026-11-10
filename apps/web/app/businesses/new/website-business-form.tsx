@@ -1,11 +1,64 @@
+/*
+ * Code guide: apps/web/app/businesses/new/website-business-form.tsx
+ * Choose Bakery, Barbershop, Salon, or Contact, fill sample details, preview unsaved content, and create a
+ * business plus owner account through addBusinessAction. Previewing alone creates no records.
+ * Runs as an interactive client component; protected writes are delegated to server endpoints/actions.
+ */
 "use client";
+/*
+ * Import connection: react.
+ * React provides browser component rendering and state/form hooks; database access remains in server/domain
+ * functions.
+ * useActionState: Connects a form to a Server Action and exposes its returned errors/receipt plus pending
+ * status.
+ * useRef: Keeps a stable reference to the template-preview dialog so buttons can open or close it.
+ * useState: Keeps temporary component state in the browser, such as draft fields, pending status, and
+ * messages.
+ */
 import { useActionState, useRef, useState } from "react";
+/*
+ * Import connection: next/link.
+ * Next.js Link renders application navigation links; it does not itself authorize a destination or write
+ * data.
+ * Link: Client-side application navigation component; the destination still performs its own access checks.
+ */
 import Link from "next/link";
+/*
+ * Import connection: ./actions -> apps/web/app/businesses/new/actions.ts.
+ * addBusinessAction: Authenticates the developer, parses the business/owner/template form, calls
+ * transactional provisioning, refreshes the dashboard, and returns the one-time receipt or safe form errors.
+ * Type BusinessActionState: Type for business-form errors and the one-time provisioning receipt returned by
+ * its Server Action.
+ */
 import { addBusinessAction, type BusinessActionState } from "./actions";
+/*
+ * Import connection: ./credential-receipt -> apps/web/app/businesses/new/credential-receipt.tsx.
+ * CredentialReceipt: Shows the newly provisioned owner email, one-time temporary password, expiry, and
+ * website link. Leaving the screen hides the plaintext credential; it is not a permanent password viewer.
+ */
 import { CredentialReceipt } from "./credential-receipt";
-import { WEBSITE_TEMPLATES, WEBSITE_TEMPLATE_KEYS, sampleBusinessDetails, type WebsiteTemplateKey } from "../../../../../packages/domain/src/website-templates";
+/*
+ * Import connection: ../../../../../packages/domain/src/website-templates ->
+ * packages/domain/src/website-templates.ts.
+ * WEBSITE_TEMPLATES: Catalogue of standard layouts, display copy, fictional sample contact details, and
+ * template metadata.
+ * WEBSITE_TEMPLATE_KEYS: Allowlist of the four accepted website template keys.
+ * sampleBusinessDetails: Builds fictional form values for the selected template, including a unique test
+ * owner email. Filling these values does not save or publish a business.
+ * Type WebsiteTemplateKey: Type restricting template selection to the supported catalogue keys.
+ */
+import { WEBSITE_TEMPLATES, sampleBusinessDetails, type WebsiteTemplateKey } from "../../../../../packages/domain/src/website-templates";
+/*
+ * Import connection: ../../../components/business-sites/business-website ->
+ * apps/web/components/business-sites/business-website.tsx.
+ * BusinessWebsite: Shared rendering for live sites, creation previews, editor previews, and owner previews.
+ * Combines public business fields with saved content or template defaults and includes ContactForm.
+ */
 import { BusinessWebsite } from "../../../components/business-sites/business-website";
+import { WebsiteTemplatePicker } from "../../../components/business-sites/website-template-picker";
 
+// UI field metadata: connects stored/form keys to labels, input types, and length limits. It defines
+// controls, not saved database rows.
 const fields = [
   { name: "name", label: "Business name", type: "text", autoComplete: "organization", maxLength: 100 },
   { name: "first_name", label: "Owner first name", type: "text", autoComplete: "given-name", maxLength: 50 },
@@ -14,9 +67,14 @@ const fields = [
   { name: "email", label: "Business contact email (shown on website)", type: "email", autoComplete: "email", maxLength: 254 },
   { name: "phone_number", label: "Business phone number (shown on website)", type: "tel", autoComplete: "tel", maxLength: 15 },
 ] as const;
-const swatches = { BAKERY: "bg-[#f1e6d2] text-[#88451e]", BARBERSHOP: "bg-[#151c1b] text-[#d3ad73]", SALON: "bg-[#f0e4dc] text-[#85594d]", CONTACT: "bg-[#e9eddf] text-[#3e5945]" };
 
+/*
+ * Choose Bakery, Barbershop, Salon, or Contact, fill sample details, preview unsaved content, and create a
+ * business plus owner account through addBusinessAction. Previewing alone creates no records.
+ */
 export function WebsiteBusinessForm() {
+  // Connect the form to its imported Server Action: state contains the returned values/errors, the action
+  // submits, and pending disables duplicate clicks.
   const [state, action, pending] = useActionState(addBusinessAction, {} as BusinessActionState);
   const [draft, setDraft] = useState<Record<string, string>>({ name: "", first_name: "", last_name: "", owner_email: "", email: "", phone_number: "", description: "", business_type: "OTHER", website_template: "CONTACT", public_address: "", opening_hours: "" });
   const preview = useRef<HTMLDialogElement>(null);
@@ -30,12 +88,11 @@ export function WebsiteBusinessForm() {
       <fieldset className="space-y-4"><legend className="text-lg font-semibold text-[#172b4d]">Choose a website template</legend>
         <p className="text-sm text-slate-500">One standard design, personalized with this business&apos;s information.</p>
         <input type="hidden" name="website_template" value={selected} />
-        <div className="grid grid-cols-2 gap-3">{WEBSITE_TEMPLATE_KEYS.map(key => <button type="button" key={key} aria-pressed={selected === key} onClick={() => setDraft(previous => ({ ...previous, website_template: key, business_type: WEBSITE_TEMPLATES[key].businessType }))}
-          className={`overflow-hidden rounded-xl border text-left transition focus:outline-none focus:ring-4 focus:ring-indigo-200 ${selected === key ? "border-indigo-600 ring-2 ring-indigo-600" : "border-slate-200 hover:border-indigo-300"}`}>
-          <span className={`flex h-24 items-center justify-center font-serif text-3xl ${swatches[key]}`}>{key === "BAKERY" ? "Freshly baked." : key === "BARBERSHOP" ? "Stay sharp." : key === "SALON" ? "In full bloom." : "Let’s talk."}</span>
-          <span className="block px-4 py-3"><span className="block text-sm font-semibold">{WEBSITE_TEMPLATES[key].label}{selected === key ? " ✓" : ""}</span><span className="mt-1 block text-xs leading-5 text-slate-500">{WEBSITE_TEMPLATES[key].features.join(" · ")}</span></span>
-        </button>)}</div>
-        {state.fieldErrors?.website_template?.[0] && <p role="alert" className="text-sm text-red-700">{state.fieldErrors.website_template[0]}</p>}
+        <WebsiteTemplatePicker
+          value={selected}
+          onChange={key => setDraft(previous => ({ ...previous, website_template: key, business_type: WEBSITE_TEMPLATES[key].businessType }))}
+          error={state.fieldErrors?.website_template?.[0]}
+        />
         <div className="flex flex-wrap gap-3"><button type="button" onClick={() => preview.current?.showModal()} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-indigo-700">Preview template ↗</button>
           <button type="button" onClick={() => setDraft(sampleBusinessDetails(selected, crypto.randomUUID().slice(0,12)))} className="rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700">Use sample details</button></div>
         <p className="text-xs text-slate-500">Sample details include a fresh test owner email. Nothing is saved until you create the business.</p>

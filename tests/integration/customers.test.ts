@@ -1,3 +1,18 @@
+/*
+ * Code guide: tests/integration/customers.test.ts
+ * Automated regression tests for createCustomerInputSchema. Assertions document expected behavior and failure
+ * cases; inspect beforeAll/mocks for setup. Database suites use disposable PGlite rather than changing the
+ * running local project data.
+ */
+/*
+ * Import connection: vitest.
+ * Test runner assertions, lifecycle hooks, spies, and mocks. This import is test support, not a production
+ * API.
+ * beforeAll: Sets up resources once before this test suite runs.
+ * describe: Groups related regression scenarios in the test runner.
+ * expect: Checks actual values or failures against the expected behavior.
+ * it: Defines a scenario whose assertions must pass.
+ */
 import { beforeAll, describe, expect, it } from "vitest";
 
   let createCustomerInputSchema: {
@@ -17,6 +32,8 @@ import { beforeAll, describe, expect, it } from "vitest";
     process.env.PGLITE_DATA_DIR = "memory://";
     delete process.env.DATABASE_URL;
 
+    // Test import connection: @project/domain -> packages/domain/src/index.ts. Loads the real module or its
+    // configured mock for this scenario.
     const domain = await import("@project/domain");
     createCustomerInputSchema = domain.createCustomerInputSchema;
   }, 30_000);
@@ -59,7 +76,11 @@ import { beforeAll, describe, expect, it } from "vitest";
     )["createCustomerForUser"];
 
     beforeAll(async () => {
+      // Test import connection: @project/db -> packages/db/src/index.ts. Loads the real module or its configured
+      // mock for this scenario.
       const db = await import("@project/db");
+      // Test import connection: @project/domain -> packages/domain/src/index.ts. Loads the real module or its
+      // configured mock for this scenario.
       const domain = await import("@project/domain");
 
       prisma = db.prisma;

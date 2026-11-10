@@ -22,6 +22,8 @@ to `UseDevelopmentStorage=true`, which connects to Azurite at `127.0.0.1:10000`
 ### Blob adapter (`packages/services/src/storage.ts`)
 - Container: `attachments`.
 - `uploadAttachment(entityId, filename, contentType, data)` → blob name.
+- `uploadWebsiteImage(businessId, section, contentType, data)` validates JPG,
+  PNG, or WebP signatures and stores a unique business- and section-scoped image.
 - `downloadAttachment(blobName)` → `{ data, contentType }` or null.
 - `safeBlobName(entityId, filename)` sanitizes the user filename and namespaces
   it under the entity ID: `<entityId>/<sanitized-name>`.
@@ -48,6 +50,11 @@ to `UseDevelopmentStorage=true`, which connects to Azurite at `127.0.0.1:10000`
 
 - Blob storage does NOT delete old files when a new attachment replaces an
   existing one — the DB entry is updated but the old blob lingers.
+- Website image publication stores only validated blob references in the
+  business's website content. Public reads resolve only configured image
+  references in supported sections for a configured business; arbitrary blob
+  names are not accepted from requests. Removing an image reference does not
+  delete the old blob.
 - The queue does NOT guarantee delivery order (Azure Storage Queue is
   at-least-once, not FIFO).
 - This package does NOT generate thumbnails — that's the worker's job.

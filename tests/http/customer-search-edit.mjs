@@ -1,5 +1,18 @@
+/*
+ * Code guide: tests/http/customer-search-edit.mjs
+ * Prevents the default login form submission, sends credentials to the login API, and navigates only after a
+ * successful server response.
+ */
 // Run against a disposable local app: creates isolated demo accounts and rows.
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
+/*
+ * Import connection: ./provisioned-session.mjs -> tests/http/provisioned-session.mjs.
+ * ownerFixture: Helper/value provided by the connected module; its use in this file is shown below.
+ */
 import { ownerFixture } from "./provisioned-session.mjs";
 
 const base = process.env.API_BASE_URL ?? "http://localhost:3000";

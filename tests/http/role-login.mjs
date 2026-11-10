@@ -1,4 +1,13 @@
+/*
+ * Code guide: tests/http/role-login.mjs
+ * HTTP verification for role login. Connects to API_BASE_URL or localhost and checks real endpoint/page
+ * responses. Fixture helpers may create synthetic accounts/businesses; use a disposable development instance.
+ */
 // Run against a disposable local development app. Credentials are public fixtures.
+/*
+ * Import connection: node:assert/strict.
+ * Strict assertions used by the HTTP smoke scripts to stop on incorrect responses or missing page content.
+ */
 import assert from "node:assert/strict";
 const base = process.env.API_BASE_URL ?? "http://localhost:3000";
 const password = "Clientflow-test-2026!";
