@@ -183,7 +183,7 @@ export default function LoginForm({ testAccounts, allowDemoSignup = false }: { t
           </p> : <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
             <p className="text-sm font-semibold text-amber-950">Your first sign-in</p>
             <p className="mt-1.5 text-xs leading-5 text-amber-900/80">
-              Business owners receive a temporary password from the Clientflow team.
+              Business owners receive a password-setup link from the Clientflow team.
               You will choose your own password before opening your business portal.
             </p>
           </div>}

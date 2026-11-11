@@ -54,12 +54,16 @@ export default async function BusinessSetupPage({ params }: { params: Promise<{ 
     <Link href="/" className="text-indigo-700 underline">Back to dashboard</Link>
     <h1 className="text-3xl font-semibold">{business.name}</h1>
     <p className="text-slate-600">{business.description}</p>
-    {business.websiteTemplate && <div className="flex flex-wrap items-center gap-3"><span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{business.websiteTemplate} template</span><Link href={`/businesses/${business.id}/website`} className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Edit website</Link><Link href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 underline">Open website</Link></div>}
+    <div className="flex flex-wrap items-center gap-3">
+      {business.websiteTemplate && <><span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{business.websiteTemplate} template</span><Link href={`/businesses/${business.id}/website`} className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Edit website</Link><Link href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 underline">Open website</Link></>}
+      <Link href={`/businesses/${business.id}/requests`} className="text-sm font-semibold text-indigo-700 underline">Owner inquiries &amp; requests</Link>
+      <Link href={`/businesses/${business.id}/managed-service`} className="rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700">Managed content changes</Link>
+    </div>
     <dl className="space-y-3 rounded-2xl border border-slate-200 p-6 text-sm">
       <div><dt className="font-semibold">Business email</dt><dd>{business.email}</dd></div>
       <div><dt className="font-semibold">Business phone</dt><dd>{business.phone_number}</dd></div>
       <div><dt className="font-semibold">Owner login email</dt><dd>{owner?.email}</dd></div>
-      <div><dt className="font-semibold">Owner access</dt><dd>{!owner?.user.mustChangePassword ? "Active" : owner.user.temporaryExpiresAt && owner.user.temporaryExpiresAt <= new Date() ? "Temporary password expired" : "Pending password setup"}</dd></div>
+      <div><dt className="font-semibold">Owner access</dt><dd>{!owner?.user.mustChangePassword ? "Active" : owner.user.temporaryExpiresAt && owner.user.temporaryExpiresAt <= new Date() ? "Password setup expired" : "Pending password setup"}</dd></div>
     </dl>
     {owner?.user.mustChangePassword && <RegeneratePassword businessId={business.id} />}
   </main>;

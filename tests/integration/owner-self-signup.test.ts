@@ -82,7 +82,7 @@ describe.sequential("local owner self-signup", () => {
     const response = await signup.POST(request(signupInput));
     expect(response.status).toBe(200);
     const result = await response.json();
-    expect(result.redirectTo).toMatch(/^\/businesses\/.+\/website$/);
+    expect(result.redirectTo).toMatch(/^\/subscription\?businessId=.+$/);
     expect(context.values.has(auth.SESSION_COOKIE)).toBe(true);
 
     ownerId = (await auth.currentUserId())!;
@@ -114,6 +114,11 @@ describe.sequential("local owner self-signup", () => {
     expect(JSON.stringify(publicSite)).not.toContain("Private Billing");
     expect(publicSite).not.toHaveProperty("billingAddress");
     expect(publicSite).not.toHaveProperty("websitePlan");
+    expect(await db.prisma.demoSubscription.findUnique({ where: { businessId } })).toMatchObject({ plan: "CRM", status: "PENDING", version: 0 });
+    expect(await db.prisma.demoSubscriptionEvent.count({ where: { businessId } })).toBe(1);
+    expect(await db.prisma.demoSubscriptionEvent.findFirst({ where: { businessId } })).toMatchObject({ before: { subscription: null } });
+    await expect(domain.getWebsiteEditor(ownerId, businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await domain.simulateSubscription(ownerId, { businessId, scenario: "PAY_SUCCESS", plan: "CRM", expectedVersion: 0 });
     expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ id: businessId });
   });
 
@@ -124,6 +129,26 @@ describe.sequential("local owner self-signup", () => {
     expect((await response.json()).error.code).toBe("CONFLICT");
     expect(await db.prisma.business.count()).toBe(businessesBefore);
     expect(await db.prisma.user.count({ where: { email: signupInput.owner_email } })).toBe(1);
+  });
+
+  it("rolls back owner, business, membership, billing, and subscription when initial history fails", async () => {
+    const counts = async () => Promise.all([
+      db.prisma.user.count(), db.prisma.business.count(), db.prisma.employee.count(),
+      db.prisma.businessBillingAddress.count(), db.prisma.demoSubscription.count(), db.prisma.demoSubscriptionEvent.count(),
+    ]);
+    const before = await counts();
+    await db.prisma.$executeRawUnsafe(`CREATE FUNCTION reject_signup_event() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected history failure'; END $$`);
+    await db.prisma.$executeRawUnsafe(`CREATE TRIGGER reject_signup_event BEFORE INSERT ON "DemoSubscriptionEvent" FOR EACH ROW EXECUTE FUNCTION reject_signup_event()`);
+    try {
+      const response = await signup.POST(request({ ...signupInput, owner_email: "rollback@signup.test" }));
+      expect(response.status).toBe(500);
+      expect((await response.json()).error).toEqual({ code: "INTERNAL_ERROR", message: "Something went wrong" });
+      expect(await counts()).toEqual(before);
+      expect(await db.prisma.user.findUnique({ where: { email: "rollback@signup.test" } })).toBeNull();
+    } finally {
+      await db.prisma.$executeRawUnsafe('DROP TRIGGER reject_signup_event ON "DemoSubscriptionEvent"');
+      await db.prisma.$executeRawUnsafe('DROP FUNCTION reject_signup_event()');
+    }
   });
 
   it("does not create accounts for invalid signup details", async () => {
@@ -154,6 +179,6 @@ describe.sequential("local owner self-signup", () => {
     expect(await db.prisma.user.count()).toBe(usersBefore);
     await expect(domain.createLocalOwnerSignup({ ...signupInput, owner_email: "blocked@signup.test" })).rejects.toMatchObject({ code: "NOT_FOUND" });
     const page = await import("../../apps/web/app/signup/page");
-    expect(() => page.default()).toThrow("NOT_FOUND");
+    await expect(page.default({ searchParams: Promise.resolve({}) })).rejects.toThrow("NOT_FOUND");
   });
 });

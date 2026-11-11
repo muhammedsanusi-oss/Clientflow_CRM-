@@ -295,8 +295,12 @@ model Business {
   billingAddress BusinessBillingAddress?
   websitePlan WebsitePlan?
   featureRequests WebsiteFeatureRequest[]
+  developerNotifications DeveloperNotification[]
   hoursIntervals BusinessHoursInterval[]
   bookingStaff BookingStaff[]
+  demoSubscription DemoSubscription?
+  demoSubscriptionEvents DemoSubscriptionEvent[]
+  managedRequests ManagedServiceRequest[]
 }
 
 // Private billing details are separated from Business so ordinary business queries do not expose them.
@@ -356,6 +360,7 @@ model User {
   mustChangePassword Boolean @default(false)
   // Deadline for the pending temporary credential.
   temporaryExpiresAt DateTime?
+  setupTokenHash     String? @unique
   // Single-use temporary-credential consumption marker.
   temporaryConsumedAt DateTime?
   developerAccess DeveloperBusinessAccess[]
@@ -366,6 +371,109 @@ model User {
   publishedWebsites BusinessWebsiteContent[]
   websiteRevisions BusinessWebsiteRevision[]
   submittedWebsiteFeatureRequests WebsiteFeatureRequest[]
+  developerNotifications DeveloperNotification[]
+  demoSubscriptionEvents DemoSubscriptionEvent[]
+  managedTimeEntries ManagedServiceTime[] @relation("ManagedTimeActor")
+  voidedManagedTimeEntries ManagedServiceTime[] @relation("ManagedTimeVoider")
+  managedServiceEvents ManagedServiceEvent[]
+}
+
+enum DemoServicePlan {
+  STANDARD
+  CRM
+  MANAGED
+}
+
+enum ManagedRequestStatus {
+  SUBMITTED
+  IN_PROGRESS
+  COMPLETED
+  DECLINED
+  CANCELED
+}
+
+model ManagedServiceRequest {
+  id String @id @default(cuid())
+  businessId String
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  submissionKey String
+  title String
+  description String
+  status ManagedRequestStatus @default(SUBMITTED)
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  timeEntries ManagedServiceTime[]
+  events ManagedServiceEvent[]
+
+  @@unique([businessId, submissionKey])
+  @@index([businessId, createdAt])
+}
+
+model ManagedServiceTime {
+  id String @id @default(cuid())
+  requestId String
+  request ManagedServiceRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  month String
+  minutes Int
+  description String
+  actorId String
+  actor User @relation("ManagedTimeActor", fields: [actorId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  voidedAt DateTime?
+  voidReason String?
+  voidedById String?
+  voidedBy User? @relation("ManagedTimeVoider", fields: [voidedById], references: [id], onDelete: Restrict)
+
+  @@index([requestId, month])
+}
+
+model ManagedServiceEvent {
+  requestId String
+  version Int
+  request ManagedServiceRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  actorId String
+  actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action String
+  before Json
+  after Json
+  note String
+  createdAt DateTime @default(now())
+
+  @@id([requestId, version])
+}
+
+enum DemoSubscriptionStatus {
+  PENDING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model DemoSubscription {
+  businessId String @id
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  plan DemoServicePlan
+  status DemoSubscriptionStatus @default(PENDING)
+  periodStart DateTime?
+  periodEnd DateTime?
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DemoSubscriptionEvent {
+  businessId String
+  version Int
+  actorId String
+  action String
+  before Json
+  after Json
+  createdAt DateTime @default(now())
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@id([businessId, version])
 }
 
 // GitHub account IDs stay stable when a profile name or email changes.
@@ -488,6 +596,20 @@ enum WebsitePlan {
   PREMIUM
 }
 
+enum DeveloperNotificationType {
+  WEBSITE_INQUIRY
+  OWNER_FEATURE_REQUEST
+  CUSTOM_CRM_REQUEST
+  SERVICE_DOWN
+  SERVICE_RECOVERED
+  MANAGED_SERVICE_REQUEST
+}
+
+enum MonitorStatus {
+  UP
+  DOWN
+}
+
 // Allowed stored values for this field category; server schemas restrict accepted input to these choices.
 enum WebsiteTemplate {
   BAKERY
@@ -511,6 +633,56 @@ model WebsiteInquiry {
   createdAt    DateTime @default(now())
 
   @@index([businessId, createdAt])
+}
+
+model CustomCrmRequest {
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  businessName String   @default("")
+  description  String
+  phone        String?
+  callbackAt   DateTime?
+  callbackTimeZone String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model DeveloperNotification {
+  id          String                    @id @default(cuid())
+  developerId String
+  eventKey    String
+  type        DeveloperNotificationType
+  title       String
+  message     String
+  href        String
+  businessId  String?
+  createdAt   DateTime                  @default(now())
+  readAt      DateTime?
+  developer   User                      @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  business    Business?                 @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@unique([developerId, eventKey])
+  @@index([developerId, readAt, createdAt])
+}
+
+model ExternalMonitorState {
+  monitorId     String        @id
+  status        MonitorStatus @default(UP)
+  lastEventId   String
+  lastObservedAt DateTime?
+  updatedAt     DateTime      @default(now()) @updatedAt
+}
+
+model ExternalMonitorEvent {
+  eventId    String        @id
+  monitorId  String
+  status     MonitorStatus
+  observedAt DateTime
+  receivedAt DateTime      @default(now())
+
+  @@index([monitorId, observedAt])
 }
 
 // Explicit developer-to-business provisioning/editor grant. Developer status alone does not make every

@@ -100,11 +100,13 @@ publish it to the private owner view and public website.
   sections, matching the existing editor maximum. Businesses without a saved
   plan retain existing editor behavior.
 - Plus and Premium owners can submit feature requests from the owner editor.
-  Each request has a title and description and is privately associated with the
-  business and submitting owner. Plus allows five requests per business;
-  Premium allows any number. Free-plan requests are rejected. There is no
-  status, response, support, or feature-implementation workflow, and a request
-  does not promise that the feature will be built.
+  Each request has a title and description and is privately associated with
+  the business and submitting owner. Developers with an explicit grant to the
+  business can review it in the developer portal. Plus allows five requests per
+  business; Premium allows any number. Free-plan requests are rejected. There
+  is no status, response, support, or feature-implementation workflow, and a
+  request does not promise that the feature will be built. See [developer
+  notifications](../notifications/developer-notifications.md).
 - Plan prices and 24/7 support benefits are demonstrative only. There is no
   payment processing or live support service.
 - Removing an image requires an explicit user action and confirmation. Removing
@@ -181,6 +183,10 @@ publish it to the private owner view and public website.
   change its template, owner identity, credentials, memberships, or website URL.
 - Website publishing does not charge anyone or create an appointment Payment
   record. Any separately arranged customization fees remain outside this flow.
+
+Subscription-controlled access follows [demo subscriptions](demo-subscriptions.md). Legacy businesses retain existing access.
+Owner editing requires active demo access after enrollment. Explicit developer
+grants continue to authorize editing; published public content stays readable.
 
 ## Examples
 

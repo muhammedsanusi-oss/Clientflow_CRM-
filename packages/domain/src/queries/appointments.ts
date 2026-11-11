@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/appointments.ts
  * Database query module for appointments. Uses the shared Prisma client and business/user predicates; HTTP
@@ -23,7 +24,7 @@ import type { CreateAppointmentInput } from "../schemas/appointment";
 // route may perform additional active-access checks.
 const ownedCustomerWhere = (businessId: string, userId: string) => ({
   business_id: businessId,
-  business: { employees: { some: { user_id: userId } } },
+  business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
 });
 
 /*
@@ -58,18 +59,18 @@ export async function createAppointment(businessId: string, userId: string, inpu
     const [customer, employee, location, services] = await Promise.all([
       tx.customer.findFirst({ where: { id: input.customer_id, ...ownedCustomerWhere(businessId, userId) }, select: { id: true } }),
       tx.employee.findFirst({
-        where: { id: input.employee_id, business_id: businessId, business: { employees: { some: { user_id: userId } } } },
+        where: { id: input.employee_id, business_id: businessId, business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } } },
         select: { id: true },
       }),
       tx.location.findFirst({
-        where: { id: input.location_id, business_id: businessId, business: { employees: { some: { user_id: userId } } } },
+        where: { id: input.location_id, business_id: businessId, business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } } },
         select: { id: true },
       }),
       tx.service.findMany({
         where: {
           id: { in: input.services.map((item) => item.service_id) },
           business_id: businessId,
-          business: { employees: { some: { user_id: userId } } },
+          business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
         },
         select: { id: true, name: true, duration_minutes: true, base_price: true },
       }),

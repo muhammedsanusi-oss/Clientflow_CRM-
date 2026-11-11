@@ -23,7 +23,7 @@ import { prisma, type Prisma } from "@project/db";
  * plaintext password.
  * randomToken: Generates a cryptographically random base64url ticket or temporary credential.
  */
-import { hashPassword, randomToken } from "@project/auth/password";
+import { hashPassword, randomToken, tokenHash } from "@project/auth/password";
 /*
  * Import connection: ./schemas/business -> packages/domain/src/schemas/business.ts.
  * CreateBusiness: Zod contract for validating the resource request before its domain write.
@@ -72,13 +72,13 @@ const ownerSelection = { where: { role: "OWNER" as const, is_active: true }, sel
 } };
 
 /*
- * Lists provisioning records through this developer own explicit business grants. This powers the developer
- * dashboard, not owner CRM membership.
+ * Lists configured Clientflow websites through this developer's explicit business grants.
+ * This powers dashboard cards and totals, not owner CRM membership.
  */
 export async function listProvisionedBusinesses(userId: string) {
   await requireDeveloper(userId);
-  return prisma.business.findMany({ where: { developerAccess: { some: { developerId: userId } } },
-    include: { employees: ownerSelection }, orderBy: [{ created_at: "desc" }, { id: "desc" }],
+  return prisma.business.findMany({ where: { websiteTemplate: { not: null }, developerAccess: { some: { developerId: userId } } },
+    include: { employees: ownerSelection, demoSubscription: true }, orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
 }
 
@@ -97,12 +97,13 @@ export async function getProvisionedBusiness(userId: string, businessId: string)
  * Creates business, owner login, owner membership, website selection, and developer grants in one
  * transaction. Returns a generated temporary credential for the one-time handoff.
  */
-export async function provisionBusiness(userId: string, input: ProvisionBusinessInput) {
+export async function provisionBusiness(userId: string, input: ProvisionBusinessInput, activation: "password" | "link" = "password") {
   await requireDeveloper(userId);
   const website = ProvisionBusiness.parse(input);
   input = website;
   const temporaryPassword = randomToken();
   const passwordHash = await hashPassword(temporaryPassword);
+  const setupToken = activation === "link" ? randomToken() : null;
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const business = await prisma.$transaction(async tx => {
     await requireDeveloper(userId, tx);
@@ -113,7 +114,8 @@ export async function provisionBusiness(userId: string, input: ProvisionBusiness
     ] } });
     if (existing) throw new DomainError("CONFLICT", "This owner email is already associated with an account. No account has been changed.");
     const owner = await tx.user.create({ data: { email: input.owner_email, name: `${input.first_name} ${input.last_name}`,
-      passwordHash, mustChangePassword: true, temporaryExpiresAt: expiresAt,
+      passwordHash: setupToken ? null : passwordHash, setupTokenHash: setupToken ? tokenHash(setupToken) : null,
+      mustChangePassword: true, temporaryExpiresAt: expiresAt,
     } });
     const result = await tx.business.create({ data: { name: input.name, description: input.description, email: input.email,
       phone_number: input.phone_number, business_type: input.business_type,
@@ -125,29 +127,35 @@ export async function provisionBusiness(userId: string, input: ProvisionBusiness
     await tx.developerBusinessAccess.createMany({ data: developers.map(developer => ({ developerId: developer.id, businessId: result.id })) });
     return result;
   });
-  return { business, temporaryPassword, ownerEmail: input.owner_email, expiresAt: expiresAt.toISOString() };
+  return { business, temporaryPassword: setupToken ? "" : temporaryPassword,
+    setupPath: setupToken ? `/setup-password#token=${setupToken}` : undefined,
+    ownerEmail: input.owner_email, expiresAt: expiresAt.toISOString() };
 }
 
 /*
  * Replaces an unconsumed pending-owner credential and revokes its tickets after rechecking developer access.
  * Refuses an active owner password reset.
  */
-export async function regenerateOwnerPassword(userId: string, businessId: string) {
+export async function regenerateOwnerPassword(userId: string, businessId: string, activation: "password" | "link" = "password") {
   const business = await getProvisionedBusiness(userId, businessId);
   const owner = business.employees[0];
   if (!owner?.user.mustChangePassword) throw new DomainError("CONFLICT", "An active owner's password cannot be reset here.");
   const temporaryPassword = randomToken();
   const passwordHash = await hashPassword(temporaryPassword);
+  const setupToken = activation === "link" ? randomToken() : null;
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   await prisma.$transaction(async tx => {
     await requireDeveloper(userId, tx);
     const grant = await tx.developerBusinessAccess.findUnique({ where: { developerId_businessId: { developerId: userId, businessId } } });
     if (!grant) throw new DomainError("NOT_FOUND", "Resource not found");
     const changed = await tx.user.updateMany({ where: { id: owner.user_id, mustChangePassword: true }, data: {
-      passwordHash, temporaryExpiresAt: expiresAt, temporaryConsumedAt: null,
+      passwordHash: setupToken ? null : passwordHash, setupTokenHash: setupToken ? tokenHash(setupToken) : null,
+      temporaryExpiresAt: expiresAt, temporaryConsumedAt: null,
     } });
     if (!changed.count) throw new DomainError("CONFLICT", "This account is already active.");
     await tx.session.deleteMany({ where: { userId: owner.user_id } });
   });
-  return { business, temporaryPassword, ownerEmail: owner.email, expiresAt: expiresAt.toISOString() };
+  return { business, temporaryPassword: setupToken ? "" : temporaryPassword,
+    setupPath: setupToken ? `/setup-password#token=${setupToken}` : undefined,
+    ownerEmail: owner.email, expiresAt: expiresAt.toISOString() };
 }

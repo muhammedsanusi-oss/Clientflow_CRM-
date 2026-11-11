@@ -24,7 +24,7 @@ import { useRouter } from "next/navigation";
  * Collects the new password and confirmation, posts to /api/auth/change-password, and refreshes the
  * destination after the server issues a regular session.
  */
-export function PasswordForm() {
+export function PasswordForm({ setupToken }: { setupToken?: string } = {}) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
@@ -32,7 +32,7 @@ export function PasswordForm() {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
     try {
-      const response = await fetch("/api/auth/change-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: form.get("password"), confirmation: form.get("confirmation") }) });
+      const response = await fetch(setupToken ? "/api/auth/setup-password" : "/api/auth/change-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: form.get("password"), confirmation: form.get("confirmation"), ...(setupToken ? { token: setupToken } : {}) }) });
       const data = await response.json();
       if (!response.ok) { setError(data.error.message); return; }
       router.replace(data.redirectTo); router.refresh();

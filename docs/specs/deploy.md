@@ -16,6 +16,15 @@ Shipping is a merge, not a ritual performed by someone who remembers the steps.
   variable; probes point at /api/health.
 - `PG_POOL_MAX=1` against the shared class Postgres — connection etiquette.
 
+## Migration recovery
+
+- Each pending SQL migration and its `_migrations` entry commit in one
+  transaction on the same connection. A failure rolls back both before retry.
+- Historical SQL files retain their contents. The runner replaces their outer
+  `BEGIN`/`COMMIT` wrapper at execution time so the ledger is inside the boundary.
+- This prevents new unrecorded schema commits; it does not automatically repair
+  a database already left inconsistent by an older runner.
+
 ## Error states
 
 | Failure | What happens |
@@ -32,6 +41,10 @@ Shipping is a merge, not a ritual performed by someone who remembers the steps.
   arrives — an epic ticket, not part of the base deploy).
 
 ## Verify
+
+- `pnpm --filter @project/db test` injects ledger failures into migrations with
+  and without historical transaction wrappers, verifies rollback, and retries
+  the full chain successfully.
 
 - The broken-revision drill, run on purpose periodically.
 - A one-line PR reaches the live URL in < 10 minutes, untouched by hands.

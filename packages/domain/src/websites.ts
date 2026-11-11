@@ -1,3 +1,4 @@
+import { websiteEntitlementWhere } from "./subscription-access";
 /*
  * Code guide: packages/domain/src/websites.ts
  * Website read/write boundary for public pages, owner views/inquiries, and developer editing. Public queries
@@ -54,6 +55,7 @@ import {
   WEBSITE_PLANS,
   WebsiteFeatureRequest as WebsiteFeatureRequestSchema,
 } from "./website-plans";
+import { notifyBusinessDevelopers } from "./developer-notifications";
 
 // Strict public contact-message schema, including its hidden honeypot field.
 export const WebsiteContact = z.object({
@@ -88,6 +90,7 @@ export type PublicWebsite = {
   websiteContent: WebsiteContent | null;
 };
 type OwnerWebsite = Omit<PublicWebsite, "websiteContent"> & {
+  demoSubscription: { plan: "STANDARD" | "CRM" | "MANAGED"; status: string; periodEnd: Date | null } | null;
   websiteContent: (WebsiteContent & { publishedAt: Date }) | null;
 };
 
@@ -181,7 +184,15 @@ export async function submitWebsiteInquiry(businessId: string, input: z.infer<ty
         "windowStart" = CASE WHEN "AuthThrottle"."windowStart" < ${cutoff} THEN ${now} ELSE "AuthThrottle"."windowStart" END
       RETURNING "attempts"`;
     if (attempts[0].attempts > 10) throw new DomainError("RATE_LIMITED", "Too many messages. Please try again in 15 minutes.");
-    await tx.websiteInquiry.create({ data: { businessId: site.id, name: input.name, email: input.email, phone: input.phone, message: input.message } });
+    const inquiry = await tx.websiteInquiry.create({ data: {
+      businessId: site.id, name: input.name, email: input.email, phone: input.phone, message: input.message,
+    } });
+    await notifyBusinessDevelopers(tx, site.id, site.name, {
+      eventKey: `website-inquiry:${inquiry.id}`,
+      type: "WEBSITE_INQUIRY",
+      title: "New website inquiry",
+      message: `New inquiry from ${input.name}.`,
+    });
   });
 }
 
@@ -193,7 +204,7 @@ export async function listOwnerInquiries(userId: string, businessId?: string) {
   const business = await prisma.business.findFirst({ where: {
     ...(businessId === undefined ? {} : { id: businessId }),
     employees: { some: { user_id: userId, is_active: true, role: "OWNER" } },
-  }, select: { id: true, name: true, websiteTemplate: true }, orderBy: [{ created_at: "desc" }, { id: "desc" }] });
+  }, select: { id: true, name: true, websiteTemplate: true, demoSubscription: true }, orderBy: [{ created_at: "desc" }, { id: "desc" }] });
   if (!business) throw new DomainError("NOT_FOUND", "Business not found");
   const inquiries = await prisma.websiteInquiry.findMany({ where: {
     businessId: business.id, business: { employees: { some: { user_id: userId, is_active: true, role: "OWNER" } } },
@@ -219,7 +230,7 @@ async function editableBusiness(tx: Prisma.TransactionClient, userId: string, bu
     FOR SHARE OF g, u`;
   if (developer.length) {
     return { role: "developer" as const, site: await tx.business.findUniqueOrThrow({ where: { id: businessId }, select: {
-      ...publicWebsiteSelection, websiteContent: true, websitePlan: true,
+      ...publicWebsiteSelection, websiteContent: true, websitePlan: true, demoSubscription: true,
     } }) };
   }
   const owner = await tx.$queryRaw<Array<{ id: string }>>`
@@ -230,8 +241,10 @@ async function editableBusiness(tx: Prisma.TransactionClient, userId: string, bu
       AND u."mustChangePassword" = false
     FOR SHARE OF e, u`;
   if (!owner.length) throw new DomainError("NOT_FOUND", "Website not found");
+  const entitled = await tx.business.findFirst({ where: { id: businessId, ...websiteEntitlementWhere() }, select: { id: true } });
+  if (!entitled) throw new DomainError("NOT_FOUND", "Website not found");
   return { role: "owner" as const, site: await tx.business.findUniqueOrThrow({ where: { id: businessId }, select: {
-    ...publicWebsiteSelection, websiteContent: true, websitePlan: true,
+    ...publicWebsiteSelection, websiteContent: true, websitePlan: true, demoSubscription: true,
   } }) };
 }
 
@@ -274,12 +287,18 @@ export async function submitWebsiteFeatureRequest(userId: string, businessId: st
       throw new DomainError("CONFLICT", "The Plus plan allows up to five feature requests.");
     }
 
-    await tx.websiteFeatureRequest.create({ data: {
+    const featureRequest = await tx.websiteFeatureRequest.create({ data: {
       businessId,
       submittedById: userId,
       title: request.title,
       description: request.description,
     } });
+    await notifyBusinessDevelopers(tx, businessId, site.name, {
+      eventKey: `owner-feature-request:${featureRequest.id}`,
+      type: "OWNER_FEATURE_REQUEST",
+      title: "Owner requested a website change",
+      message: request.title,
+    });
     return { requestCount: requestCount + 1, requestLimit };
   });
 }
@@ -420,14 +439,14 @@ export async function getOwnerWebsite(userId: string, businessId?: string): Prom
   const site = await prisma.business.findFirst({ where: {
     ...(businessId === undefined ? {} : { id: businessId }), websiteTemplate: { not: null },
     employees: { some: { user_id: userId, is_active: true, role: "OWNER" } },
-  }, select: { ...publicWebsiteSelection, websiteContent: { select: {
+  }, select: { ...publicWebsiteSelection, demoSubscription: true, websiteContent: { select: {
     ...publicWebsiteSelection.websiteContent.select, publishedAt: true,
   } } }, orderBy: [{ created_at: "desc" }, { id: "desc" }] });
   if (!site?.websiteTemplate) throw new DomainError("NOT_FOUND", "Website not found");
   const publicFields = {
     id: site.id, name: site.name, description: site.description, websiteTemplate: site.websiteTemplate,
     email: site.email, phone_number: site.phone_number, publicAddress: site.publicAddress,
-    openingHours: site.openingHours,
+    openingHours: site.openingHours, demoSubscription: site.demoSubscription,
   };
   if (!site.websiteContent) return { ...publicFields, websiteContent: null };
   const { publishedAt, ...content } = site.websiteContent;
@@ -453,7 +472,7 @@ export function listOwnerDashboardBusinesses(userId: string) {
     where: {
       employees: { some: { user_id: userId, is_active: true, role: "OWNER" } },
     },
-    select: { id: true, name: true, description: true, websiteTemplate: true },
+    select: { id: true, name: true, description: true, websiteTemplate: true, demoSubscription: true },
     orderBy: [{ created_at: "desc" }, { id: "desc" }],
   });
 }

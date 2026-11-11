@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/membership.ts
  * Database query module for membership. Uses the shared Prisma client and business/user predicates; HTTP
@@ -9,7 +10,10 @@
  * Type Prisma: Generated TypeScript query/transaction types; a type import does not open another connection.
  * Defined in packages/db/src/generated/prisma.
  */
-import type { Prisma } from "@project/db";
+import { prisma, type Prisma } from "@project/db";
+// Internal query context: other domain modules reuse the established DB boundary.
+export { prisma as domainDatabase };
+export type { Prisma };
 /*
  * Import connection: ../errors -> packages/domain/src/errors.ts.
  * DomainError: Deliberate safe domain failure carrying an allowed public code/message.
@@ -24,7 +28,7 @@ export async function requireMembership(tx: Prisma.TransactionClient, businessId
   // A URL business ID is only a lookup key; an active session-derived
   // membership is the authority. Foreign and unknown IDs share one error.
   const membership = await tx.employee.findFirst({
-    where: { business_id: businessId, user_id: userId, is_active: true },
+    where: { business_id: businessId, user_id: userId, is_active: true, business: crmEntitlementWhere() },
   });
   if (!membership) throw new DomainError("NOT_FOUND", "Business not found");
   return membership;

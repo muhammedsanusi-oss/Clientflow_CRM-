@@ -32,6 +32,14 @@ one business experience.
 
 ## Behavior
 
+- Signup first offers Standard website and Tailored website & CRM. Standard
+  website opens the account/template/plan form described here. The tailored
+  option collects contact information and a preferred callback time inside
+  signup; developers create the account after consultation and send a
+  password-setup link. See [tailored signup](custom-website-signup.md).
+- The sign-in page has no standalone custom CRM request link. Existing
+  `/request-custom-crm` links redirect to `/signup?option=tailored`.
+
 - Signup pages and endpoints are available only when the server runs in local
   development mode. Production and other non-development runtimes return 404;
   client-supplied values cannot enable signup.
@@ -39,20 +47,23 @@ one business experience.
   billing street, optional apartment/suite, city, state, and ZIP code. The owner
   then enters business details, selects a supported business type and website
   template, and selects a website plan before creating the account.
-- The signup form presents three plans:
+- Signup selects one of the demo offerings below. Successful simulated checkout
+  grants the selected software access; no money is charged. See
+  [demo subscriptions](demo-subscriptions.md) for lifecycle and enforcement.
 
-  | Plan | Demo price | Website allowance |
+  | Offering | Demo price | Software scope |
   |---|---:|---|
-  | Free | $0.00 | Edit the selected template's existing sections; up to 10 images total |
-  | Plus | $19.99/month | Up to 20 images total, 24/7 support, custom sections, and up to five feature requests |
-  | Premium | $59.99/month | Up to 50 images total, 24/7 support, custom sections, and unlimited feature requests |
+  | Standard website | $39/month | Template website and owner editing |
+  | Website + standard CRM | $79/month | Website plus customers, bookings, calendar, services, and notes |
+  | Managed service | $149/month | CRM plus content-change requests and 30 developer minutes per UTC month |
+  | Tailored website/CRM | Project quote + monthly maintenance | Consultation and developer provisioning |
 
-- Plan prices and benefits are demonstrative only. Signup does not collect
-  payment details or charge the owner. 24/7 support is a displayed benefit
-  only; no live support service is connected. Feature requests can be submitted
-  and stored for future review, but there is no request status, response, or
-  feature implementation workflow, and submission is not a promise to build
-  the requested feature.
+- Hosting, maintenance, and business-hours support remain proposed operational
+  services. The Managed request-and-time workflow follows [managed service](managed-service.md).
+  Signup collects no payment credentials. Existing FREE, PLUS, and PREMIUM
+  website-content limits remain separate from explicit STANDARD, CRM, and MANAGED
+  subscription access. Feature requests are stored for developer review; submission
+  is not a promise to build a feature.
 - The selected plan is stored with the newly created business. Existing
   developer-provisioned businesses and accounts are not assigned a plan or
   changed by signup.
@@ -69,7 +80,9 @@ one business experience.
   They can submit feature requests from their owner website editor: Plus permits
   up to five requests per business, while Premium has no request-count cap. Each
   request contains a title and description and is associated with its business
-  and submitting owner.
+  and submitting owner. Developers with an explicit grant to that business
+  receive an in-app notification and can review the request in the developer
+  portal.
 - Local demo signup skips email verification and does not imply that the
   submitted email is verified. A completed signup creates an authenticated
   owner identity and binds the new business through an active OWNER membership.
@@ -78,7 +91,8 @@ one business experience.
   the selected sign-in role. The link opens this signup flow and is not shown
   in other runtimes.
 - Business, owner membership, website template, billing address, and explicit
-  developer access grants are written atomically. Signup does not claim, merge,
+  developer access grants, pending demo subscription, and initial history are
+  written atomically. Signup opens simulated checkout. It does not claim, merge,
   or reset an existing account based only on email equality.
 - A self-service owner account creates at most one business through this
   onboarding flow. Existing developer-provisioned accounts and internal
@@ -91,16 +105,13 @@ one business experience.
   warm cream and brown for Bakery, charcoal and gold for Barbershop, light blush
   and taupe for Salon, and sage and green for Contact. A business without a
   configured template retains the neutral admin palette.
-- The owner sign-in destination opens the shared calendar workspace for the
-  newest business with an active OWNER membership. The `/owner` route redirects
-  to that calendar rather than rendering a separate business-card dashboard.
-- The shared owner navigation provides Appointments, Customers, Edit Website,
-  and Preview Website in that order. Appointments opens the selected business
-  calendar, which is the owner's main dashboard; there is no duplicate Business
-  Dashboard navigation item. Preview Website opens within Clientflow and shows
-  the last published website; the editor separately continues to show unsaved
-  changes live. The website's public link shows published changes after they
-  are saved and published.
+- Owner entry uses the newest active OWNER business: Standard opens the website
+  editor, CRM/Managed opens calendar, pending/inactive opens subscription recovery.
+  Legacy businesses keep their calendar entry.
+- Shared navigation offers Appointments and Customers when CRM is available,
+  Edit Website when website editing is available, Preview Website, and Demo
+  subscription. Subscription management remains reachable from the session header
+  when a saved CRM/editor URL is unavailable. Preview displays published content.
 - The owner calendar does not repeat an inline Business Dashboard link.
 - Workspace theming and navigation are presentation only. The existing session,
   active OWNER membership, and website authorization checks remain authoritative.
@@ -126,7 +137,7 @@ one business experience.
 | Signup email already belongs to an account | Existing account is not claimed or reset |
 | Owner selects Free, Plus, or Premium | The chosen plan and its 10, 20, or 50 image cap are stored and enforced; no payment is taken |
 | Plus owner submits a sixth feature request | The request is rejected without creating a record |
-| Premium owner submits a feature request | The request is stored for future review; no implementation or response is promised |
+| Premium owner submits a feature request | The request is stored and granted developers are notified; no implementation or response is promised |
 | Free owner tries to add a custom section or submit a request | The operation is unavailable in the UI and rejected by the server |
 | Public website renders business content | Billing address, owner name, and login email are not included |
 | Owner publishes an edited website | The selected business's published content changes; other sites are unchanged |
@@ -143,7 +154,8 @@ one business experience.
   custom-section writes.
 - Feature-request tests verify owner/business authorization, Plus's five-request
   cap, unlimited Premium submissions, Free-plan rejection, and that requests
-  remain private from public websites.
+  remain private from public websites. Developer notification tests verify
+  that only developers with an explicit business grant can open request details.
 - Verify that the plan cards do not trigger payment or imply a live support
   service or guaranteed feature implementation.
 - Public projection tests verify that billing and identity fields never appear
@@ -155,7 +167,7 @@ one business experience.
 - Verify Bakery, Barbershop, Salon, and Contact owners see their matching admin
   palette and the owner workspace navigation contains Appointments, Customers,
   Edit Website, and Preview Website in order, without a Business Dashboard item.
-- Verify `/owner` redirects to the newest owned business's calendar; with no
+- Verify `/owner` follows the newest owned business's subscription destination; with no
   owned businesses it displays the access-help message.
 - Verify an unpublished website edit appears in the editor's live preview but
   not in the owner Preview Website view or public link; publish it and verify
@@ -173,7 +185,7 @@ one business experience.
   provider and verification flow are implemented.
 - The email is an identity attribute, not an authorization key. The active
   OWNER membership is the tenant boundary.
-- Billing address collection does not include payment cards, subscriptions,
+- Billing address collection does not include payment cards or real subscriptions,
   invoices, or payment processing.
 - Developer provisioning remains available for existing/internal onboarding
   as described in [ADR-0017](../../adr/0017-owner-self-service-signup.md).
@@ -184,7 +196,7 @@ one business experience.
 
 ## Out of scope
 
-Production self-service signup, email verification/delivery, subscription
+Production self-service signup, email verification/delivery, real subscription
 billing, payment-card storage, custom domains, staff invitations, account
 recovery, and automatic migration or merging of existing accounts are not part
 of the local demo.

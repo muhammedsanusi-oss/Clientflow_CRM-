@@ -195,8 +195,19 @@ export async function applyMigrations(sql: Sql, info = (msg: string) => {}) {
     // migration files or a local compiled action manifest in these modules.
     const { readFile } = await import("node:fs/promises");
     const migration = await readFile(join(MIGRATIONS_DIR, file), "utf-8");
-    await sql.exec(migration);
-    await sql.exec(`INSERT INTO _migrations (name) VALUES ('${file.replace(/'/g, "''")}')`);
+    // Historical files may own an outer transaction. Move that boundary around
+    // both the unchanged migration body and its ledger entry at execution time.
+    const body = migration
+      .replace(/^(\s*(?:--[^\r\n]*\r?\n\s*)*)BEGIN\s*;/i, "$1")
+      .replace(/\bCOMMIT;\s*$/i, "");
+    try {
+      await sql.exec(`BEGIN;\n${body}\nINSERT INTO _migrations (name) VALUES ('${file.replace(/'/g, "''")}');\nCOMMIT;`);
+    } catch (error) {
+      // A failed statement leaves PostgreSQL in an aborted transaction.
+      // Preserve the original failure if the connection has also gone away.
+      try { await sql.exec("ROLLBACK"); } catch { /* connection unavailable */ }
+      throw error;
+    }
     info(`applied migration ${file}`);
   }
 }

@@ -50,7 +50,7 @@ export type BusinessActionState = {
   values?: Record<keyof ProvisionBusinessInput, string>;
   fieldErrors?: Partial<Record<keyof ProvisionBusinessInput, string[]>>;
   error?: { code: string; message: string };
-  receipt?: { businessId: string; businessName: string; ownerEmail: string; temporaryPassword: string; expiresAt: string; websiteUrl?: string };
+  receipt?: { businessId: string; businessName: string; ownerEmail: string; temporaryPassword: string; setupPath?: string; expiresAt: string; websiteUrl?: string };
 };
 /*
  * Authenticates the developer, parses the business/owner/template form, calls transactional provisioning,
@@ -65,9 +65,9 @@ export async function addBusinessAction(_state: BusinessActionState, form: FormD
   const parsed = ProvisionBusiness.safeParse(values);
   if (!parsed.success) return { values, fieldErrors: parsed.error.flatten().fieldErrors, error: { code: "VALIDATION", message: "Review the highlighted fields." } };
   try {
-    const result = await provisionBusiness(userId, parsed.data);
+    const result = await provisionBusiness(userId, parsed.data, "link");
     revalidatePath("/");
-    return { receipt: { businessId: result.business.id, businessName: result.business.name, ownerEmail: result.ownerEmail, temporaryPassword: result.temporaryPassword, expiresAt: result.expiresAt, websiteUrl: result.business.websiteTemplate ? `/sites/${result.business.id}` : undefined } };
+    return { receipt: { businessId: result.business.id, businessName: result.business.name, ownerEmail: result.ownerEmail, temporaryPassword: result.temporaryPassword, setupPath: result.setupPath, expiresAt: result.expiresAt, websiteUrl: result.business.websiteTemplate ? `/sites/${result.business.id}` : undefined } };
   } catch (error) { const mapped = apiError(error); return { values, error: { code: mapped.code, message: mapped.message } }; }
 }
 /*
@@ -79,8 +79,8 @@ export async function regeneratePasswordAction(_state: BusinessActionState, form
   // not trusted here.
   const userId = await currentUserId(); if (!userId) redirect("/login");
   try {
-    const result = await regenerateOwnerPassword(userId, String(form.get("businessId") ?? ""));
+    const result = await regenerateOwnerPassword(userId, String(form.get("businessId") ?? ""), "link");
     revalidatePath("/");
-    return { receipt: { businessId: result.business.id, businessName: result.business.name, ownerEmail: result.ownerEmail, temporaryPassword: result.temporaryPassword, expiresAt: result.expiresAt, websiteUrl: result.business.websiteTemplate ? `/sites/${result.business.id}` : undefined } };
+    return { receipt: { businessId: result.business.id, businessName: result.business.name, ownerEmail: result.ownerEmail, temporaryPassword: result.temporaryPassword, setupPath: result.setupPath, expiresAt: result.expiresAt, websiteUrl: result.business.websiteTemplate ? `/sites/${result.business.id}` : undefined } };
   } catch (error) { const mapped = apiError(error); return { error: { code: mapped.code, message: mapped.message } }; }
 }

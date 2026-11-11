@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/business.ts
  * Database query module for business. Uses the shared Prisma client and business/user predicates; HTTP
@@ -24,6 +25,7 @@ import type { CreateBusinessInput } from "../schemas/business";
 export function listBusinesses(userId: string) {
   return prisma.business.findMany({
     where: {
+      ...crmEntitlementWhere(),
       employees: {
         some: {
           user_id: userId,
@@ -41,6 +43,7 @@ export function listBusinesses(userId: string) {
 export function getBusinessById(id: string, userId: string) {
   return prisma.business.findFirst({
     where: {
+      ...crmEntitlementWhere(),
       id,
       employees: {
         some: {

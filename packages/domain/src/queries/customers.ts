@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/customers.ts
  * Database query module for customers. Uses the shared Prisma client and business/user predicates; HTTP
@@ -26,7 +27,7 @@ import type { CreateCustomerInput } from "../schemas/customer";
  */
 export function listCustomers(business_id: string, userId: string) {
   return prisma.customer.findMany({
-    where: { business_id, business: { employees: { some: { user_id: userId } } } },
+    where: { business_id, business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } } },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -36,7 +37,7 @@ export function listCustomers(business_id: string, userId: string) {
  */
 export function getCustomer(id: string, business_id: string, userId: string) {
   return prisma.customer.findFirst({
-    where: { id, business_id, business: { employees: { some: { user_id: userId } } } },
+    where: { id, business_id, business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } } },
   });
 }
 
@@ -45,7 +46,7 @@ export function getCustomer(id: string, business_id: string, userId: string) {
  */
 export async function createCustomer(business_id: string, userId: string, input: CreateCustomerInput) {
   const business = await prisma.business.findFirst({
-    where: { id: business_id, employees: { some: { user_id: userId } } },
+    where: { id: business_id, ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
     select: { id: true },
   });
   if (!business) return null;

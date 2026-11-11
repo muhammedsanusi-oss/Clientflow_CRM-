@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "./subscription-access";
 /*
  * Code guide: packages/domain/src/appointments.ts
  * UI-facing scheduling and month queries. Uses active customer-business membership, active
@@ -98,6 +99,7 @@ export async function getAppointmentFormForUser(
     where: {
       id: customerId,
       business: {
+        ...crmEntitlementWhere(),
         employees: {
           some: {
             user_id: userId,
@@ -115,6 +117,7 @@ export async function getAppointmentFormForUser(
           id: true,
           name: true,
           websiteTemplate: true,
+          demoSubscription: true,
           locations: {
             where: { is_active: true },
             select: { id: true, name: true },
@@ -148,7 +151,7 @@ export async function createAppointmentForUser(
       where: {
         user_id: userId,
         is_active: true,
-        business: { customers: { some: { id: input.customerId } } },
+        business: { ...crmEntitlementWhere(), customers: { some: { id: input.customerId } } },
       },
       select: {
         id: true,
@@ -266,6 +269,7 @@ export async function listAppointmentsForUserMonth(
   const monthStart = new Date(Date.UTC(year, monthNumber - 1, 1));
   const monthEnd = new Date(Date.UTC(year, monthNumber, 1));
   const activeEmployeeInBusiness = {
+    ...crmEntitlementWhere(),
     employees: {
       some: {
         user_id: userId,

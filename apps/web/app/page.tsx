@@ -1,6 +1,6 @@
 /*
  * Code guide: apps/web/app/page.tsx
- * Developer dashboard at /. Shows only businesses with a developer access grant. Developers can create a
+ * Developer dashboard at /. Shows only website-backed businesses with a developer access grant. Developers can create a
  * business, review owner activation, edit a configured website, and open its public URL. Owners are
  * redirected to /owner.
  * This entry renders on the server and supplies data/props to interactive components.
@@ -29,6 +29,8 @@ import { getUser, listProvisionedBusinesses } from "@project/domain";
  * redirect: Ends this server response with navigation to the supplied application route.
  */
 import { redirect } from "next/navigation";
+import { DeveloperNotificationBell } from "../components/developer-notification-bell";
+import { DEMO_PLANS, hasWebsiteAccess } from "../../../packages/domain/src/subscription-access";
 
 // Request-time rendering: the page/API is resolved for this request instead of serving one static response
 // for every user.
@@ -44,7 +46,7 @@ const businessTypes: Record<string, string> = {
 };
 
 /*
- * Developer dashboard at /. Shows only businesses with a developer access grant. Developers can create a
+ * Developer dashboard at /. Shows only website-backed businesses with a developer access grant. Developers can create a
  * business, review owner activation, edit a configured website, and open its public URL. Owners are
  * redirected to /owner.
  */
@@ -118,6 +120,7 @@ export default async function Home() {
             </a>
             <p className="hidden text-sm text-slate-500 lg:block">Developer overview</p>
             <div className="flex items-center gap-3">
+              <DeveloperNotificationBell developerId={userId} />
               <div className="hidden text-right sm:block">
                 <p className="max-w-48 truncate text-sm font-medium text-slate-800">{(user.name ?? user.email ?? user.username ?? "Developer")}</p>
                 <p className="text-xs text-slate-400">Developer account</p>
@@ -130,9 +133,6 @@ export default async function Home() {
           </header>
 
           <div id="overview" className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
-            <nav aria-label="Customer management" className="mb-6 flex flex-wrap gap-3">
-              <a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
-            </nav>
             <section className="relative overflow-hidden rounded-3xl bg-[#172b4d] px-6 py-8 text-white sm:px-9 sm:py-10">
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10" />
               <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-40 h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />
@@ -186,7 +186,7 @@ export default async function Home() {
                     Your businesses
                   </h2>
                 </div>
-                <div className="flex flex-wrap items-center gap-3"><a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a><span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+                <div className="flex flex-wrap items-center gap-3"><a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Set up client portal</a><span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
                   {businesses.length} total
                 </span></div>
               </div>
@@ -213,9 +213,10 @@ export default async function Home() {
                         <p className="truncate">{business.email}</p>
                         <p>{business.phone_number}</p>
                         <p>Owner: {business.employees[0]?.email ?? "Not assigned"}</p>
-                        <p>{!business.employees[0]?.user.mustChangePassword ? "Active" : business.employees[0]?.user.temporaryExpiresAt && business.employees[0].user.temporaryExpiresAt <= new Date() ? "Invitation expired" : "Pending first sign-in"}</p>
+                        <p>Owner access: {!business.employees[0] ? "Not assigned" : !business.employees[0].user.mustChangePassword ? "Active" : business.employees[0].user.temporaryExpiresAt && business.employees[0].user.temporaryExpiresAt <= new Date() ? "Password setup expired" : "Pending password setup"}</p>
+                        {business.demoSubscription && <p>Demo subscription: {DEMO_PLANS[business.demoSubscription.plan].label} · ${DEMO_PLANS[business.demoSubscription.plan].cents / 100}/month · {business.demoSubscription.status === "ACTIVE" && !hasWebsiteAccess(business.demoSubscription) ? "EXPIRED" : business.demoSubscription.status.replaceAll("_", " ")}</p>}
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><a href={`/businesses/${business.id}`} className="underline">Business details</a>{business.websiteTemplate && <><a href={`/businesses/${business.id}/website`} className="underline">Edit website</a><a href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</a></>}</div>
+                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><a href={`/businesses/${business.id}/managed-service`} className="underline">Managed content changes</a><a href={`/businesses/${business.id}`} className="underline">Business details</a>{business.websiteTemplate && <><a href={`/businesses/${business.id}/website`} className="underline">Edit website</a><a href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</a></>}</div>
                     </article>
                   ))}
                 </div>
@@ -228,9 +229,9 @@ export default async function Home() {
                   </span>
                   <h3 className="mt-4 text-base font-semibold text-slate-900">Your workspace is ready</h3>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                    Create your first business to start adding customers linked to it.
+                    No businesses with a Clientflow website are connected to your account yet. Set up a client portal with a website to get started.
                   </p>
-                  <a href="/businesses/new" className="mt-5 inline-block rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Create business</a>
+                  <a href="/businesses/new" className="mt-5 inline-block rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Set up client portal</a>
                 </div>
               )}
             </section>

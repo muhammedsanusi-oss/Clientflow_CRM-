@@ -38,6 +38,6 @@ export async function POST(req: Request) {
   try {
     const session = await authenticate(created.ownerEmail, parsed.data.password, "owner");
     await startSession(session);
-    return Response.json({ redirectTo: `/businesses/${created.business.id}/website` }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ redirectTo: `/subscription?businessId=${created.business.id}` }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return authError(error); }
 }

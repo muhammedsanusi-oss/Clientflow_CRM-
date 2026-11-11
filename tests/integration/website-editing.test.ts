@@ -65,7 +65,7 @@ afterAll(async () => { await db?.prisma.$disconnect(); });
 
 function editableValues(editor: Awaited<ReturnType<typeof domain.getWebsiteEditor>>) {
   const {
-    id, canChangeTemplate, websitePlan, maxImages, imageCount, canAddCustomSections,
+    id, demoSubscription, canChangeTemplate, websitePlan, maxImages, imageCount, canAddCustomSections,
     canSubmitFeatureRequests, featureRequestCount, featureRequestLimit, ...input
   } = editor;
   expect(typeof canChangeTemplate).toBe("boolean");

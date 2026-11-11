@@ -1,3 +1,4 @@
+import { crmEntitlementWhere } from "../subscription-access";
 /*
  * Code guide: packages/domain/src/queries/payments.ts
  * Database query module for payments. Uses the shared Prisma client and business/user predicates; HTTP
@@ -22,7 +23,7 @@ import type { CreatePaymentInput } from "../schemas/payment";
 const ownedAppointmentWhere = (businessId: string, userId: string) => ({
   customer: {
     business_id: businessId,
-    business: { employees: { some: { user_id: userId } } },
+    business: { ...crmEntitlementWhere(), employees: { some: { user_id: userId, is_active: true } } },
   },
 });
 

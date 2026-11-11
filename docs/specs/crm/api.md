@@ -17,6 +17,9 @@ shared validation and tenancy rules.
 ## Behavior
 - Every business endpoint derives the user from the auth seam. Signed-out
   requests return 401; a foreign or unknown business/resource returns 404.
+- CRM domain queries require an active membership in their database predicates,
+  including item reads by known ID. Deactivation revokes access even while the
+  user's session remains valid; inaccessible items return 404.
 - Collections are nested under `/api/Business/[id]`. Businesses, employees,
   locations, customers, services, appointments, and tasks have collection
   GET/POST routes and item GET routes.
@@ -32,6 +35,12 @@ shared validation and tenancy rules.
 - JSON and Zod validation failures return 400, uniqueness/constraint conflicts
   return 409, and unexpected errors are logged and returned as a generic 500.
 - Appointment service lines are created atomically with their appointment.
+- An overlapping active appointment returns 409 with error code `CONFLICT`;
+  neither an appointment nor service lines are created for the rejected request.
+
+Subscription-controlled access follows [demo subscriptions](../businesses/demo-subscriptions.md). Legacy businesses retain existing access.
+CRM queries, writes, and public booking require an active CRM or Managed demo
+subscription after enrollment. Membership checks continue to apply.
 
 ## Examples
 
@@ -43,6 +52,8 @@ shared validation and tenancy rules.
 | Invalid service duration or malformed request JSON | Returns 400 |
 
 ## Verify
+- `pnpm exec vitest run tests/integration/crm-access-regressions.test.ts`
+  checks active-to-inactive item and collection access and overlapping POSTs.
 - `pnpm --filter @project/domain test`
 - `pnpm typecheck`
 - `pnpm build`

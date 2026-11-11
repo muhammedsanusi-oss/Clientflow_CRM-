@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { WebsiteTemplateKey } from "../../../packages/domain/src/website-templates";
 import "./owner-workspace.css";
+import { hasCrmAccess, hasWebsiteAccess, type DemoPlan } from "../../../packages/domain/src/subscription-access";
 
 type OwnerWorkspaceBusiness = {
   id: string;
   name: string;
   websiteTemplate: WebsiteTemplateKey | null;
+  demoSubscription?: { plan: DemoPlan; status: string; periodEnd: Date | null } | null;
 };
 
 const workspaceLinks = [
@@ -13,6 +15,8 @@ const workspaceLinks = [
   { key: "customers", label: "Customers", href: (id: string) => `/customers?businessId=${encodeURIComponent(id)}` },
   { key: "edit", label: "Edit Website", href: (id: string) => `/businesses/${encodeURIComponent(id)}/website`, configured: true },
   { key: "preview", label: "Preview Website", href: (id: string) => `/website?businessId=${encodeURIComponent(id)}`, configured: true },
+  { key: "subscription", label: "Demo subscription", href: (id: string) => `/subscription?businessId=${encodeURIComponent(id)}` },
+  { key: "managed", label: "Managed service", href: (id: string) => `/managed-service?businessId=${encodeURIComponent(id)}` },
 ] as const;
 
 export function OwnerWorkspace({
@@ -26,7 +30,10 @@ export function OwnerWorkspace({
   description?: string;
   children: React.ReactNode;
 }) {
-  const links = workspaceLinks.filter((link) => !("configured" in link) || business.websiteTemplate);
+  const links = workspaceLinks.filter(link => (!("configured" in link) || business.websiteTemplate)
+    && (!(link.key === "customers" || link.key === "appointments") || hasCrmAccess(business.demoSubscription))
+    && (link.key !== "edit" || hasWebsiteAccess(business.demoSubscription))
+    && (link.key !== "managed" || (business.demoSubscription?.plan === "MANAGED" && hasWebsiteAccess(business.demoSubscription))));
   return (
     <div className="owner-workspace" data-theme={business.websiteTemplate ?? "NEUTRAL"}>
       <header className="owner-workspace-header">

@@ -74,10 +74,11 @@ export default async function WebsiteEditorPage({ params }: { params: Promise<{ 
     featureRequestCount,
     featureRequestLimit,
     websitePlan,
+    demoSubscription,
     ...initial
   } = site;
   const page = <main className="mx-auto max-w-7xl space-y-6 px-5 py-12">
-    <Link href={canChangeTemplate ? `/businesses/${businessId}` : `/customers?businessId=${encodeURIComponent(businessId)}`} className="text-sm text-indigo-700 underline">{canChangeTemplate ? "Back to business details" : "Back to business portal"}</Link>
+    <Link href={canChangeTemplate ? `/businesses/${businessId}` : demoSubscription?.plan === "STANDARD" ? `/subscription?businessId=${encodeURIComponent(businessId)}` : `/customers?businessId=${encodeURIComponent(businessId)}`} className="text-sm text-indigo-700 underline">{canChangeTemplate ? "Back to business details" : demoSubscription?.plan === "STANDARD" ? "Manage demo subscription" : "Back to business portal"}</Link>
     <header><p className="text-sm text-slate-500">{site.name}</p><h1 className="mt-2 text-3xl font-semibold">Edit website</h1><p className="mt-3 text-sm text-slate-600">See the website as you edit it. Click a section to change its text or add images, then publish when it looks right.</p></header>
     <WebsiteEditor
       businessId={businessId}
