@@ -37,9 +37,10 @@ on every branch, for every feature.
 - Activation-only sessions cannot access CRM data. Login routes them to /change-password until they finish setup.
 - Customer and calendar pages and actions check identity before accessing tenant data.
 - Signing out uses the same-origin logout endpoint and revokes the persisted session.
-- Owner workspace headers reserve space below the fixed subscription/sign-out
-  bar. Navigation wraps within the viewport so its last button remains visible
-  at desktop, mobile, and enlarged browser zoom sizes.
+- Developer dashboard and owner workspace headers reserve space below the
+  fixed subscription/sign-out bar. Owner navigation wraps within the viewport
+  so its last button remains visible at desktop, mobile, and enlarged browser
+  zoom sizes.
 - Development uses the standard Next.js bundler; business forms support Server Action POST submissions and client navigation.
 
 ## Public business websites

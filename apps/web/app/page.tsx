@@ -108,7 +108,7 @@ export default async function Home() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white pl-5 pr-28 sm:pl-8 lg:pl-10">
+          <header className="flex min-h-[120px] items-center justify-between border-b border-slate-200/80 bg-white pb-4 pl-5 pr-28 pt-12 sm:pl-8 lg:pl-10">
             <a href="#overview" className="flex items-center gap-2 lg:hidden" aria-label="Clientflow home">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#172b4d] text-cyan-200">
                 <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
