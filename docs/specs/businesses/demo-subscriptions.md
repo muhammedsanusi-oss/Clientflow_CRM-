@@ -104,6 +104,8 @@ access to the website editor and CRM.
 
 ## Verify
 
+- Run `pnpm --dir packages/domain test` for isolated access, exact-expiry,
+  owner-destination, month-end renewal, and strict billing-input rules.
 - Run `pnpm test`, `pnpm typecheck`, and `pnpm build`.
 - Migration tests verify existing businesses and records survive without
   subscription rows or automatic charges/status changes.
