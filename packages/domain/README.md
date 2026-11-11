@@ -15,6 +15,25 @@ All exports come from `src/index.ts`: schemas and queries cover businesses,
 employees, locations, customers, services, appointments and their service
 lines, tasks, notes, interactions, payments, and the public booking contract.
 
+## Testing business rules
+
+Run the package's unit tests from the repository root:
+
+```sh
+pnpm --dir packages/domain test
+```
+
+The tests use real rule functions and validation schemas. New coverage includes
+subscription access and exact expiry boundaries, owner destinations, calendar-month
+billing arithmetic, UTC Managed allowance months, strict managed/billing inputs,
+distinct website image counting, and independent website defaults. Billing and
+Managed rule tests replace the database boundary with a guard that throws on
+access, so these tests do not connect to development data.
+
+Run `pnpm test` for the full unit and integration suites. Database-backed tests
+verify authorization, persistence, shared allowance limits, concurrency, and
+transactional rollback; passing unit tests alone does not establish those results.
+
 ## Dependencies
 
 - `@project/db` — the Prisma client (for queries)

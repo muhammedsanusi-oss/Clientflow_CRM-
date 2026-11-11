@@ -158,6 +158,8 @@ money or pretending that software performs a developer's work automatically.
 
 ## Verify
 
+- Run `pnpm --dir packages/domain test` for isolated UTC month/reset and
+  request/time-entry validation rules, without a database connection.
 - Run `pnpm test`, `pnpm typecheck`, and `pnpm build`.
 - Integration tests cover owner creation, developer transitions, cancellation,
   required notes, completion preconditions, notifications, and the separate
