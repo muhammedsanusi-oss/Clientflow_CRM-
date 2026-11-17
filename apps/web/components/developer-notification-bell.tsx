@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "./app-link";
 import { getUnreadDeveloperNotificationCount } from "@project/domain";
 
 export async function DeveloperNotificationBell({ developerId }: { developerId: string }) {

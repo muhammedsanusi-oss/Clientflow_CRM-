@@ -1,0 +1,54 @@
+.business-overview{min-height:100vh;background:#f7f8fc;color:#17233b;padding:92px 24px 64px;font-family:Arial,Helvetica,sans-serif;overflow-wrap:anywhere}
+.bo-container{max-width:1100px;margin:0 auto}
+.business-overview :is(a,button):focus-visible{outline:3px solid #818cf8;outline-offset:4px}
+.bo-back{display:inline-flex;align-items:center;gap:9px;min-height:44px;color:#52617b;font-size:14px;text-decoration:none}
+.bo-back:hover{color:#4338ca;text-decoration:underline}
+.bo-intro{margin:18px 0 30px;max-width:800px}
+.bo-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#6b7290;margin:0 0 10px}
+.bo-intro h1{font-size:clamp(28px,3.5vw,40px);font-weight:700;letter-spacing:-.035em;line-height:1.2;margin:0}
+.bo-description{font-size:16px;line-height:1.7;color:#637089;margin:12px 0 0;max-width:720px}
+.bo-card{background:#fff;border:1px solid #e3e7f0;border-radius:18px;padding:28px;min-width:0;box-shadow:0 3px 12px #17233b03}
+.bo-card h2,.bo-management>h2{font-size:18px;font-weight:700;line-height:1.4;margin:0;letter-spacing:-.02em}
+.bo-website{display:flex;align-items:center;justify-content:space-between;gap:32px;background:linear-gradient(120deg,#fff 35%,#f1f0ff);border-color:#dddff4;margin-bottom:22px}
+.bo-website-copy{display:flex;align-items:flex-start;gap:18px;min-width:0}
+.bo-icon{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:13px;background:#eeedff;color:#5145cd;font-size:24px;line-height:1}
+.bo-website-copy p{font-size:14px;line-height:1.6;color:#637089;margin:6px 0 12px}
+.bo-template{display:inline-block;background:#eeedff;border:1px solid #e2dfff;padding:5px 10px;border-radius:7px;color:#5145b5;font-size:12px;font-weight:600}
+.bo-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0}
+.bo-button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;padding:11px 17px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:background .15s,box-shadow .15s}
+.bo-primary{background:#4f3dd4;color:#fff;border:1px solid #4f3dd4;box-shadow:0 3px 7px #4f3dd41a}
+.bo-primary:hover{background:#4030b8;box-shadow:0 4px 10px #4f3dd42b}
+.bo-secondary{background:#fff;color:#423791;border:1px solid #d8d7ec}
+.bo-secondary:hover{background:#f2f0ff}
+.bo-action-note{grid-column:2;text-align:center;color:#748099;font-size:11px}
+.bo-details{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.bo-card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bo-label{font-size:11px;color:#748099;background:#f5f7fb;border-radius:6px;padding:5px 8px}
+.bo-caption{font-size:13px;line-height:1.6;color:#748099;margin:7px 0 0}
+.bo-fields{margin:22px 0 0;display:grid;gap:20px}
+.bo-fields dt{font-size:12px;color:#637089;margin:0 0 5px;font-weight:500}
+.bo-fields dd{font-size:15px;line-height:1.6;margin:0;color:#27344b}
+.bo-fields a{display:inline-flex;align-items:center;min-height:44px;margin:-7px 0;color:#4038a6;text-decoration:underline;text-decoration-color:#cecaed;text-underline-offset:4px;max-width:100%;word-break:break-word}
+.bo-fields a:hover{text-decoration-color:currentColor}
+.bo-empty{color:#8590a3}
+.bo-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:5px 9px;border-radius:999px;line-height:1.5}
+.bo-status>span{width:6px;height:6px;border-radius:50%;background:currentColor}
+.bo-status-active{color:#227052;background:#edf8f2}
+.bo-status-pending{color:#926019;background:#fff5df}
+.bo-status-neutral{color:#637089;background:#f0f3f8}
+.bo-owner-note{font-size:12px;line-height:1.65;color:#748099;margin:16px 0 0}
+.bo-setup{border-top:1px solid #edf0f5;margin-top:20px;padding-top:20px}
+.bo-setup button{min-height:44px;font-size:13px}
+.bo-management{margin-top:32px}
+.bo-management>h2{font-size:15px;margin-bottom:14px}
+.bo-destinations{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.bo-destination{display:flex;align-items:center;gap:16px;min-width:0;border:1px solid #e3e7f0;border-radius:14px;padding:22px;background:#fff;text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.bo-destination:hover{border-color:#b8b1ed;box-shadow:0 4px 14px #30235c08}
+.bo-destination>div{min-width:0;flex:1}
+.bo-destination h3{font-size:14px;font-weight:600;line-height:1.5;margin:0;color:#27344b}
+.bo-destination p{font-size:12px;line-height:1.6;margin:4px 0 0;color:#748099}
+.bo-destination .bo-icon{background:#f5f6fb;color:#7b80a0;width:38px;height:38px;flex-basis:38px;font-size:21px;border-radius:10px}
+.bo-arrow{font-size:19px;color:#9096ad}
+@media(max-width:850px){.bo-website{align-items:flex-start;flex-direction:column;gap:22px}.bo-actions{width:100%;max-width:380px}.bo-destination{padding:20px;gap:12px}.bo-details,.bo-destinations{gap:16px}}
+@media(max-width:600px){.business-overview{padding:88px 18px 40px}.bo-intro{margin:12px 0 22px}.bo-description{font-size:14px}.bo-card{padding:22px}.bo-details,.bo-destinations{grid-template-columns:1fr}.bo-website-copy{gap:13px}.bo-management{margin-top:26px}.bo-actions{max-width:none}.bo-button{padding:11px 12px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.business-overview *{transition:none}}

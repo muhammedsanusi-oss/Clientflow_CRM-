@@ -32,7 +32,7 @@ export default async function ChangePasswordPage() {
   // Read the current session, including restricted activation state where this screen needs it.
   const session = await currentSession();
   if (!session) redirect("/login");
-  if (!session.restricted || !session.user.mustChangePassword) redirect(session.user.isDeveloper ? "/" : "/customers");
+  if (!session.restricted || !session.user.mustChangePassword) redirect(session.user.isDeveloper ? "/" : "/owner");
   return <main className="mx-auto max-w-md space-y-6 px-6 py-20">
     <h1 className="text-3xl font-semibold text-[#172b4d]">Choose your password</h1>
     <p className="text-sm text-slate-600">Replace your temporary password to open your business portal. Use at least 15 characters.</p>

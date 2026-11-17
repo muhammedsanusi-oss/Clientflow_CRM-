@@ -45,7 +45,8 @@ beforeAll(async () => {
   } });
   const editor = await domain.getWebsiteEditor(ownerId, businessId);
   const { PublishWebsite } = await import("../../packages/domain/src/website-editing");
-  await domain.publishWebsite(ownerId, businessId, PublishWebsite.strip().parse(editor));
+  const { id, demoSubscription, websitePlan, maxImages, imageCount, canChangeTemplate, canAddCustomSections, canSubmitFeatureRequests, featureRequestCount, featureRequestLimit, ...publication } = editor;
+  await domain.publishWebsite(ownerId, businessId, PublishWebsite.parse(publication));
 }, 30_000);
 afterAll(async () => { vi.useRealTimers(); await db?.prisma.$disconnect(); });
 
@@ -80,11 +81,11 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     expect((await domain.getDemoSubscription(ownerId, businessId))?.demoSubscription).toBeNull();
     for (const rows of await crmReads()) expect(rows).toHaveLength(1);
     expect(await domain.getPublicBookingOptions(businessId)).not.toBeNull();
-    expect(domain.ownerWorkspaceHref({ id: businessId })).toBe(`/calendar?businessId=${businessId}`);
+    expect(domain.ownerWorkspaceHref({ id: businessId })).toBe(`/owner?businessId=${businessId}`);
     expect((await domain.simulateSubscription(ownerId, action("ENROLL", -1))).status).toBe("PENDING");
     await expectBlocked();
     await expect(domain.getWebsiteEditor(ownerId, businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
-    expect(domain.ownerWorkspaceHref({ id: businessId, demoSubscription: { plan: "STANDARD", status: "PENDING", periodEnd: null } })).toBe(`/subscription?businessId=${businessId}`);
+    expect(domain.ownerWorkspaceHref({ id: businessId, demoSubscription: { plan: "STANDARD", status: "PENDING", periodEnd: null } })).toBe(`/owner?businessId=${businessId}`);
   });
   it("activates Standard editing and rejects direct CRM calls", async () => {
     const result = await route.POST(request(action("PAY_SUCCESS", 0)));
@@ -92,12 +93,12 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     expect((await result.json()).subscription).toMatchObject({ status: "ACTIVE", plan: "STANDARD", version: 1 });
     const editor = await domain.getWebsiteEditor(ownerId, businessId);
     expect(editor).toMatchObject({ id: businessId, maxImages: 20 });
-    expect(domain.ownerWorkspaceHref({ id: businessId, demoSubscription: editor.demoSubscription })).toBe(`/businesses/${businessId}/website`);
+    expect(domain.ownerWorkspaceHref({ id: businessId, demoSubscription: editor.demoSubscription })).toBe(`/owner?businessId=${businessId}`);
     await expectBlocked();
     const { OwnerWorkspace } = await import("../../apps/web/components/owner-workspace");
     const navigation = renderToStaticMarkup(createElement(OwnerWorkspace, { business: editor, children: "" }));
-    expect(navigation).toContain("Demo subscription");
-    expect(navigation).toContain("Edit Website");
+    expect(navigation).toContain("Back to dashboard");
+    expect(navigation).toContain(`/owner?businessId=${businessId}`);
     expect(navigation).not.toContain("Appointments");
     expect(navigation).not.toContain("Customers");
     const page = await import("../../apps/web/app/subscription/page");

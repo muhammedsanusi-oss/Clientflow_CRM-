@@ -16,7 +16,7 @@ on every branch, for every feature.
 
 ## Workspace homepage
 
-- The / homepage is role-aware: developers see the developer dashboard, business owners go to `/owner` and then the newest business workspace according to its demo subscription, and signed-out requests redirect to /login.
+- The / homepage is role-aware: developers see the developer dashboard, business owners go to their `/owner` dashboard, and signed-out requests redirect to /login.
 - The dashboard shows only businesses with a configured Clientflow website
   authorized by the current developer's access grants. Cards and totals exclude
   website-less businesses, including examples. Account activation is labeled
@@ -26,7 +26,10 @@ on every branch, for every feature.
   Set up portal with its private owner details prefilled for developer review.
   Business cards open /businesses/<id> for provisioning details. See
   [business creation](businesses/create-business.md).
-- `/owner` is the owner entry route. It selects the newest business with an active OWNER membership and opens its editor (Standard), calendar (CRM/Managed or legacy), or subscription recovery (inactive); if no business is linked, it shows an access-help message. Owners can navigate the workspace from the selected business's themed navigation.
+- `/owner` renders the owner dashboard for the selected business or newest active
+  OWNER membership. It remains available for inactive subscriptions, groups
+  permitted tools, and explains restricted access; missing membership shows an
+  access-help message. See [owner dashboard](businesses/owner-dashboard.md).
 - Local development exposes the owner website signup at `/signup`; it skips email verification for demos and creates an owner account, one business, billing details, and membership together. Other runtimes return 404 until production email verification is implemented. See [owner self-service signup](businesses/owner-self-service-signup.md).
 - Signup offers standard templates or a tailored website/CRM consultation with
   contact details and preferred callback time. Tailored requests create no
@@ -42,6 +45,10 @@ on every branch, for every feature.
   so its last button remains visible at desktop, mobile, and enlarged browser
   zoom sizes.
 - Development uses the standard Next.js bundler; business forms support Server Action POST submissions and client navigation.
+- The development server explicitly binds port 3000; a second start fails rather
+  than silently sharing compiled output from another port. Development output
+  lives in `.next-dev`, while production build/start use `.next`, so a production
+  build cannot overwrite a running development server's routes.
 
 ## Public business websites
 
@@ -56,7 +63,25 @@ on every branch, for every feature.
 
 ## Async honesty (UI standard)
 
-- The app-level route-loading UI displays an accessible "Loading page..." message and a page-shaped skeleton while a destination page resolves. Route-specific loading UIs remain in place for their routes; this fallback covers routes without a more specific loading UI.
+- The app-level route-loading UI uses the shared PageLoading component: a visible
+  status card, small animated indicator, and page-shaped skeleton while a
+  destination resolves. Existing route-specific boundaries use the same component
+  with a relevant label. Owner dashboard, subscription, public website, and public
+  booking routes also have explicit loading boundaries. Other routes inherit the
+  root fallback for developers, owners, and signed-out visitors.
+- Loading text has a polite status announcement. Decorative placeholders are
+  hidden from screen readers, and animations stop for reduced-motion preferences.
+  Loading disappears when the route resolves or its error boundary takes over.
+  Cached pages can appear immediately; no artificial delay, fake percentage,
+  focus trap, or full-screen blocking overlay is introduced.
+- Shared AppLink navigation uses Next Link's pending status to show a small,
+  nonblocking Loading page notice before destination content arrives. It clears
+  when that transition finishes; cached, hash-only, external, and new-tab links
+  retain Next Link's behavior. It does not report a guessed progress percentage.
+- Verify with `pnpm exec node tests/browser/page-loading.mjs` against the local
+  demo and an isolated browser on port 9391. The drill holds actual navigation
+  requests for owner, developer, and public links, checks status visibility,
+  mobile fit and reduced motion, then releases requests and checks cleanup.
 - The shared session-aware header resolves behind its own Suspense boundary so session lookup does not block the route-loading UI.
 - This page-loading indicator covers route loads and navigation, not in-place form submissions or save actions.
 - Every async region has three states: loading (skeleton), empty (with a
@@ -86,6 +111,9 @@ Every route handler and Server Action, in order:
 
 - The integration suite exercises one happy + one sad path per endpoint.
 - `curl` the health endpoint with the db up and down.
+- With `pnpm dev` running, a second `pnpm dev:web` fails with an occupied-port
+  error. Run `pnpm build` while development stays up, then verify `/login` and
+  test-account login still succeed on port 3000.
 
 ## Key decisions
 

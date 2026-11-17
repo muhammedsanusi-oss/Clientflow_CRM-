@@ -12,7 +12,7 @@
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../../components/app-link";
 /*
  * Import connection: react.
  * React provides browser component rendering and state/form hooks; database access remains in server/domain

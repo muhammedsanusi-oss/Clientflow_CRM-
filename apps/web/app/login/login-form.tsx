@@ -21,7 +21,7 @@ import { useState } from "react";
  * useRouter: Navigates or refreshes the browser after an API/action succeeds.
  */
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import Link from "../../components/app-link";
 
 // Type contract: AccountType. Describes values accepted/returned by the code below; TypeScript removes this
 // declaration from the runtime bundle.

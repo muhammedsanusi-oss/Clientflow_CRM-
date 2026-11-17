@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { redirect, notFound } from "next/navigation";
 import { currentUserId } from "../../../../packages/auth/src/index";
 import { getManagedService, listManagedServiceBusinesses } from "../../../../packages/domain/src/managed-service";

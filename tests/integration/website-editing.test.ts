@@ -109,23 +109,34 @@ describe.sequential("developer website editing", () => {
       ...await values(), name: "Updated salon", headline: "A new look for you", openingHours: "Monday to Saturday",
       email: "new-contact@public.test", offerings: ["Color consultations", "Personal styling"],
       aboutText: "A different story from the hero description.",
+      colors: { page: "#fff", button: "f80", buttonText: "#000" },
+      colorSwatches: ["f80", "#FF8800", "123456"],
+      richText: { description: { runs: [{ text: "An existing salon website", marks: { font: "Georgia", bold: true } }], borderColor: "f80" } },
+      sectionStyles: { hero: { background: "#E8F0FE", borderColor: "abc" } },
     });
     expect(result.publication?.version).toBe(1);
     expect(await domain.getPublicWebsite(siteId)).toMatchObject({
       name: "Updated salon", email: "new-contact@public.test", description: "An existing salon website",
-      websiteContent: { headline: "A new look for you", aboutText: "A different story from the hero description." },
+      websiteContent: { headline: "A new look for you", aboutText: "A different story from the hero description.", colors: { page: "#FFFFFF", button: "#FF8800", buttonText: "#000000" }, colorSwatches: ["#FF8800", "#123456"] },
     });
     expect(await domain.getOwnerWebsite(ids.owner, siteId)).toMatchObject({ websiteContent: { headline: "A new look for you", publishedAt: expect.any(Date) } });
     const revision = await db.prisma.businessWebsiteRevision.findUniqueOrThrow({ where: { businessId_version: { businessId: siteId, version: 1 } } });
     expect(revision.publishedById).toBe(ids.developer);
     expect(revision.before).toMatchObject({ name: siteId, headline: defaultWebsiteContent("SALON").headline });
     expect(revision.after).toMatchObject({ name: "Updated salon", headline: "A new look for you" });
+    expect(revision.before).toMatchObject({ colors: {}, colorSwatches: [] });
+    expect(revision.after).toMatchObject({ colors: { page: "#FFFFFF", button: "#FF8800" }, colorSwatches: ["#FF8800", "#123456"] });
+    expect(revision.before).toMatchObject({ richText: {}, sectionStyles: {} });
+    expect(revision.after).toMatchObject({ richText: { description: { runs: [{ marks: { font: "Georgia", bold: true } }] } }, sectionStyles: { hero: { background: "#E8F0FE" } } });
+    expect((await domain.getOwnerWebsite(ids.owner, siteId)).websiteContent).toMatchObject({ sectionStyles: { hero: { background: "#E8F0FE" } } });
+    expect((await domain.getPublicWebsite(siteId))?.websiteContent).toMatchObject({ sectionStyles: { hero: { borderColor: "#AABBCC" } }, richText: { description: { borderColor: "#FF8800" } } });
+    expect(revision.after).toMatchObject({ sectionStyles: { hero: { borderColor: "#AABBCC" } }, richText: { description: { borderColor: "#FF8800" } } });
     expect(await db.prisma.user.findUniqueOrThrow({ where: { id: ids.owner } })).toEqual(ownerBefore);
     expect(await domain.getPublicWebsite(otherId)).toEqual(otherBefore);
     const publicContent = (await domain.getPublicWebsite(siteId))!.websiteContent!;
     expect(Object.keys(publicContent).sort()).toEqual([
       "eyebrow", "headline", "sectionTitle", "buttonLabel", "features", "offerings",
-      "fontFamily", "textColor", "textScale", "sectionImages", "additionalSections", "aboutText", "logoImage", "heroImage",
+      "fontFamily", "textColor", "textScale", "colors", "colorSwatches", "richText", "sectionStyles", "sectionImages", "additionalSections", "aboutText", "logoImage", "heroImage",
     ].sort());
     expect(JSON.stringify(publicContent)).not.toContain(ids.developer);
   });
@@ -196,6 +207,12 @@ describe.sequential("developer website editing", () => {
       { ...input, headline: "x".repeat(201) }, { ...input, offerings: Array(7).fill("Too many") },
       { ...input, email: "invalid" }, { ...input, version: -1 }, { ...input, features: [""] },
       { ...input, fontFamily: "Comic Sans" }, { ...input, additionalSections: Array(7).fill({ heading: "Heading", body: "Text" }) },
+      { ...input, colors: { body: "#12ZZ99" } }, { ...input, colors: { author: "forged" } },
+      { ...input, colorSwatches: Array(13).fill("#123456") },
+      { ...input, richText: { headline: { runs: [{ text: "Forged text", marks: { html: "<script>" } }] } } },
+      { ...input, sectionStyles: { hero: { background: "red;display:none" } } },
+      { ...input, sectionStyles: { hero: { borderColor: "#INVALID" } } },
+      { ...input, richText: { description: { runs: [{ text: input.description, marks: {} }], borderColor: "red;display:none" } } },
       { ...input, sectionImages: { ...input.sectionImages, hero: Array(11).fill("site/website/hero-12345678-1234-1234-1234-123456789abc.png") } },
       { ...input, additionalSections: [{ heading: "Heading", body: "Text", images: Array(11).fill(imageReference("custom", 0)) }] },
     ]) expect((await action.publishWebsiteAction(siteId, invalid)).error?.code).toBe("VALIDATION");
@@ -214,7 +231,7 @@ describe.sequential("developer website editing", () => {
     await db.prisma.$executeRawUnsafe(`CREATE TRIGGER fail_history BEFORE INSERT ON "BusinessWebsiteRevision" FOR EACH ROW EXECUTE FUNCTION fail_website_history()`);
     try {
       session.userId = ids.developer;
-      const response = await action.publishWebsiteAction(siteId, { ...before, name: "Should roll back", headline: "Should not publish" });
+      const response = await action.publishWebsiteAction(siteId, { ...before, name: "Should roll back", headline: "Should not publish", colors: { body: "#123456" }, colorSwatches: ["#ABCDEF"] });
       expect(response.error).toEqual({ code: "INTERNAL_ERROR", message: "Something went wrong" });
       expect(await values()).toEqual(before);
       expect(await db.prisma.businessWebsiteRevision.count({ where: { businessId: siteId } })).toBe(2);
@@ -255,6 +272,8 @@ describe.sequential("developer website editing", () => {
       fontFamily: "SERIF",
       textColor: "OCEAN",
       textScale: "LARGE",
+      colors: { heading: "#123456", body: "#FFFFFF", page: "#FFFFFF" },
+      colorSwatches: ["#123456", "#FFFFFF"],
       sectionImages: {
         ...input.sectionImages,
         hero: Array.from({ length: 10 }, (_, index) => imageReference("hero", index)),
@@ -266,6 +285,7 @@ describe.sequential("developer website editing", () => {
       websiteTemplate: "SALON",
       websiteContent: {
         fontFamily: "SERIF", textColor: "OCEAN", textScale: "LARGE",
+        colors: { heading: "#123456", body: "#FFFFFF", page: "#FFFFFF" }, colorSwatches: ["#123456", "#FFFFFF"],
         sectionImages: { hero: Array.from({ length: 10 }, (_, index) => imageReference("hero", index)) },
         additionalSections: [{ heading: "Our story", body: "A new section added by the owner.", images: [imageReference("custom", 0)] }],
       },

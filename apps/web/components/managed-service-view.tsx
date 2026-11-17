@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "./app-link";
 import type { getManagedService } from "../../../packages/domain/src/managed-service";
 import { ManagedRequestControls, ManagedRequestForm } from "./managed-service-controls";
 

@@ -9,6 +9,7 @@
  * Type NextConfig: Type for Next.js configuration, erased during compilation.
  */
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 /*
  * Import connection: node:url.
  * Converts module file URLs into local paths so file lookup is relative to the module rather than the
@@ -16,7 +17,9 @@ import type { NextConfig } from "next";
  */
 import { fileURLToPath } from "node:url";
 
-const nextConfig: NextConfig = {
+const nextConfig = (phase: string): NextConfig => ({
+  // Production builds must not replace the running dev server's files.
+  distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
   // PGlite ships WASM; let Node load it directly instead of bundling.
   serverExternalPackages: ["@electric-sql/pglite", "pglite-prisma-adapter"],
   // The shared client is loaded by Node, so deployment tracing must retain
@@ -25,6 +28,6 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["../../packages/db/src/generated/prisma/**", "../../packages/db/prisma/migrations/*.sql"],
   },
-};
+});
 
 export default nextConfig;

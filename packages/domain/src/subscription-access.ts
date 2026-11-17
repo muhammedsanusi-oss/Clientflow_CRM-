@@ -28,7 +28,5 @@ export function crmEntitlementWhere(): Prisma.BusinessWhereInput {
 }
 
 export function ownerWorkspaceHref(business: { id: string; demoSubscription?: Subscription | null }) {
-  const id = encodeURIComponent(business.id);
-  if (!hasWebsiteAccess(business.demoSubscription)) return `/subscription?businessId=${id}`;
-  return hasCrmAccess(business.demoSubscription) ? `/calendar?businessId=${id}` : `/businesses/${id}/website`;
+  return `/owner?businessId=${encodeURIComponent(business.id)}`;
 }

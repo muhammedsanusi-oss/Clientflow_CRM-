@@ -13,7 +13,7 @@
  */
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
+import Link from "../components/app-link";
 /*
  * Import connection: ../../../packages/auth/src/index -> packages/auth/src/index.ts.
  * currentSession: Reads the opaque cookie, hashes its token, and loads its persisted session plus limited

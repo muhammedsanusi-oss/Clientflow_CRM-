@@ -1,3 +1,4 @@
+import Link from "../components/app-link";
 /*
  * Code guide: apps/web/app/page.tsx
  * Developer dashboard at /. Shows only website-backed businesses with a developer access grant. Developers can create a
@@ -67,7 +68,7 @@ export default async function Home() {
     <main className="fixed inset-0 overflow-y-auto bg-[#f5f7fb] text-slate-900">
       <div className="flex min-h-full">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white px-5 py-6 lg:flex">
-          <a href="/" className="flex items-center gap-3" aria-label="Clientflow home">
+          <Link href="/" className="flex items-center gap-3" aria-label="Clientflow home">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#172b4d] text-cyan-200">
               <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
                 <path d="M5 7.5 12 4l7 3.5v9L12 20l-7-3.5v-9Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
@@ -75,12 +76,12 @@ export default async function Home() {
               </svg>
             </span>
             <span className="text-lg font-semibold tracking-tight text-[#172b4d]">clientflow</span>
-          </a>
+          </Link>
 
           <p className="mb-3 mt-10 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             Workspace
           </p>
-          <a
+          <Link
             href="#overview"
             className="flex items-center gap-3 rounded-xl bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-700"
           >
@@ -88,8 +89,8 @@ export default async function Home() {
               <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
             </svg>
             Overview
-          </a>
-          <a
+          </Link>
+          <Link
             href="#businesses"
             className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
           >
@@ -97,7 +98,7 @@ export default async function Home() {
               <path d="M3.5 20h17M5 20V8l7-4 7 4v12M9 20v-6h6v6M8 9h.01M12 9h.01M16 9h.01" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Businesses
-          </a>
+          </Link>
 
           <div className="mt-auto rounded-2xl bg-[#172b4d] p-4 text-white">
             <p className="text-sm font-semibold">Keep connections moving</p>
@@ -109,7 +110,7 @@ export default async function Home() {
 
         <div className="min-w-0 flex-1">
           <header className="flex min-h-[120px] items-center justify-between border-b border-slate-200/80 bg-white pb-4 pl-5 pr-28 pt-12 sm:pl-8 lg:pl-10">
-            <a href="#overview" className="flex items-center gap-2 lg:hidden" aria-label="Clientflow home">
+            <Link href="#overview" className="flex items-center gap-2 lg:hidden" aria-label="Clientflow home">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#172b4d] text-cyan-200">
                 <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
                   <path d="M5 7.5 12 4l7 3.5v9L12 20l-7-3.5v-9Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
@@ -117,7 +118,7 @@ export default async function Home() {
                 </svg>
               </span>
               <span className="font-semibold tracking-tight text-[#172b4d]">clientflow</span>
-            </a>
+            </Link>
             <p className="hidden text-sm text-slate-500 lg:block">Developer overview</p>
             <div className="flex items-center gap-3">
               <DeveloperNotificationBell developerId={userId} />
@@ -186,7 +187,7 @@ export default async function Home() {
                     Your businesses
                   </h2>
                 </div>
-                <div className="flex flex-wrap items-center gap-3"><a href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Set up client portal</a><span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+                <div className="flex flex-wrap items-center gap-3"><Link href="/businesses/new" className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Set up client portal</Link><span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
                   {businesses.length} total
                 </span></div>
               </div>
@@ -203,7 +204,7 @@ export default async function Home() {
                           {business.name.slice(0, 2).toUpperCase()}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-semibold text-slate-900"><a href={`/businesses/${encodeURIComponent(business.id)}`} className="hover:underline">{business.name}</a></h3>
+                          <h3 className="truncate font-semibold text-slate-900"><Link href={`/businesses/${encodeURIComponent(business.id)}`} className="hover:underline">{business.name}</Link></h3>
                           <p className="mt-1 text-xs text-slate-500">
                             {businessTypes[business.business_type] ?? "Business"}
                           </p>
@@ -216,7 +217,7 @@ export default async function Home() {
                         <p>Owner access: {!business.employees[0] ? "Not assigned" : !business.employees[0].user.mustChangePassword ? "Active" : business.employees[0].user.temporaryExpiresAt && business.employees[0].user.temporaryExpiresAt <= new Date() ? "Password setup expired" : "Pending password setup"}</p>
                         {business.demoSubscription && <p>Demo subscription: {DEMO_PLANS[business.demoSubscription.plan].label} · ${DEMO_PLANS[business.demoSubscription.plan].cents / 100}/month · {business.demoSubscription.status === "ACTIVE" && !hasWebsiteAccess(business.demoSubscription) ? "EXPIRED" : business.demoSubscription.status.replaceAll("_", " ")}</p>}
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><a href={`/businesses/${business.id}/managed-service`} className="underline">Managed content changes</a><a href={`/businesses/${business.id}`} className="underline">Business details</a>{business.websiteTemplate && <><a href={`/businesses/${business.id}/website`} className="underline">Edit website</a><a href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</a></>}</div>
+                      <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-indigo-700"><Link href={`/businesses/${business.id}/managed-service`} className="underline">Managed content changes</Link><Link href={`/businesses/${business.id}`} className="underline">Business details</Link>{business.websiteTemplate && <><Link href={`/businesses/${business.id}/website`} className="underline">Edit website</Link><Link href={`/sites/${business.id}`} target="_blank" rel="noreferrer" className="underline">Open website</Link></>}</div>
                     </article>
                   ))}
                 </div>
@@ -231,7 +232,7 @@ export default async function Home() {
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
                     No businesses with a Clientflow website are connected to your account yet. Set up a client portal with a website to get started.
                   </p>
-                  <a href="/businesses/new" className="mt-5 inline-block rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Set up client portal</a>
+                  <Link href="/businesses/new" className="mt-5 inline-block rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white">Set up client portal</Link>
                 </div>
               )}
             </section>

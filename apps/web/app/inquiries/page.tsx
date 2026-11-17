@@ -31,7 +31,7 @@ import { notFound, redirect } from "next/navigation";
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { OwnerWorkspace } from "../../components/owner-workspace";
 // Request-time rendering: the page/API is resolved for this request instead of serving one static response
 // for every user.
@@ -48,9 +48,9 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
   if (businessId !== undefined && typeof businessId !== "string") notFound();
   const result = await listOwnerInquiries(userId, businessId).catch(() => null);
   if (!result) notFound();
-  return <OwnerWorkspace business={result.business}>
+  return <OwnerWorkspace business={result.business} active="inquiries">
     <main className="mx-auto max-w-4xl space-y-7 px-5 py-12">
-    <Link href={`/customers?businessId=${encodeURIComponent(result.business.id)}`} className="text-sm text-indigo-700 underline">Back to business portal</Link>
+    <Link href={`/owner?businessId=${encodeURIComponent(result.business.id)}`} className="text-sm text-indigo-700 underline">Back to owner dashboard</Link>
     <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm text-slate-500">{result.business.name}</p><h1 className="mt-2 text-3xl font-semibold">Website inquiries</h1><p className="mt-2 text-sm text-slate-600">Messages from the contact form on your website.</p></div>
       {result.business.websiteTemplate && <Link href={`/sites/${result.business.id}`} target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300 px-4 py-2 text-sm text-indigo-700">Open website ↗</Link>}
     </header>

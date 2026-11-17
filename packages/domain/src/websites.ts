@@ -74,6 +74,8 @@ export const publicWebsiteSelection = {
   websiteContent: { select: {
     eyebrow: true, headline: true, sectionTitle: true, buttonLabel: true,
     features: true, offerings: true, fontFamily: true, textColor: true, textScale: true,
+    colors: true, colorSwatches: true,
+    richText: true, sectionStyles: true,
     sectionImages: true, additionalSections: true, aboutText: true, logoImage: true, heroImage: true,
   } },
 } satisfies Prisma.BusinessSelect;
@@ -123,6 +125,10 @@ type StoredWebsiteContent = {
   fontFamily: string;
   textColor: string;
   textScale: string;
+  colors: unknown;
+  richText: unknown;
+  sectionStyles: unknown;
+  colorSwatches: string[];
   sectionImages: unknown;
   additionalSections: unknown;
   aboutText: string;
@@ -141,6 +147,10 @@ function parseStoredWebsiteContent(content: StoredWebsiteContent): WebsiteConten
     fontFamily: content.fontFamily,
     textColor: content.textColor,
     textScale: content.textScale,
+    colors: content.colors,
+    richText: content.richText,
+    sectionStyles: content.sectionStyles,
+    colorSwatches: content.colorSwatches,
     sectionImages: content.sectionImages,
     additionalSections: content.additionalSections,
     aboutText: content.aboutText,
@@ -351,9 +361,9 @@ export async function publishWebsite(userId: string, businessId: string, input: 
       throw new DomainError("FORBIDDEN", "Only developers can change the website template.");
     }
     const { version, eyebrow, headline, sectionTitle, buttonLabel, features, offerings, aboutText,
-      fontFamily, textColor, textScale, sectionImages, additionalSections, logoImage, heroImage, ...businessFields } = values;
+      fontFamily, textColor, textScale, colors, colorSwatches, richText, sectionStyles, sectionImages, additionalSections, logoImage, heroImage, ...businessFields } = values;
     const content = { eyebrow, headline, sectionTitle, buttonLabel, features, offerings, aboutText,
-      fontFamily, textColor, textScale, sectionImages, additionalSections,
+      fontFamily, textColor, textScale, colors, colorSwatches, richText, sectionStyles, sectionImages, additionalSections,
       logoImage: logoImage || null, heroImage: heroImage || null };
     if (site.websitePlan) {
       const plan = WEBSITE_PLANS[site.websitePlan];
@@ -382,6 +392,8 @@ export async function publishWebsite(userId: string, businessId: string, input: 
       sectionTitle: beforeContent.sectionTitle, buttonLabel: beforeContent.buttonLabel,
       features: beforeContent.features, offerings: beforeContent.offerings,
       fontFamily: beforeContent.fontFamily, textColor: beforeContent.textColor, textScale: beforeContent.textScale,
+      colors: beforeContent.colors, colorSwatches: beforeContent.colorSwatches,
+      richText: beforeContent.richText, sectionStyles: beforeContent.sectionStyles,
       additionalSections: beforeContent.additionalSections,
       aboutText: beforeContent.aboutText,
       logoImage: beforeContent.logoImage, heroImage: beforeContent.heroImage,

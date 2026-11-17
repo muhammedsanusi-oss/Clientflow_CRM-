@@ -5,7 +5,7 @@ import {
   listExternalMonitorStates,
 } from "@project/domain";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { MarkNotificationRead } from "./read-controls";
 
 export const dynamic = "force-dynamic";

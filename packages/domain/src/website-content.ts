@@ -5,6 +5,8 @@
  */
 // Shared presentation types and defaults; safe to import into client previews.
 import { z } from "zod";
+import { WebsiteColorsSchema, WebsiteColorSwatchesSchema } from "./website-colors";
+import { WebsiteRichTextSchema, WebsiteSectionStylesSchema } from "./website-rich-text";
 /*
  * Import connection: ./website-templates -> packages/domain/src/website-templates.ts.
  * WEBSITE_TEMPLATES: Catalogue of standard layouts, display copy, fictional sample contact details, and
@@ -46,6 +48,10 @@ export const WebsiteContentSchema = z.object({
   fontFamily: z.enum(WEBSITE_FONT_FAMILIES),
   textColor: z.enum(WEBSITE_TEXT_COLORS),
   textScale: z.enum(WEBSITE_TEXT_SCALES),
+  colors: WebsiteColorsSchema,
+  colorSwatches: WebsiteColorSwatchesSchema,
+  richText: WebsiteRichTextSchema,
+  sectionStyles: WebsiteSectionStylesSchema,
   sectionImages: WebsiteSectionImagesSchema.default(defaultWebsiteSectionImages),
   additionalSections: z.array(websiteTextSection).max(6),
   aboutText: z.string().trim().max(1000),
@@ -65,6 +71,7 @@ export function defaultWebsiteContent(template: WebsiteTemplateKey, aboutText = 
     buttonLabel: template === "CONTACT" ? "Start a conversation" : "Say hello",
     features: [...defaults.features], offerings: [...defaults.offerings],
     fontFamily: "SANS", textColor: "INK", textScale: "STANDARD",
+    colors: {}, colorSwatches: [], richText: {}, sectionStyles: {},
     sectionImages: defaultWebsiteSectionImages(),
     additionalSections: [], aboutText, logoImage: null, heroImage: null,
   };

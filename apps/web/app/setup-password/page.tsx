@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { OwnerSetupForm } from "./setup-form";
 
 export const metadata: Metadata = { title: "Set up your portal password", referrer: "no-referrer", robots: { index: false, follow: false } };

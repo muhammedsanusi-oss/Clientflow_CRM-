@@ -1,7 +1,7 @@
 import { currentUserId } from "@project/auth";
 import { getOwnerBookingSettings } from "@project/domain";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
+import Link from "../../../components/app-link";
 import { OwnerWorkspace } from "../../../components/owner-workspace";
 import { saveServiceAction, setServiceActiveAction } from "./actions";
 

@@ -185,7 +185,7 @@ describe.sequential("developer provisioning and owner authentication", () => {
     const home = await import("../../apps/web/app/page");
     await expect(home.default()).rejects.toThrow("REDIRECT:/owner");
     const ownerDashboard = await import("../../apps/web/app/owner/page");
-    await expect(ownerDashboard.default()).rejects.toThrow(`REDIRECT:/calendar?businessId=${newestBusiness.id}`);
+    expect(await ownerDashboard.default({ searchParams: Promise.resolve({}) })).toMatchObject({ props: { business: { id: newestBusiness.id } } });
     const loginPage = await import("../../apps/web/app/login/page");
     await expect(loginPage.default()).rejects.toThrow("REDIRECT:/owner");
     await expect(domain.getProvisionedBusiness(ownerId!,receipt.business.id)).rejects.toMatchObject({ code: "NOT_FOUND" });

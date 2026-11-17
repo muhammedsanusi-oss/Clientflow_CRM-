@@ -1,7 +1,7 @@
 import { getPublicBookingOptions } from "@project/domain";
 import { notFound } from "next/navigation";
 import { PublicBookingForm } from "../../../components/business-sites/public-booking-form";
-import Link from "next/link";
+import Link from "../../../components/app-link";
 
 export const dynamic = "force-dynamic";
 
