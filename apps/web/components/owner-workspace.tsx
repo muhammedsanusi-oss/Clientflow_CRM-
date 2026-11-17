@@ -1,7 +1,7 @@
-import Link from "next/link";
+import Link from "./app-link";
 import type { WebsiteTemplateKey } from "../../../packages/domain/src/website-templates";
 import "./owner-workspace.css";
-import { hasCrmAccess, hasWebsiteAccess, type DemoPlan } from "../../../packages/domain/src/subscription-access";
+import { ownerWorkspaceHref, type DemoPlan } from "../../../packages/domain/src/subscription-access";
 
 type OwnerWorkspaceBusiness = {
   id: string;
@@ -10,14 +10,7 @@ type OwnerWorkspaceBusiness = {
   demoSubscription?: { plan: DemoPlan; status: string; periodEnd: Date | null } | null;
 };
 
-const workspaceLinks = [
-  { key: "appointments", label: "Appointments", href: (id: string) => `/calendar?businessId=${encodeURIComponent(id)}` },
-  { key: "customers", label: "Customers", href: (id: string) => `/customers?businessId=${encodeURIComponent(id)}` },
-  { key: "edit", label: "Edit Website", href: (id: string) => `/businesses/${encodeURIComponent(id)}/website`, configured: true },
-  { key: "preview", label: "Preview Website", href: (id: string) => `/website?businessId=${encodeURIComponent(id)}`, configured: true },
-  { key: "subscription", label: "Demo subscription", href: (id: string) => `/subscription?businessId=${encodeURIComponent(id)}` },
-  { key: "managed", label: "Managed service", href: (id: string) => `/managed-service?businessId=${encodeURIComponent(id)}` },
-] as const;
+const workspaceLabels = { home: "Business dashboard", appointments: "Appointments", customers: "Customers", edit: "Edit website", preview: "Website preview", subscription: "Demo subscription", managed: "Managed service", inquiries: "Website inquiries", notes: "Customer notes" } as const;
 
 export function OwnerWorkspace({
   business,
@@ -26,32 +19,19 @@ export function OwnerWorkspace({
   children,
 }: {
   business: OwnerWorkspaceBusiness;
-  active?: (typeof workspaceLinks)[number]["key"];
+  active?: keyof typeof workspaceLabels;
   description?: string;
   children: React.ReactNode;
 }) {
-  const links = workspaceLinks.filter(link => (!("configured" in link) || business.websiteTemplate)
-    && (!(link.key === "customers" || link.key === "appointments") || hasCrmAccess(business.demoSubscription))
-    && (link.key !== "edit" || hasWebsiteAccess(business.demoSubscription))
-    && (link.key !== "managed" || (business.demoSubscription?.plan === "MANAGED" && hasWebsiteAccess(business.demoSubscription))));
   return (
     <div className="owner-workspace" data-theme={business.websiteTemplate ?? "NEUTRAL"}>
       <header className="owner-workspace-header">
         <div>
           <p className="owner-workspace-business">{business.name}</p>
-          {description ? <p className="owner-workspace-description">{description}</p> : null}
+          <p className="owner-workspace-description">{description ?? (active ? workspaceLabels[active] : "Business workspace")}</p>
         </div>
         <nav className="owner-workspace-nav" aria-label={`${business.name} workspace`}>
-          {links.map((link) => (
-            <Link
-              key={link.key}
-              href={link.href(business.id)}
-              aria-current={active === link.key ? "page" : undefined}
-              className="owner-workspace-nav-link"
-            >
-              {link.label}
-            </Link>
-          ))}
+          <Link href={ownerWorkspaceHref(business)} aria-current={active === "home" ? "page" : undefined} className="owner-workspace-nav-link">{active === "home" ? "Dashboard" : "Back to dashboard"}</Link>
         </nav>
       </header>
       {children}

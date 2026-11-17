@@ -4,7 +4,7 @@ import {
   listBusinessNotesForUser,
 } from "@project/domain";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { OwnerWorkspace } from "../../components/owner-workspace";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ export default async function BusinessNotesPage({
   const page = (
     <main className="mx-auto max-w-4xl space-y-8 px-5 py-10">
       <header className="space-y-3">
-        <Link href={`/calendar?businessId=${encodeURIComponent(business.id)}`} className="text-sm text-blue-700 underline">
+        <Link href={`/owner?businessId=${encodeURIComponent(business.id)}`} className="text-sm text-blue-700 underline">
           Business dashboard
         </Link>
         <h1 className="text-2xl font-bold">{business.name} notes</h1>
@@ -99,5 +99,5 @@ export default async function BusinessNotesPage({
       </section>
     </main>
   );
-  return <OwnerWorkspace business={business}>{page}</OwnerWorkspace>;
+  return <OwnerWorkspace business={business} active="notes">{page}</OwnerWorkspace>;
 }

@@ -1,6 +1,6 @@
 import { isLocalOwnerSignupEnabled } from "../../../../packages/domain/src/index";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { SignupChoice } from "./signup-choice";
 
 export const dynamic = "force-dynamic";

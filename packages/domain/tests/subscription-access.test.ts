@@ -46,19 +46,19 @@ describe("subscription access", () => {
 
 describe("owner workspace destination", () => {
   it.each([
-    ["STANDARD", "ACTIVE", future, "/businesses/business%2Fone/website"],
-    ["CRM", "ACTIVE", future, "/calendar?businessId=business%2Fone"],
-    ["MANAGED", "ACTIVE", future, "/calendar?businessId=business%2Fone"],
-    ["STANDARD", "PENDING", null, "/subscription?businessId=business%2Fone"],
-    ["MANAGED", "CANCELED", future, "/subscription?businessId=business%2Fone"],
-    ["CRM", "ACTIVE", now, "/subscription?businessId=business%2Fone"],
-  ] as const)("routes %s / %s by actual access", (plan, status, periodEnd, expected) => {
+    ["STANDARD", "ACTIVE", future, "/owner?businessId=business%2Fone"],
+    ["CRM", "ACTIVE", future, "/owner?businessId=business%2Fone"],
+    ["MANAGED", "ACTIVE", future, "/owner?businessId=business%2Fone"],
+    ["STANDARD", "PENDING", null, "/owner?businessId=business%2Fone"],
+    ["MANAGED", "CANCELED", future, "/owner?businessId=business%2Fone"],
+    ["CRM", "ACTIVE", now, "/owner?businessId=business%2Fone"],
+  ] as const)("keeps %s / %s on the owner dashboard", (plan, status, periodEnd, expected) => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(now);
     expect(ownerWorkspaceHref({ id: "business/one", demoSubscription: { plan, status, periodEnd } })).toBe(expected);
   });
 
-  it("keeps the legacy calendar destination and safely encodes the business ID", () => {
-    expect(ownerWorkspaceHref({ id: "business & other" })).toBe("/calendar?businessId=business%20%26%20other");
+  it("keeps the legacy dashboard destination and safely encodes the business ID", () => {
+    expect(ownerWorkspaceHref({ id: "business & other" })).toBe("/owner?businessId=business%20%26%20other");
   });
 });

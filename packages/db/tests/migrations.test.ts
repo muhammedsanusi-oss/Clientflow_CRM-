@@ -23,7 +23,7 @@ import { PGlite } from "@electric-sql/pglite";
  * Promise-based local filesystem access, primarily reading migration files or a local compiled action
  * manifest in these modules.
  */
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 /*
  * Import connection: node:child_process.
  * Runs a local child command; migration tests use the Prisma CLI to compare generated schema SQL.
@@ -50,6 +50,8 @@ import { applyMigrations } from "../src/apply-migrations";
 
 const require = createRequire(import.meta.url);
 const migration = (name: string) => readFile(new URL(`../prisma/migrations/${name}`, import.meta.url), "utf8");
+const migrationLedger = async () => (await readdir(new URL("../prisma/migrations/", import.meta.url)))
+  .filter(name => name.endsWith(".sql")).sort().map(name => ({ name }));
 const catalog = async (db: PGlite) => ({
   enums: (await db.query(`SELECT t.typname, e.enumlabel, e.enumsortorder FROM pg_enum e
     JOIN pg_type t ON t.oid = e.enumtypid JOIN pg_namespace n ON n.oid = t.typnamespace
@@ -151,7 +153,7 @@ describe("SQL migration contract", () => {
       await db.exec("DROP TRIGGER reject_migration ON _migrations; DROP FUNCTION reject_migration_entry();");
       await applyMigrations(db);
       await applyMigrations(db);
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toEqual(await migrationLedger());
     } finally { await db.close(); }
   }, 30_000);
 
@@ -251,6 +253,13 @@ describe("SQL migration contract", () => {
         },
       }]);
       expect((await db.query('SELECT * FROM "BusinessWebsiteRevision"')).rows).toEqual([]);
+      const beforeColors = (await db.query('SELECT * FROM "BusinessWebsiteContent"')).rows;
+      await db.exec(await migration("0019_website_colors.sql"));
+      await db.exec(await migration("0020_website_color_swatches_array.sql"));
+      await db.exec(await migration("0021_inline_website_editing.sql"));
+      const afterColors = (await db.query('SELECT * FROM "BusinessWebsiteContent"')).rows;
+      expect(afterColors).toEqual(beforeColors.map(row => ({ ...row as object, colors: {}, colorSwatches: [], richText: {}, sectionStyles: {} })));
+      expect((await db.query('SELECT * FROM "BusinessWebsiteRevision"')).rows).toEqual([]);
     } finally { await db.close(); }
   }, 30000);
 
@@ -265,7 +274,7 @@ describe("SQL migration contract", () => {
         { encoding: "utf8", env: { ...process.env, DATABASE_URL: "postgresql://unused:unused@localhost:5433/unused" } });
       await expected.exec(sql);
       expect(await catalog(migrated)).toEqual(await catalog(expected));
-      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
+      expect((await migrated.query("SELECT name FROM _migrations ORDER BY name")).rows).toEqual(await migrationLedger());
     } finally {
       await migrated.close();
       await expected.close();
@@ -333,7 +342,7 @@ describe("SQL migration contract", () => {
       await applyMigrations(db);
       expect((await db.query(`SELECT column_default FROM information_schema.columns
         WHERE table_name = 'Note' AND column_name = 'updated_at'`)).rows).toEqual([{ column_default: null }]);
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toEqual(await migrationLedger());
     } finally { await db.close(); }
   }, 30000);
 
@@ -350,7 +359,7 @@ describe("SQL migration contract", () => {
 
       await applyMigrations(db);
 
-      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toHaveLength(18);
+      expect((await db.query("SELECT name FROM _migrations ORDER BY name")).rows).toEqual(await migrationLedger());
       expect((await db.query(`SELECT udt_name FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = 'Employee' AND column_name = 'role_id'`)).rows)
         .toEqual([{ udt_name: "EmployeeRole" }]);

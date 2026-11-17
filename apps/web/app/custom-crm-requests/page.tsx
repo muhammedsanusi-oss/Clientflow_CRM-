@@ -1,7 +1,7 @@
 import { currentUserId } from "@project/auth";
 import { getUser, listCustomCrmRequests } from "@project/domain";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
+import Link from "../../components/app-link";
 
 export const dynamic = "force-dynamic";
 

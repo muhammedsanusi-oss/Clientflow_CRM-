@@ -65,7 +65,13 @@ See the [template specification](docs/specs/businesses/website-templates.md) and
 
 ### Customize an owner's website
 
-Choose **Edit website** on a configured business in the developer dashboard or business details. Developers can update its template; owners and developers see the rendered site while editing and click a section to change its text or upload up to 10 images there. Hero and about text are independent. A design panel controls safe site-wide font/color/size choices. Changes appear in the preview immediately; **Save and publish** updates the live site and records a revision. A stale editor cannot overwrite a newer publication.
+In **Edit website**, hover over a section and choose **Click to edit**. Owners
+and authorized developers type directly on the website and format selected words
+with the contextual font toolbar. **Text color**, **Highlight**, and
+**Section background** open a floating wheel/HEX picker with reusable swatches.
+Changes appear live; **Save and publish** applies them to the public website.
+
+Choose **Edit website** on a configured business in the developer dashboard or business details. Developers can update its template; owners and developers use the same visual editor. Expand **Section options & images** on the selected section to manage images and section-specific options. Hero and about text are independent. Publication records a revision; a stale editor cannot overwrite a newer publication.
 
 Owners select **Website** in their business portal to view the published result, edit the site, and open the public site. Removing text sections or image references requires confirmation. Image files remain stored when their website references are removed. See the [website editing specification](docs/specs/businesses/website-editing.md).
 

@@ -22,7 +22,7 @@ import { useActionState, useRef, useState } from "react";
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../../components/app-link";
 /*
  * Import connection: ./actions -> apps/web/app/businesses/new/actions.ts.
  * addBusinessAction: Authenticates the developer, parses the business/owner/template form, calls

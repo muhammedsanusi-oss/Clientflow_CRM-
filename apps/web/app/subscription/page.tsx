@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "../../components/app-link";
 import { redirect, notFound } from "next/navigation";
 import { currentUserId } from "../../../../packages/auth/src/index";
 import { getDemoSubscription, listSubscriptionBusinesses } from "../../../../packages/domain/src/demo-subscriptions";
@@ -28,6 +28,9 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   if (selectedId && !business) notFound();
   const subscription = business?.demoSubscription;
   const active = hasWebsiteAccess(subscription);
+  const workspaceLink = user?.isDeveloper
+    ? { href: business ? `/businesses/${encodeURIComponent(business.id)}` : "/", label: business ? "Back to business details" : "Back to developer dashboard" }
+    : { href: business ? ownerWorkspaceHref(business) : "/owner", label: "Back to owner dashboard" };
   const managed = business ? await getManagedService(userId, business.id) : null;
   return <main className="mx-auto max-w-4xl space-y-6 px-5 py-16">
     <h1 className="text-3xl font-bold text-[#172b4d]">Demo subscription</h1>
@@ -43,7 +46,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         {subscription?.periodEnd && <p>Paid through (simulated): <time dateTime={subscription.periodEnd.toISOString()}>{subscription.periodEnd.toISOString()}</time></p>}
         {user?.isDeveloper && business.websiteTemplate
           ? <Link href={`/businesses/${encodeURIComponent(business.id)}/website`} className="inline-flex rounded-xl border border-indigo-300 px-4 py-2 font-semibold text-indigo-700">Open website editor</Link>
-          : active && <Link href={ownerWorkspaceHref(business)} className="inline-flex rounded-xl border border-indigo-300 px-4 py-2 font-semibold text-indigo-700">Open owner workspace</Link>}
+          : <Link href={ownerWorkspaceHref(business)} className="inline-flex rounded-xl border border-indigo-300 px-4 py-2 font-semibold text-indigo-700">Open owner dashboard</Link>}
         <DemoControls key={`${business.id}:${subscription?.version ?? -1}`} businessId={business.id} version={subscription?.version ?? -1} currentPlan={subscription?.plan ?? "STANDARD"} />
         {managed && (subscription?.plan === "MANAGED" || managed.requests.length > 0) && <aside className="space-y-2 rounded-xl bg-indigo-50 p-4">
           <h3 className="font-semibold">Managed content changes</h3>
@@ -64,6 +67,6 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         </li>)}</ol>
       </section>
     </>}
-    <Link href="/owner" className="inline-flex rounded-xl border border-slate-300 px-4 py-2">Back to workspace</Link>
+    <Link href={workspaceLink.href} className="inline-flex rounded-xl border border-slate-300 px-4 py-2">{workspaceLink.label}</Link>
   </main>;
 }

@@ -9,6 +9,8 @@
  * Zod builds runtime validation schemas and infers TypeScript input types; it does not connect to storage.
  */
 import { z } from "zod";
+import { WebsiteColorsSchema, WebsiteColorSwatchesSchema } from "./website-colors";
+import { WebsiteRichTextSchema, WebsiteSectionStylesSchema, richTextValue, textLimit } from "./website-rich-text";
 /*
  * Import connection: ./website-templates -> packages/domain/src/website-templates.ts.
  * WEBSITE_TEMPLATE_KEYS: Allowlist of the four accepted website template keys.
@@ -38,12 +40,29 @@ export const PublishWebsite = z.object({
   fontFamily: z.enum(WEBSITE_FONT_FAMILIES),
   textColor: z.enum(WEBSITE_TEXT_COLORS),
   textScale: z.enum(WEBSITE_TEXT_SCALES),
+  colors: WebsiteColorsSchema,
+  colorSwatches: WebsiteColorSwatchesSchema,
+  richText: WebsiteRichTextSchema,
+  sectionStyles: WebsiteSectionStylesSchema,
   sectionImages: WebsiteSectionImagesSchema,
   additionalSections: z.array(section).max(6),
   aboutText: z.string().trim().max(1000),
   logoImage: z.string().max(300),
   heroImage: z.string().max(300),
-}).strict();
+}).strict().superRefine((values, ctx) => {
+  if (new TextEncoder().encode(JSON.stringify(values)).length > 128 * 1024) ctx.addIssue({ code: "custom", message: "Website content exceeds 128 KiB." });
+  for (const [field, document] of Object.entries(values.richText)) {
+    const text = richTextValue(document);
+    if (text.length > textLimit(field)) ctx.addIssue({ code: "custom", path: ["richText", field], message: "Text is too long." });
+    const custom = /^custom-([0-5])-(heading|body)$/.exec(field);
+    const feature = /^feature-([0-2])$/.exec(field), offering = /^offering-([0-5])$/.exec(field);
+    const expected = custom ? values.additionalSections[Number(custom[1])]?.[custom[2] as "heading" | "body"]
+      : feature ? values.features[Number(feature[1])] : offering ? values.offerings[Number(offering[1])]
+      : field in values && typeof values[field as keyof typeof values] === "string" ? values[field as keyof typeof values] as string : undefined;
+    if (expected !== undefined && (field === "email" ? text.trim().toLowerCase() : text.trim()) !== expected.trim()) ctx.addIssue({ code: "custom", path: ["richText", field], message: "Text formatting must match the edited text." });
+    if ((custom || feature || offering) && expected === undefined) ctx.addIssue({ code: "custom", path: ["richText", field], message: "Text section no longer exists." });
+  }
+});
 // Type contract: PublishWebsiteInput. Describes values accepted/returned by the code below; TypeScript
 // removes this declaration from the runtime bundle.
 export type PublishWebsiteInput = z.infer<typeof PublishWebsite>;

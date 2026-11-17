@@ -30,6 +30,9 @@ access to the website editor and CRM.
 
 ## Behavior
 
+- Subscription return navigation keeps the selected business. All owner plans,
+  including inactive plans, return to `/owner?businessId=...`. Developers return
+  to business details without entering the owner role.
 - All billing screens state Demo: no real charges. No card numbers, bank
   details, payment credentials, or payment-provider account are requested.
 - The offerings are Standard website ($39/month), Website + standard CRM
@@ -78,9 +81,9 @@ access to the website editor and CRM.
 - Previously published public website content remains readable when a demo
   subscription is inactive. Cancellation does not erase or silently unpublish
   content. Developer provisioning/editor access retains its explicit grants.
-- Standard owners enter their website workspace, CRM/Managed owners enter the
-  calendar, and pending/inactive owners enter subscription checkout. Owners
-  always retain access to subscription management to recover their service.
+- Owners enter their business dashboard for every plan and subscription state.
+  The dashboard groups existing tools and explains unavailable features; owners
+  retain subscription management to recover service. See `owner-dashboard.md`.
 - Prices, currency (USD), dates, and access come from the server. An action
   accepts only the business, allowed scenario/plan, and expected subscription
   version. Stale or competing actions return 409 without duplicate history.
@@ -103,6 +106,12 @@ access to the website editor and CRM.
 | Two actions submit the same version | One succeeds; the other returns 409 without a second transition |
 
 ## Verify
+
+- `tests/integration/subscription-navigation.test.ts` covers selected-business,
+  role-aware, and inactive workspace destinations. With a local isolated browser
+  on port 9391, `pnpm exec node tests/browser/subscription-navigation.mjs` checks
+  the actual return-button click for the developer and owner fixtures using their
+  current demo subscription state, without changing that state.
 
 - Run `pnpm --dir packages/domain test` for isolated access, exact-expiry,
   owner-destination, month-end renewal, and strict billing-input rules.

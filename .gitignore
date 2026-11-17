@@ -2,6 +2,7 @@ node_modules/
 # pnpm may create a local dependency cache; it is never application source.
 .pnpm-store/
 .next/
+.next-dev/
 .pglite/
 .env*
 !.env.example

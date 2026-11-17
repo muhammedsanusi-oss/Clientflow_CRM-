@@ -18,7 +18,7 @@ import { redirect, notFound } from "next/navigation";
    * data.
    * Link: Client-side application navigation component; the destination still performs its own access checks.
    */
-  import Link from "next/link";
+  import Link from "../../components/app-link";
   /*
    * Import connection: @project/auth -> packages/auth/src/index.ts.
    * currentUserId: Resolves the current database session and returns its user ID only for a regular,
@@ -75,7 +75,7 @@ import { redirect, notFound } from "next/navigation";
       <main className="mx-auto max-w-5xl space-y-8 px-5 py-10">
         <header className="space-y-2">
           <Link
-            href="/"
+            href={`/owner?businessId=${encodeURIComponent(business.id)}`}
             className="inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
           >
             ← Dashboard
@@ -95,7 +95,7 @@ import { redirect, notFound } from "next/navigation";
             Add customer
           </Link>
           <Link
-            href="/calendar"
+            href={`/calendar?businessId=${encodeURIComponent(business.id)}`}
             className="ml-4 text-sm text-blue-600 underline underline-offset-2"
           >
             Calendar

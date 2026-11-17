@@ -31,7 +31,7 @@ import { redirect, notFound } from "next/navigation";
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../../components/app-link";
 /*
  * Import connection: ./business-form -> apps/web/app/businesses/new/business-form.tsx.
  * BusinessForm: Helper/value provided by the connected module; its use in this file is shown below. Defined

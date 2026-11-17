@@ -11,7 +11,7 @@
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../../components/app-link";
 import { useEffect, useState } from "react";
 /*
  * Import connection: ./actions -> apps/web/app/businesses/new/actions.ts.

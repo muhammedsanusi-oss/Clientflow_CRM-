@@ -30,7 +30,7 @@ import { getCustomerWithNotesForUser } from "@project/domain";
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../../components/app-link";
 /*
  * Import connection: next/navigation.
  * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser

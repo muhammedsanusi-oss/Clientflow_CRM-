@@ -9,7 +9,7 @@
  * data.
  * Link: Client-side application navigation component; the destination still performs its own access checks.
  */
-import Link from "next/link";
+import Link from "../../../components/app-link";
 
 /*
  * Renders the safe customer-not-found screen and its navigation back to the customer list.
