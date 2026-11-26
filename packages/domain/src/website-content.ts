@@ -20,6 +20,10 @@ export const WEBSITE_TEXT_COLORS = ["INK", "OCEAN", "FOREST", "TERRACOTTA", "PLU
 export const WEBSITE_TEXT_SCALES = ["SMALL", "STANDARD", "LARGE"] as const;
 export const WEBSITE_IMAGE_SECTIONS = ["header", "hero", "features", "about", "offerings", "contact"] as const;
 export type WebsiteImageSection = typeof WEBSITE_IMAGE_SECTIONS[number];
+// The filename varies when a gallery position changes, preventing stale cached photos.
+export function websiteImageUrl(businessId: string, section: string, index: number, imageRef: string) {
+  return `/api/sites/${encodeURIComponent(businessId)}/image/${section}-${index}?photo=${encodeURIComponent(imageRef.split("/").at(-1) ?? "")}`;
+}
 const emptyImageList = () => z.array(z.string().max(300)).max(10).default([]);
 export const WebsiteSectionImagesSchema = z.object({
   header: emptyImageList(),
@@ -38,6 +42,14 @@ const websiteTextSection = z.object({
   body: z.string().trim().min(1).max(2000),
   images: emptyImageList(),
 }).strict();
+export const WebsitePhotoDetailsSchema = z.record(z.string().min(1).max(300), z.object({
+  widthPercent: z.number().int().min(25).max(100).optional(),
+  name: z.string().trim().max(120).optional(),
+  priceCents: z.number().int().min(1).max(1_000_000).optional(),
+}).strict().superRefine((value, ctx) => {
+  if (value.priceCents !== undefined && !value.name) ctx.addIssue({ code: "custom", message: "Add a product name before setting its price." });
+})).refine(value => Object.keys(value).length <= 120, "Too many photo settings.").default({});
+export type WebsitePhotoDetails = z.infer<typeof WebsitePhotoDetailsSchema>;
 export const WebsiteContentSchema = z.object({
   eyebrow: z.string().trim().min(1).max(100),
   headline: z.string().trim().min(1).max(200),
@@ -53,6 +65,7 @@ export const WebsiteContentSchema = z.object({
   richText: WebsiteRichTextSchema,
   sectionStyles: WebsiteSectionStylesSchema,
   sectionImages: WebsiteSectionImagesSchema.default(defaultWebsiteSectionImages),
+  photoDetails: WebsitePhotoDetailsSchema,
   additionalSections: z.array(websiteTextSection).max(6),
   aboutText: z.string().trim().max(1000),
   logoImage: z.string().max(300).nullable(),
@@ -72,7 +85,7 @@ export function defaultWebsiteContent(template: WebsiteTemplateKey, aboutText = 
     features: [...defaults.features], offerings: [...defaults.offerings],
     fontFamily: "SANS", textColor: "INK", textScale: "STANDARD",
     colors: {}, colorSwatches: [], richText: {}, sectionStyles: {},
-    sectionImages: defaultWebsiteSectionImages(),
+    sectionImages: defaultWebsiteSectionImages(), photoDetails: {},
     additionalSections: [], aboutText, logoImage: null, heroImage: null,
   };
 }

@@ -19,6 +19,7 @@ import { WEBSITE_TEMPLATE_KEYS } from "./website-templates";
 import {
   WEBSITE_FONT_FAMILIES,
   WebsiteSectionImagesSchema,
+  WebsitePhotoDetailsSchema,
   WEBSITE_TEXT_COLORS,
   WEBSITE_TEXT_SCALES,
 } from "./website-content";
@@ -45,11 +46,14 @@ export const PublishWebsite = z.object({
   richText: WebsiteRichTextSchema,
   sectionStyles: WebsiteSectionStylesSchema,
   sectionImages: WebsiteSectionImagesSchema,
+  photoDetails: WebsitePhotoDetailsSchema,
   additionalSections: z.array(section).max(6),
   aboutText: z.string().trim().max(1000),
   logoImage: z.string().max(300),
   heroImage: z.string().max(300),
 }).strict().superRefine((values, ctx) => {
+  const photos = new Set([...Object.values(values.sectionImages).flat(), ...values.additionalSections.flatMap(s => s.images)]);
+  for (const ref of Object.keys(values.photoDetails)) if (!photos.has(ref)) ctx.addIssue({ code: "custom", path: ["photoDetails"], message: "Photo settings must belong to a photo placed on this website." });
   if (new TextEncoder().encode(JSON.stringify(values)).length > 128 * 1024) ctx.addIssue({ code: "custom", message: "Website content exceeds 128 KiB." });
   for (const [field, document] of Object.entries(values.richText)) {
     const text = richTextValue(document);

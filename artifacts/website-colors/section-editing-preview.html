@@ -1,0 +1,82 @@
+<div id="cf-section-demo" class="viz-dotted-background">
+<style>
+#cf-section-demo{font:14px/1.5 Arial,sans-serif;color:light-dark(#263a2f,#e6ecdf);color-scheme:light dark;padding:12px 0}
+#cf-section-demo *{box-sizing:border-box}
+#cf-section-demo .window{border:1px solid light-dark(#d8ded6,#49544b);border-radius:14px;overflow:hidden;background:light-dark(#f5f5eb,#17251e)}
+#cf-section-demo .chrome{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;background:light-dark(#fff,#203027);border-bottom:1px solid light-dark(#d8ded6,#49544b)}
+#cf-section-demo .chrome strong{font-size:16px}#cf-section-demo .muted{font-size:12px;color:light-dark(#657160,#b5c5b4)}
+#cf-section-demo .block{position:relative;margin:14px;padding:22px;border:2px solid transparent;border-radius:10px;background:light-dark(#f5f5eb,#17251e);transition:border-color .15s}
+#cf-section-demo .block:hover{border-color:#a5a0e9}#cf-section-demo .block.selected{border-color:#5950e5}
+#cf-section-demo .edit{display:block;margin:0 0 12px auto;background:#4338a7;color:#fff;border:0;border-radius:20px;padding:6px 12px;font:12px Arial,sans-serif;cursor:pointer}
+#cf-section-demo .block:not(.selected):not(:hover):not(:focus-within) .edit{opacity:0}
+#cf-section-demo .bar{display:flex;flex-wrap:wrap;align-items:end;gap:8px;padding:12px;background:light-dark(#fff,#25372d);border:1px solid light-dark(#daddeb,#556257);border-radius:9px;margin-bottom:22px;box-shadow:0 4px 12px #0000000b;color:light-dark(#27344b,#eff4ed)}
+#cf-section-demo label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;min-width:0}
+#cf-section-demo input,#cf-section-demo select,#cf-section-demo button{font-family:inherit}
+#cf-section-demo .bar select,#cf-section-demo .bar input[type=text]{padding:7px;background:light-dark(#fff,#17251e);color:inherit;border:1px solid light-dark(#cfd6df,#657366);border-radius:6px;height:34px;max-width:100%;font-size:12px}
+#cf-section-demo .bar input[type=text]{width:82px;font-family:monospace}
+#cf-section-demo .bar input[type=color]{padding:2px;width:33px;height:34px;border:1px solid light-dark(#cfd6df,#657366);border-radius:6px;background:transparent}
+#cf-section-demo .bar button{padding:6px 10px;min-width:34px;min-height:34px;border:1px solid light-dark(#cfd6df,#657366);border-radius:6px;background:light-dark(#f8f9fc,#17251e);color:inherit;cursor:pointer}
+#cf-section-demo .bar button[aria-pressed=true]{background:#4338a7;color:#fff}
+#cf-section-demo .formats,#cf-section-demo .color-pair{display:flex;gap:4px;align-items:center}
+#cf-section-demo .content h2{font-size:38px;line-height:1.15;letter-spacing:-1.2px;font-weight:400;margin:14px 0 20px;max-width:580px}
+#cf-section-demo .content p{font-size:16px;line-height:1.8;max-width:580px;margin:0;white-space:pre-wrap}
+#cf-section-demo .eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:light-dark(#586b4f,#c7d5bb)}
+#cf-section-demo [contenteditable]{border-radius:4px;outline:none;overflow-wrap:anywhere}
+#cf-section-demo [contenteditable]:focus{outline:1px dashed #7770dc;outline-offset:5px}
+#cf-section-demo .section-name{font-size:12px;margin-bottom:10px;color:light-dark(#617158,#b2c1a9)}
+#cf-section-demo .footer{padding:12px 20px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid light-dark(#d8ded6,#49544b);font-size:12px;color:light-dark(#657160,#b5c5b4)}
+#cf-section-demo .err{color:light-dark(#b42318,#ffb4ac);font-size:12px;flex-basis:100%;min-height:0}
+@media(max-width:480px){#cf-section-demo .block{margin:8px;padding:14px}#cf-section-demo .content h2{font-size:30px}#cf-section-demo .bar{padding:10px}#cf-section-demo .bar select{max-width:138px}#cf-section-demo .edit{min-height:40px}}
+</style>
+<section class="window" aria-label="Section editing design preview">
+ <header class="chrome"><div><strong>Edit website</strong><div class="muted">Shared developer &amp; business owner editor</div></div><span class="muted">Unsaved preview</span></header>
+ <section class="block selected" data-section="Hero" aria-label="Select Hero section" tabindex="0">
+  <button type="button" class="edit">Editing Hero</button>
+  <div class="bar" aria-label="Selected text and section controls">
+   <label>Font<select data-control="font"><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Verdana, sans-serif">Verdana</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option></select></label>
+   <label>Size<select data-control="size"><option>12</option><option>16</option><option>20</option><option>24</option><option>30</option><option selected>38</option><option>48</option><option>64</option><option>96</option></select></label>
+   <div class="formats"><button type="button" data-format="bold" aria-label="Bold" aria-pressed="false"><b>B</b></button><button type="button" data-format="italic" aria-label="Italic" aria-pressed="false"><i>I</i></button><button type="button" data-format="underline" aria-label="Underline" aria-pressed="false"><u>U</u></button></div>
+   <label>Alignment<select data-control="align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>
+   <label>Text color<div class="color-pair"><input type="color" data-control="text-picker" aria-label="Text color picker" value="#263a2f"><input type="text" data-control="text-hex" aria-label="Text HEX color" value="#263A2F" maxlength="7" spellcheck="false"></div></label>
+   <label>Section background<div class="color-pair"><input type="color" data-control="bg-picker" aria-label="Section background color picker" value="#f5f5eb"><input type="text" data-control="bg-hex" aria-label="Section background HEX color" value="#F5F5EB" maxlength="7" spellcheck="false"></div></label>
+   <button type="button" data-control="undo">Undo</button>
+   <div class="err" role="alert"></div>
+  </div>
+  <div class="content"><div class="eyebrow">A GOOD CONNECTION STARTS HERE.</div><h2 contenteditable="true" role="textbox" aria-label="Hero headline" data-field="headline" spellcheck="false">Have something in mind? Let’s talk.</h2><p contenteditable="true" role="textbox" aria-label="Hero description" data-field="description" spellcheck="false">A friendly contact business, created to build better connections.</p></div>
+ </section>
+ <section class="block" data-section="About" aria-label="Select About section" tabindex="0">
+  <button type="button" class="edit">Edit About</button>
+  <div class="content"><div class="section-name">About</div><h2 contenteditable="true" role="textbox" aria-label="About heading" data-field="headline" spellcheck="false">A little more personal.</h2><p contenteditable="true" role="textbox" aria-label="About description" data-field="description" spellcheck="false">Every conversation starts with a person. We take the time to understand what matters to you.</p></div>
+ </section>
+ <footer class="footer"><span data-status aria-live="polite">Editing Hero · headline</span><span>Concept only · Nothing is published</span></footer>
+</section>
+<script>
+(()=>{
+ const root=document.getElementById('cf-section-demo'),q=s=>root.querySelector(s),bar=q('.bar');
+ let section=q('[data-section="Hero"]'),field=section.querySelector('h2'),range=null,history=[];
+ const hex=value=>{let s=value.trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(s))s=[...s].map(c=>c+c).join('');return /^[0-9a-f]{6}$/i.test(s)?'#'+s.toUpperCase():null};
+ const toHex=value=>{const m=value.match(/[\d.]+/g);return m&&m.length>=3?'#'+m.slice(0,3).map(c=>Math.round(Number(c)).toString(16).padStart(2,'0')).join('').toUpperCase():'#263A2F'};
+ function snapshot(){history.push([...root.querySelectorAll('.block')].map(s=>({html:s.querySelector('.content').innerHTML,style:s.getAttribute('style')})));history=history.slice(-50)}
+ function persist(){window.openai?.setWidgetState?.({modelContent:{selectedSection:section.dataset.section,textColor:q('[data-control="text-hex"]').value,sectionBackground:q('[data-control="bg-hex"]').value},privateContent:null})?.catch(()=>{})}
+ function sync(){const selectedNode=range?.startContainer;const selectedElement=selectedNode?.nodeType===3?selectedNode.parentElement:selectedNode;const style=getComputedStyle(selectedElement&&field.contains(selectedElement)?selectedElement:field),bg=getComputedStyle(section);q('[data-control="align"]').value=getComputedStyle(field).textAlign==='start'?'left':getComputedStyle(field).textAlign;const font=q('[data-control="font"]');const family=style.fontFamily.split(',')[0].replaceAll('"','').replaceAll("'",'').trim().toLowerCase();const matching=[...font.options].find(option=>option.value.split(',')[0].replaceAll("'",'').trim().toLowerCase()===family);if(matching)font.value=matching.value;q('[data-status]').textContent='Editing '+section.dataset.section+' · '+field.dataset.field;q('[data-control="size"]').value=String(Math.round(parseFloat(style.fontSize)));q('[data-control="text-hex"]').value=toHex(style.color);q('[data-control="text-picker"]').value=toHex(style.color);q('[data-control="bg-hex"]').value=toHex(bg.backgroundColor);q('[data-control="bg-picker"]').value=toHex(bg.backgroundColor);q('.err').textContent='';q('[data-control="undo"]').disabled=!history.length;for(const b of bar.querySelectorAll('[data-format]')){const on=b.dataset.format==='bold'?Number(style.fontWeight)>=600:b.dataset.format==='italic'?style.fontStyle==='italic':style.textDecorationLine.includes('underline');b.setAttribute('aria-pressed',String(on))}}
+ function select(next,target){section=next;field=target||next.querySelector('[contenteditable]');range=null;root.querySelectorAll('.block').forEach(s=>{const selected=s===next;s.classList.toggle('selected',selected);s.querySelector('.edit').textContent=selected?'Editing '+s.dataset.section:'Edit '+s.dataset.section});next.insertBefore(bar,next.querySelector('.content'));const selection=window.getSelection();if(selection?.rangeCount&&field.contains(selection.getRangeAt(0).commonAncestorContainer))range=selection.getRangeAt(0).cloneRange();sync()}
+ function format(property,value){snapshot();if(range&&!range.collapsed&&field.contains(range.commonAncestorContainer)){const span=document.createElement('span');span.style[property]=value;span.append(range.extractContents());range.insertNode(span);const selection=window.getSelection();selection.removeAllRanges();const next=document.createRange();next.selectNodeContents(span);selection.addRange(next);range=next.cloneRange()}else field.style[property]=value;sync();persist()}
+ root.addEventListener('click',e=>{if(bar.contains(e.target))return;const next=e.target.closest('.block');if(next){const text=e.target.closest('[contenteditable]');if(next!==section||text&&text!==field)select(next,text)}});
+ root.addEventListener('keydown',e=>{if(e.target.matches('.block')&&e.key==='Enter'){e.preventDefault();select(e.target);field.focus()}});
+ document.addEventListener('selectionchange',()=>{const selection=window.getSelection();if(selection?.rangeCount){const r=selection.getRangeAt(0);if(field.contains(r.commonAncestorContainer))range=r.cloneRange()}});
+ bar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))e.preventDefault()});
+ bar.querySelectorAll('[data-format]').forEach(button=>button.onclick=()=>{const on=button.getAttribute('aria-pressed')==='true',kind=button.dataset.format;format(kind==='bold'?'fontWeight':kind==='italic'?'fontStyle':'textDecoration',kind==='bold'?(on?'400':'700'):kind==='italic'?(on?'normal':'italic'):(on?'none':'underline'))});
+ q('[data-control="font"]').onchange=e=>format('fontFamily',e.target.value);
+ q('[data-control="size"]').onchange=e=>format('fontSize',e.target.value+'px');
+ q('[data-control="align"]').onchange=e=>{snapshot();field.style.textAlign=e.target.value;sync();persist()};
+ function color(kind,value){const c=hex(value);if(!c){q('.err').textContent='Enter a HEX color such as #2563EB.';return}if(kind==='text')format('color',c);else{snapshot();section.style.backgroundColor=c;sync();persist()}}
+ for(const kind of ['text','bg']){q('[data-control="'+kind+'-picker"]').oninput=e=>color(kind,e.target.value);const input=q('[data-control="'+kind+'-hex"]');input.onchange=e=>color(kind,e.target.value);input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();color(kind,e.target.value)}}}
+ root.addEventListener('beforeinput',e=>{if(e.target.closest('[contenteditable]'))snapshot()});
+ root.addEventListener('input',e=>{if(e.target.closest('[contenteditable]'))q('[data-status]').textContent='Editing '+section.dataset.section+' · unsaved text'});
+ root.addEventListener('paste',e=>{const target=e.target.closest('[contenteditable]');if(!target)return;e.preventDefault();const selection=window.getSelection();if(!selection?.rangeCount)return;snapshot();const r=selection.getRangeAt(0);r.deleteContents();const text=document.createTextNode(e.clipboardData.getData('text/plain'));r.insertNode(text);r.setStartAfter(text);r.collapse(true);selection.removeAllRanges();selection.addRange(r)});
+ q('[data-control="undo"]').onclick=()=>{const prior=history.pop();if(!prior)return;const key=field.dataset.field;root.querySelectorAll('.block').forEach((s,i)=>{s.querySelector('.content').innerHTML=prior[i].html;if(prior[i].style)s.setAttribute('style',prior[i].style);else s.removeAttribute('style')});field=section.querySelector('[data-field="'+key+'"]')||section.querySelector('[contenteditable]');range=null;sync()};
+ function restore(state){const saved=state?.modelContent;if(!saved)return;const next=[...root.querySelectorAll('.block')].find(s=>s.dataset.section===saved.selectedSection);if(next)select(next);const text=typeof saved.textColor==='string'?hex(saved.textColor):null;const bg=typeof saved.sectionBackground==='string'?hex(saved.sectionBackground):null;if(text)field.style.color=text;if(bg)section.style.backgroundColor=bg;sync()}
+ restore(window.openai?.widgetState);window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState)restore(e.detail.globals.widgetState)});sync();
+})();
+</script>
+</div>

@@ -1,10 +1,11 @@
 import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DemoPlan } from "../../packages/domain/src/subscription-access";
-type Business = { id: string; name: string; description: string; websiteTemplate: "BARBERSHOP" | null; demoSubscription: { plan: DemoPlan; status: string; periodEnd: Date | null } | null };
-const state = vi.hoisted(() => ({ userId: "owner-user" as string | null, developer: false, businesses: [] as Business[], reads: vi.fn() }));
+type Business = { id: string; name: string; description: string; websiteTemplate: "BARBERSHOP" | "BAKERY" | null; demoSubscription: { plan: DemoPlan; status: string; periodEnd: Date | null } | null };
+const state = vi.hoisted(() => ({ userId: "owner-user" as string | null, developer: false, businesses: [] as Business[], reads: vi.fn(), bookings: vi.fn() }));
 vi.mock("../../packages/auth/src/index", () => ({ currentUserId: async () => state.userId }));
 vi.mock("../../packages/domain/src/index", () => ({ getUser: async () => ({ isDeveloper: state.developer }), listOwnerDashboardBusinesses: async (...args: unknown[]) => { state.reads(...args); return state.businesses; } }));
+vi.mock("../../packages/domain/src/bakery", () => ({ upcomingOwnerAppointments: (...args: unknown[]) => state.bookings(...args) }));
 vi.mock("next/navigation", () => ({ redirect: (url: string) => { throw new Error(`REDIRECT:${url}`); }, notFound: () => { throw new Error("NOT_FOUND"); } }));
 import OwnerDashboardPage from "../../apps/web/app/owner/page";
 const require = createRequire(new URL("../../apps/web/package.json", import.meta.url));
@@ -12,9 +13,22 @@ const { renderToStaticMarkup } = require("react-dom/server");
 const render = async (businessId?: string | string[]) => renderToStaticMarkup(await OwnerDashboardPage({ searchParams: Promise.resolve({ businessId }) }));
 beforeEach(() => {
   state.userId = "owner-user"; state.developer = false; state.reads.mockReset();
+  state.bookings.mockReset().mockResolvedValue([]);
   state.businesses = [{ id: "selected-business", name: "Corner Chair", description: "A local shop", websiteTemplate: "BARBERSHOP", demoSubscription: { plan: "CRM", status: "ACTIVE", periodEnd: new Date(Date.now() + 86400000) } }];
 });
 describe("business owner dashboard", () => {
+  it("renders upcoming booking details and links to their calendar month", async () => {
+    state.bookings.mockResolvedValueOnce([{ id: "booking", appointment_date: new Date("2030-01-03T00:00:00Z"), start_time: new Date("2030-01-03T10:00:00Z"), customer: { first_name: "Salon", last_name: "Visitor" }, location: { name: "Main studio" }, appointment_services: [{ service_name_at_booking: "Haircut" }] }]);
+    const html = await render();
+    expect(state.bookings).toHaveBeenCalledWith("owner-user", "selected-business");
+    for (const text of ["Salon", "Visitor", "Haircut", "10:00", "Main studio", "month=2030-01"]) expect(html).toContain(text);
+  });
+  it("shows bakery tools for a canceled Standard subscription without enabling CRM", async () => {
+    state.businesses[0].websiteTemplate = "BAKERY"; state.businesses[0].demoSubscription!.plan = "STANDARD"; state.businesses[0].demoSubscription!.status = "CANCELED";
+    const html = await render();
+    for (const path of ["/products?", "/orders?", "/orders/settings?"]) expect(html).toContain(`href="${path}businessId=selected-business"`);
+    expect(html).not.toContain('href="/calendar?'); expect(state.bookings).not.toHaveBeenCalled();
+  });
   it("groups existing tools and keeps every link scoped to the selected owner business", async () => {
     const html = await render();
     expect(state.reads).toHaveBeenCalledExactlyOnceWith("owner-user");
@@ -28,7 +42,8 @@ describe("business owner dashboard", () => {
     expect(html).toContain("Canceled"); expect(html).toContain("Your dashboard is still available");
     expect(html).toContain('href="/website?businessId=selected-business"');
     expect(html).toContain('href="/subscription?businessId=selected-business"');
-    for (const href of ["/calendar?", "/customers?", "/notes?", "/inquiries?", "/businesses/selected-business/website"]) expect(html).not.toContain(`href="${href}`);
+    expect(html).toContain('href="/businesses/selected-business/website"');
+    for (const href of ["/calendar?", "/customers?", "/notes?", "/inquiries?"]) expect(html).not.toContain(`href="${href}`);
   });
   it("shows website-only access for Standard and managed support for Managed", async () => {
     state.businesses[0].demoSubscription!.plan = "STANDARD";
@@ -36,6 +51,15 @@ describe("business owner dashboard", () => {
     expect(html).toContain("Edit website"); expect(html).not.toContain('href="/calendar?');
     state.businesses[0].demoSubscription!.plan = "MANAGED";
     html = await render(); expect(html).toContain('href="/managed-service?businessId=selected-business"');
+  });
+  it.each(["PENDING", "ACTIVE", "PAST_DUE", "CANCELED", "EXPIRED"])("offers owner editing for every plan in %s state", async status => {
+    for (const plan of ["STANDARD", "CRM", "MANAGED"] as const) {
+      state.businesses[0].demoSubscription = { plan, status: status === "EXPIRED" ? "ACTIVE" : status, periodEnd: new Date(Date.now() + (status === "EXPIRED" ? -86400000 : 86400000)) };
+      const html = await render();
+      expect(html).toContain('href="/businesses/selected-business/website"');
+      expect(html).toContain("Edit website");
+      expect(html).not.toContain("Editing and inquiries become available");
+    }
   });
   it("preserves legacy access and explains missing website configuration", async () => {
     state.businesses[0].demoSubscription = null; state.businesses[0].websiteTemplate = null;

@@ -25,10 +25,11 @@ instead of dropping owners into a calendar, subscription screen, or customer lis
 - Signed-out visitors reach login. Developers return to their developer home;
   missing, foreign, or repeated business IDs return 404. Owners without a business
   see a helpful no-workspace state.
-- The dashboard stays accessible with a canceled, expired, or pending plan.
+- The dashboard and website editor stay accessible with a canceled, expired, or pending plan.
   It displays the real subscription state and explains restricted tools, with a
   subscription-management action. It never silently activates a subscription.
-- Website tools include edit, published preview, and inquiries where permitted.
+- Website tools always include edit and published preview for a configured
+  website, regardless of subscription. Inquiries retain their existing access.
   CRM tools group customers, notes, appointments, services, and hours/staff.
   Account/support groups demo subscription and eligible managed-service requests.
   No fabricated counts or analytics appear.
@@ -44,13 +45,20 @@ instead of dropping owners into a calendar, subscription screen, or customer lis
   business-details destination and cannot enter the owner role.
 - The owner home destination helper resolves to this dashboard for all plans.
   Dashboard rendering performs reads only and uses existing business data.
+- With CRM eligibility, Scheduling also shows the next five non-canceled
+  appointments starting today, with customer, service, location, and local date/
+  time and a link to their calendar month. Refresh shows new public bookings.
+- Bakery websites have a Bakery shop group linking to Products, Delivery
+  settings, and Customer orders in every subscription billing state. Those
+  pages independently verify active owner membership. Catalog, checkout, and
+  order progress follow `bakery-orders.md`.
 
 ## Examples
 
 | State / input | Behavior |
 |---|---|
 | CRM owner returns from subscription | Selected business dashboard with available CRM tools |
-| Canceled owner returns from preview | Same dashboard, restricted tools explained, subscription action available |
+| Canceled owner returns from preview | Same dashboard with website editing, paid restrictions explained, subscription action available |
 | Standard owner opens dashboard | Website tools available; CRM section explains the plan requirement |
 | Owner with two businesses selects the second | Dashboard and tool links retain the second business ID |
 | Foreign business ID | 404; no business details disclosed |

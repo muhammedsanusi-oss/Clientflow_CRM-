@@ -32,6 +32,8 @@ import { SignOutButton } from "./sign-out-button";
  * Loads this stylesheet for the component/page; it supplies styles only.
  */
 import "./globals.css";
+import "../components/workspace-surface.css";
+import { WorkspaceSurface } from "../components/workspace-surface";
 
 // Browser/document metadata for the shared layout, not a business record.
 export const metadata: Metadata = {
@@ -45,7 +47,7 @@ export const metadata: Metadata = {
  */
 async function SessionHeader() {
   const userId = await currentSession();
-  return userId ? <header className="fixed right-5 top-3 z-50 flex items-center gap-2 rounded-lg bg-white shadow-sm"><Link href="/subscription" className="px-3 py-2 text-sm font-medium text-indigo-700">Demo subscription</Link><SignOutButton /></header> : null;
+  return userId ? <header className="workspace-account fixed right-5 top-3 z-50 flex items-center gap-2 rounded-lg bg-white shadow-sm"><Link href="/subscription" className="px-3 py-2 text-sm font-medium text-indigo-700">Demo subscription</Link><SignOutButton /></header> : null;
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -55,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={null}>
           <SessionHeader />
         </Suspense>
-        {children}
+        <WorkspaceSurface>{children}</WorkspaceSurface>
       </body>
     </html>
   );

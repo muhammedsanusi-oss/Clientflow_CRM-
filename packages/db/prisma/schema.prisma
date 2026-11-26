@@ -301,6 +301,78 @@ model Business {
   demoSubscription DemoSubscription?
   demoSubscriptionEvents DemoSubscriptionEvent[]
   managedRequests ManagedServiceRequest[]
+  bakeryProducts BakeryProduct[]
+  bakeryDelivery BakeryDelivery?
+  bakeryOrders BakeryOrder[]
+}
+
+model BakeryProduct {
+  id String @id @default(cuid())
+  businessId String
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  name String
+  description String @default("")
+  priceCents Int
+  stock Int
+  active Boolean @default(true)
+  displayOrder Int @default(0)
+  photoRef String @default("")
+  updatedAt DateTime @updatedAt
+  @@index([businessId, active, displayOrder])
+}
+
+model BakeryDelivery {
+  businessId String @id
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  preparationMinutes Int
+  speedMph Int
+  zones Json
+}
+
+model BakeryOrder {
+  id String @id @default(cuid())
+  businessId String
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  attemptKey String
+  requestHash String
+  tokenHash String @unique
+  orderNumber String? @unique
+  status String @default("RECEIVED")
+  version Int @default(0)
+  customer Json
+  delivery Json
+  subtotalCents Int
+  deliveryFeeCents Int
+  totalCents Int
+  paymentResult String @default("SIMULATED_SUCCESS")
+  createdAt DateTime @default(now())
+  arrivalFrom DateTime
+  arrivalTo DateTime
+  items BakeryOrderItem[]
+  events BakeryOrderEvent[]
+  @@unique([businessId, attemptKey])
+  @@index([businessId, createdAt])
+}
+
+model BakeryOrderItem {
+  id String @id @default(cuid())
+  orderId String
+  order BakeryOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  productId String
+  name String
+  priceCents Int
+  quantity Int
+  @@index([orderId])
+}
+
+model BakeryOrderEvent {
+  id String @id @default(cuid())
+  orderId String
+  order BakeryOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  status String
+  actorId String?
+  createdAt DateTime @default(now())
+  @@index([orderId, createdAt])
 }
 
 // Private billing details are separated from Business so ordinary business queries do not expose them.
@@ -726,6 +798,7 @@ model BusinessWebsiteContent {
   colors Json @default("{}")
   richText Json @default("{}")
   sectionStyles Json @default("{}")
+  photoDetails Json @default("{}")
   colorSwatches String[] @default([])
   sectionImages Json @default("{\"header\":[],\"hero\":[],\"features\":[],\"about\":[],\"offerings\":[],\"contact\":[]}")
   additionalSections Json @default("[]")

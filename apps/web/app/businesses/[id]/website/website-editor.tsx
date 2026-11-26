@@ -5,9 +5,10 @@ import Link from "../../../../components/app-link";
 import type { PublishWebsiteInput } from "../../../../../../packages/domain/src/website-editing";
 import {
   defaultWebsiteContent,
+  websiteImageUrl,
   type WebsiteImageSection,
 } from "../../../../../../packages/domain/src/website-content";
-import { countWebsiteImages, WEBSITE_PLANS, type WebsitePlanKey } from "../../../../../../packages/domain/src/website-plans";
+import { countWebsiteImages, type WebsitePlanKey } from "../../../../../../packages/domain/src/website-plans";
 import { WEBSITE_TEMPLATE_KEYS, WEBSITE_TEMPLATES } from "../../../../../../packages/domain/src/website-templates";
 import { BusinessWebsite } from "../../../../components/business-sites/business-website";
 import { publishWebsiteAction } from "./actions";
@@ -17,6 +18,8 @@ import { SectionToolbar, type CurrentTextStyle } from "./section-toolbar";
 import { PublishWebsite } from "../../../../../../packages/domain/src/website-editing";
 import { changeRichTextCase, fieldSection, formatRichText, plainRichText, richTextValue, RichTextSchema, textLimit, WEBSITE_FONTS, type RichText, type TextMarks } from "../../../../../../packages/domain/src/website-rich-text";
 import { cssHex, textSelection } from "../../../../components/business-sites/editable-text-dom";
+import { ProductPhotos } from "./product-photos";
+import "./website-studio.css";
 
 type EditorSection = "header" | "hero" | "features" | "about" | "offerings" | "contact" | "footer" | `custom-${number}`;
 type ImageSection = WebsiteImageSection | `custom-${number}`;
@@ -26,11 +29,31 @@ const standardSections: Array<{ key: Exclude<ImageSection, `custom-${number}`>; 
   { key: "hero", label: "Hero" },
   { key: "features", label: "Features" },
   { key: "about", label: "About" },
-  { key: "offerings", label: "Offerings" },
+  { key: "offerings", label: "Products & offerings" },
   { key: "contact", label: "Contact" },
 ];
 
 const lines = (value: string) => value.split("\n").map(line => line.trim()).filter(Boolean);
+
+function publishedImageLocations(businessId: string, content: PublishWebsiteInput) {
+  const locations: Record<string, string> = {};
+  for (const { key } of standardSections) content.sectionImages[key].forEach((ref, index) => { locations[ref] = websiteImageUrl(businessId, key, index, ref); });
+  content.additionalSections.forEach((section, sectionIndex) => section.images.forEach((ref, index) => { locations[ref] = websiteImageUrl(businessId, `custom-${sectionIndex}`, index, ref); }));
+  return locations;
+}
+
+function withSectionImages(content: PublishWebsiteInput, section: ImageSection, images: string[]): PublishWebsiteInput {
+  return section.startsWith("custom-")
+    ? { ...content, additionalSections: content.additionalSections.map((item, index) => index === Number(section.slice(7)) ? { ...item, images } : item) }
+    : { ...content, sectionImages: { ...content.sectionImages, [section]: images } };
+}
+
+function syncLegacyImages(content: PublishWebsiteInput) {
+  return { ...content,
+    logoImage: content.logoImage && content.sectionImages.header.includes(content.logoImage) ? content.logoImage : "",
+    heroImage: content.heroImage && content.sectionImages.hero.includes(content.heroImage) ? content.heroImage : "",
+  };
+}
 
 export function WebsiteEditor({
   businessId,
@@ -42,7 +65,6 @@ export function WebsiteEditor({
   canSubmitFeatureRequests,
   featureRequestCount,
   featureRequestLimit,
-  websitePlan,
 }: {
   businessId: string;
   initial: PublishWebsiteInput;
@@ -56,8 +78,10 @@ export function WebsiteEditor({
   websitePlan: WebsitePlanKey | null;
 }) {
   const [values, setValues] = useState(initial);
+  const [savedSnapshot, setSavedSnapshot] = useState(() => JSON.stringify(initial));
   const [validColors, setValidColors] = useState(true);
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
+  const [invalidPhotoPrices, setInvalidPhotoPrices] = useState<string[]>([]);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const [historyCount, setHistoryCount] = useState(0);
@@ -74,7 +98,30 @@ export function WebsiteEditor({
   const [published, setPublished] = useState(false);
   const [publishedImageCount, setPublishedImageCount] = useState(imageCount);
   const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({});
+  const [publishedLocations, setPublishedLocations] = useState(() => publishedImageLocations(businessId, initial));
   const previewUrls = useRef<Record<string, string>>({});
+  const hasUnpublishedChanges = JSON.stringify(values) !== savedSnapshot || invalidFields.length > 0 || invalidPhotoPrices.length > 0 || !validColors;
+
+  useEffect(() => {
+    if (!hasUnpublishedChanges) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    const beforeNavigation = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin === location.origin && destination.pathname === location.pathname && destination.search === location.search) return;
+      if (!window.confirm("You have unpublished website changes. Leave without publishing?")) {
+        event.preventDefault(); event.stopImmediatePropagation();
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", beforeNavigation, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", beforeNavigation, true);
+    };
+  }, [hasUnpublishedChanges]);
 
   useEffect(() => () => {
     for (const url of Object.values(previewUrls.current)) URL.revokeObjectURL(url);
@@ -95,20 +142,6 @@ export function WebsiteEditor({
       return values.additionalSections[Number(section.slice("custom-".length))]?.images ?? [];
     }
     return values.sectionImages[section as WebsiteImageSection];
-  }
-
-  function updateSectionImages(section: ImageSection, images: string[]) {
-    setValues(current => {
-      if (section.startsWith("custom-")) {
-        const index = Number(section.slice("custom-".length));
-        return {
-          ...current,
-          additionalSections: current.additionalSections.map((item, itemIndex) =>
-            itemIndex === index ? { ...item, images } : item),
-        };
-      }
-      return { ...current,       sectionImages: { ...current.sectionImages, [section as WebsiteImageSection]: images } };
-    });
   }
 
   function appendSectionImage(section: ImageSection, imageRef: string) {
@@ -137,6 +170,7 @@ export function WebsiteEditor({
 
   function imageUrl(section: ImageSection, imageRef: string, index: number) {
     return imagePreviews[imageRef]
+      ?? publishedLocations[imageRef]
       ?? `/api/sites/${encodeURIComponent(businessId)}/image/${imageLocator(section, index)}`;
   }
 
@@ -184,30 +218,40 @@ export function WebsiteEditor({
     const images = sectionImages(section);
     const imageRef = images[index];
     if (!imageRef || !window.confirm("Remove this image from the website? It will disappear after you publish; the uploaded file will be retained.")) return;
-    edited();
-    updateSectionImages(section, images.filter((_, itemIndex) => itemIndex !== index));
-    const previewUrl = previewUrls.current[imageRef];
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      delete previewUrls.current[imageRef];
-      setImagePreviews(current => {
-        const next = { ...current };
-        delete next[imageRef];
-        return next;
-      });
-    }
+    const next = syncLegacyImages(withSectionImages(valuesRef.current, section, images.filter((_, itemIndex) => itemIndex !== index)));
+    changeValues(next);
+    // Keep object URLs until unmount so Undo can restore an unpublished upload.
+  }
+
+  function movePhoto(source: ImageSection, index: number, destination: ImageSection) {
+    if (source === destination) return;
+    const sourceImages = sectionImages(source), targetImages = sectionImages(destination);
+    const ref = sourceImages[index];
+    if (!ref) return;
+    if (targetImages.length >= 10) { setError("The destination already has 10 photos. Choose another section."); return; }
+    const next = withSectionImages(withSectionImages(valuesRef.current, source, sourceImages.filter((_, itemIndex) => itemIndex !== index)), destination, [...targetImages, ref]);
+    changeValues(syncLegacyImages(next));
+  }
+
+  function reorderPhoto(section: ImageSection, index: number, direction: number) {
+    const images = [...sectionImages(section)], target = index + direction;
+    if (target < 0 || target >= images.length) return;
+    [images[index], images[target]] = [images[target]!, images[index]!];
+    changeValues(withSectionImages(valuesRef.current, section, images));
   }
 
   const draftImagePreviews: Record<string, string> = {};
   for (const section of standardSections) {
     values.sectionImages[section.key].forEach((imageRef, index) => {
-      if (imagePreviews[imageRef]) draftImagePreviews[imageLocator(section.key, index)] = imagePreviews[imageRef]!;
+      const preview = imagePreviews[imageRef] ?? publishedLocations[imageRef];
+      if (preview) draftImagePreviews[imageLocator(section.key, index)] = preview;
     });
   }
   values.additionalSections.forEach((section, sectionIndex) => {
     section.images.forEach((imageRef, imageIndex) => {
-      if (imagePreviews[imageRef]) {
-        draftImagePreviews[imageLocator(`custom-${sectionIndex}`, imageIndex)] = imagePreviews[imageRef]!;
+      const preview = imagePreviews[imageRef] ?? publishedLocations[imageRef];
+      if (preview) {
+        draftImagePreviews[imageLocator(`custom-${sectionIndex}`, imageIndex)] = preview;
       }
     });
   });
@@ -242,6 +286,9 @@ export function WebsiteEditor({
   }
 
   function changeValues(next: PublishWebsiteInput) {
+    const refs = new Set([...Object.values(next.sectionImages).flat(), ...next.additionalSections.flatMap(s => s.images)]);
+    next = { ...next, photoDetails: Object.fromEntries(Object.entries(next.photoDetails).filter(([ref]) => refs.has(ref))) };
+    setInvalidPhotoPrices(current => current.filter(ref => refs.has(ref)));
     const previous = valuesRef.current;
     if (JSON.stringify(previous) === JSON.stringify(next)) return;
     if (!gesture.current.active || !gesture.current.recorded) history.current = [...history.current, previous].slice(-100);
@@ -334,7 +381,7 @@ export function WebsiteEditor({
     const previous = history.current.pop(); if (!previous) return;
     const restored = { ...previous, version: valuesRef.current.version };
     valuesRef.current = restored; setValues(restored); setHistoryCount(history.current.length); setRevision(value => value + 1);
-    setInvalidFields([]); setValidColors(true); edited();
+    setInvalidFields([]); setInvalidPhotoPrices([]); setValidColors(true); edited();
     requestAnimationFrame(() => { if (activeElement.current) syncStyle(activeElement.current); });
   }
   function changeCase(kind: string) {
@@ -361,6 +408,10 @@ export function WebsiteEditor({
       for (const field of sectionFields[section] ?? []) Object.assign(next, { [field]: initial[field] });
       if (section !== "footer") next.sectionImages = { ...next.sectionImages, [section]: initial.sectionImages[section as WebsiteImageSection] };
     }
+    const resetPhotos = section === "footer" ? [] : section.startsWith("custom-") ? initial.additionalSections[Number(section.slice(7))]?.images ?? [] : initial.sectionImages[section as WebsiteImageSection];
+    next.photoDetails = { ...next.photoDetails };
+    for (const ref of resetPhotos) { if (initial.photoDetails[ref]) next.photoDetails[ref] = initial.photoDetails[ref]; else delete next.photoDetails[ref]; }
+    setInvalidPhotoPrices(current => current.filter(ref => !resetPhotos.includes(ref)));
     changeValues(next); setInvalidFields(fields => fields.filter(field => fieldSection(field) !== section)); setValidColors(true); setRevision(value => value + 1);
   }
   function arrayText(key: "features" | "offerings", value: string) {
@@ -402,15 +453,18 @@ export function WebsiteEditor({
   }
   async function publish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!validColors || invalidFields.length) { setError("Correct the highlighted text or HEX value before publishing."); return; }
-    const parsed = PublishWebsite.safeParse(valuesRef.current);
+    if (!validColors || invalidFields.length || invalidPhotoPrices.length) { setError("Correct the highlighted text, photo price, or HEX value before publishing."); return; }
+    const submitted = valuesRef.current;
+    const parsed = PublishWebsite.safeParse(submitted);
     if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Check the website text."); return; }
     setPending(true); setError(""); setPublished(false);
     try {
       const result = await publishWebsiteAction(businessId, parsed.data);
       if (result.error) setError(result.error.message);
       else if (result.publication) {
-        setValues(current => ({ ...current, version: result.publication.version })); setPublishedImageCount(countWebsiteImages(valuesRef.current)); setPublished(true);
+        setSavedSnapshot(JSON.stringify({ ...submitted, version: result.publication.version }));
+        setPublishedLocations(publishedImageLocations(businessId, submitted));
+        setValues(current => ({ ...current, version: result.publication.version })); setPublishedImageCount(countWebsiteImages(submitted)); setPublished(true);
       }
     } catch { setError("Your website could not be published. Check your connection and try again."); }
     finally { setPending(false); }
@@ -438,11 +492,12 @@ export function WebsiteEditor({
     </SectionToolbar>;
   }
   return <div className="space-y-5" aria-busy={pending || uploadingSection !== null}>
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
-      <div><p className="font-semibold">Live website editor</p><p className="text-sm text-slate-600">Hover over a section and choose Click to edit. Type directly on the website; publish when ready.</p>
-        {websitePlan && <p className="mt-1 text-xs text-indigo-700">{WEBSITE_PLANS[websitePlan].label} demo plan · {maxImages} images maximum</p>}</div>
-      <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" form="website-editor-form" disabled={pending || uploadingSection !== null || !validColors || invalidFields.length > 0} className="rounded-xl bg-indigo-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">{pending ? "Publishing…" : "Save and publish"}</button>
+    <div className="studio-toolbar">
+      <div><span className="studio-eyebrow">CREATE · PREVIEW · PUBLISH</span><p className="studio-toolbar-title">A little polish. A lot of personality.</p><p className="studio-toolbar-description">Edit your story, arrange your photos, then share it with the world.</p>
+        <p role="status" data-draft-status className={`mt-2 text-sm font-medium ${hasUnpublishedChanges ? "text-amber-800" : "text-emerald-800"}`}>{hasUnpublishedChanges ? "Unpublished changes" : "All changes published"}</p>
+        {maxImages !== null && <p className="mt-1 text-xs text-indigo-700">Current photo allowance · {maxImages} images maximum</p>}</div>
+      <div className="studio-actions">
+        <button type="submit" form="website-editor-form" disabled={pending || uploadingSection !== null || !validColors || invalidFields.length > 0 || invalidPhotoPrices.length > 0} className="studio-publish">{pending ? "Publishing…" : "Save and publish"}</button>
         <Link href={canChangeTemplate ? `/businesses/${businessId}` : `/website?businessId=${businessId}`} className="text-sm text-indigo-700 underline">Cancel</Link>
         <a href={`/sites/${businessId}`} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 underline">Open published website</a>
       </div>
@@ -451,6 +506,20 @@ export function WebsiteEditor({
     {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</p>}
     {!validColors && <p role="alert" className="text-sm text-red-700">Enter a valid HEX color in the open picker before publishing.</p>}
     {published && <p role="status" className="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800">Website published. The public site and owner preview show your changes.</p>}
+    <ProductPhotos count={countWebsiteImages(values)} maxImages={maxImages} publishedCount={publishedImageCount}
+      details={values.photoDetails}
+      resetKey={revision}
+      onDetails={(ref, value) => changeValues({ ...valuesRef.current, photoDetails: { ...valuesRef.current.photoDetails, [ref]: value } })}
+      onPriceValidity={(ref, valid) => setInvalidPhotoPrices(current => valid ? current.filter(item => item !== ref) : [...new Set([...current, ref])])}
+      disabled={pending || uploadingSection !== null} uploading={uploadingSection !== null}
+      groups={[...standardSections.map(({ key, label }) => ({ key, label, photos: sectionImages(key).map((ref, index) => ({ ref, url: imageUrl(key, ref, index) })) })),
+        ...values.additionalSections.map((section, index) => ({ key: `custom-${index}`, label: section.heading, photos: section.images.map((ref, photoIndex) => ({ ref, url: imageUrl(`custom-${index}`, ref, photoIndex) })) }))]}
+      onUpload={(section, file) => { void uploadImage(section as ImageSection, file); }}
+      onMove={(source, index, destination) => movePhoto(source as ImageSection, index, destination as ImageSection)}
+      onReorder={(section, index, direction) => reorderPhoto(section as ImageSection, index, direction)}
+      onRemove={(section, index) => removeImage(section as ImageSection, index)} />
+    {values.websiteTemplate === "BAKERY" && !canChangeTemplate && <p className="studio-catalog-note">Selling these treats? <a href={`/products?businessId=${encodeURIComponent(businessId)}`}>Manage shop products</a> to set up prices, stock, and cart availability.</p>}
+    <div className="studio-preview-label"><span className="studio-eyebrow">YOUR WEBSITE, COMING TO LIFE</span><span>Live preview · changes appear here first</span></div>
     <section id="website-preview" aria-label="Live website preview" className="min-w-0 rounded-xl border border-slate-300 bg-white">
       <BusinessWebsite preview site={{ ...values, id: businessId, websiteContent: values }} draftImagePreviews={draftImagePreviews}
         onSelectSection={selectSection} selectedSection={selectedSection ?? undefined} renderSectionControls={renderSectionControls}

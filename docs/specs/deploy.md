@@ -22,6 +22,9 @@ Shipping is a merge, not a ritual performed by someone who remembers the steps.
   transaction on the same connection. A failure rolls back both before retry.
 - Historical SQL files retain their contents. The runner replaces their outer
   `BEGIN`/`COMMIT` wrapper at execution time so the ledger is inside the boundary.
+- Only executable migrations belong in the migration directory. Untracked,
+  redundant SQL drafts are preserved outside it; archiving a draft does not
+  alter tracked migration history or existing database ledger entries.
 - This prevents new unrecorded schema commits; it does not automatically repair
   a database already left inconsistent by an older runner.
 

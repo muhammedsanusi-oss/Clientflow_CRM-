@@ -60,9 +60,10 @@ one business experience.
 
 - Hosting, maintenance, and business-hours support remain proposed operational
   services. The Managed request-and-time workflow follows [managed service](managed-service.md).
-  Signup collects no payment credentials. Existing FREE, PLUS, and PREMIUM
-  website-content limits remain separate from explicit STANDARD, CRM, and MANAGED
-  subscription access. Feature requests are stored for developer review; submission
+  Signup collects no payment credentials. Image allowances follow the current
+  STANDARD, CRM, or MANAGED subscription, with FREE/PLUS/PREMIUM as the legacy
+  fallback. Section and feature-request limits remain separate; see
+  [product photos](product-photos.md). Feature requests are stored for developer review; submission
   is not a promise to build a feature.
 - The selected plan is stored with the newly created business. Existing
   developer-provisioned businesses and accounts are not assigned a plan or
@@ -100,16 +101,17 @@ one business experience.
 - The owner uses the existing live website editor to choose text and images,
   preview changes, and publish. Existing editor image limits and retention
   behavior remain unchanged.
+- Website editing and publishing are available before checkout and in every
+  subscription state; paid CRM/support remain subject to their entitlements.
 - The owner's appointments, customers, notes, hours/staff, services, inquiries,
   and website-management pages use the selected website template's admin palette:
   warm cream and brown for Bakery, charcoal and gold for Barbershop, light blush
   and taupe for Salon, and sage and green for Contact. A business without a
   configured template retains the neutral admin palette.
-- Owner entry uses the newest active OWNER business: Standard opens the website
-  editor, CRM/Managed opens calendar, pending/inactive opens subscription recovery.
-  Legacy businesses keep their calendar entry.
+- Owner entry opens the selected authorized business dashboard for every plan
+  and subscription state, including legacy access; see `owner-dashboard.md`.
 - Shared navigation offers Appointments and Customers when CRM is available,
-  Edit Website when website editing is available, Preview Website, and Demo
+  Edit Website for every configured owner website, Preview Website, and Demo
   subscription. Subscription management remains reachable from the session header
   when a saved CRM/editor URL is unavailable. Preview displays published content.
 - The owner calendar does not repeat an inline Business Dashboard link.

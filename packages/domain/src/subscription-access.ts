@@ -8,6 +8,7 @@ export const DEMO_PLANS = {
 export type DemoPlan = keyof typeof DEMO_PLANS;
 type Subscription = { plan: DemoPlan; status: string; periodEnd: Date | null };
 
+// Paid-feature eligibility, not website-editor authorization: owner editing is independent of billing.
 export function hasWebsiteAccess(subscription: Subscription | null | undefined, now = new Date()) {
   return !subscription || (subscription.status === "ACTIVE" && !!subscription.periodEnd && subscription.periodEnd > now);
 }

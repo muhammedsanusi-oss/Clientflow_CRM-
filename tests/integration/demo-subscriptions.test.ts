@@ -84,7 +84,7 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     expect(domain.ownerWorkspaceHref({ id: businessId })).toBe(`/owner?businessId=${businessId}`);
     expect((await domain.simulateSubscription(ownerId, action("ENROLL", -1))).status).toBe("PENDING");
     await expectBlocked();
-    await expect(domain.getWebsiteEditor(ownerId, businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ id: businessId, maxImages: 10 });
     expect(domain.ownerWorkspaceHref({ id: businessId, demoSubscription: { plan: "STANDARD", status: "PENDING", periodEnd: null } })).toBe(`/owner?businessId=${businessId}`);
   });
   it("activates Standard editing and rejects direct CRM calls", async () => {
@@ -92,7 +92,7 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     expect(result.status).toBe(200);
     expect((await result.json()).subscription).toMatchObject({ status: "ACTIVE", plan: "STANDARD", version: 1 });
     const editor = await domain.getWebsiteEditor(ownerId, businessId);
-    expect(editor).toMatchObject({ id: businessId, maxImages: 20 });
+    expect(editor).toMatchObject({ id: businessId, maxImages: 10 });
     expect(domain.ownerWorkspaceHref({ id: businessId, demoSubscription: editor.demoSubscription })).toBe(`/owner?businessId=${businessId}`);
     await expectBlocked();
     const { OwnerWorkspace } = await import("../../apps/web/components/owner-workspace");
@@ -109,6 +109,7 @@ describe.sequential("disposable subscription lifecycle drill", () => {
   });
   it("upgrades to CRM and renews from the paid-through date", async () => {
     const upgraded = await domain.simulateSubscription(ownerId, action("PAY_SUCCESS", 1, "CRM"));
+    expect((await domain.getWebsiteEditor(ownerId, businessId)).maxImages).toBe(20);
     for (const rows of await crmReads()) expect(rows).toHaveLength(1);
     expect(await domain.getPublicBookingOptions(businessId)).not.toBeNull();
     const renewed = await domain.simulateSubscription(ownerId, action("PAY_SUCCESS", 2, "CRM"));
@@ -122,7 +123,7 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     const publicBefore = await domain.getPublicWebsite(businessId);
     await domain.simulateSubscription(ownerId, action("PAY_FAILURE", 3, "CRM"));
     await expectBlocked();
-    await expect(domain.getWebsiteEditor(ownerId, businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ id: businessId, maxImages: 20, canSubmitFeatureRequests: false });
     expect(await domain.getDemoSubscription(ownerId, businessId)).not.toBeNull();
     expect(await domain.getPublicWebsite(businessId)).toEqual(publicBefore);
     await domain.simulateSubscription(ownerId, action("PAY_SUCCESS", 4, "MANAGED"));
@@ -136,9 +137,9 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     expect(await domain.getWebsiteEditor("developer", businessId)).toMatchObject({ id: businessId });
     await expect(domain.getWebsiteEditor("ungranted-developer", businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
-  it("recovers and downgrades to Standard while preserving legacy image limits", async () => {
+  it("recovers and downgrades to Standard image limits while retaining the stored section/request tier", async () => {
     await domain.simulateSubscription(ownerId, action("PAY_SUCCESS", 6, "STANDARD"));
-    expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ maxImages: 20, websitePlan: "PLUS" });
+    expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ maxImages: 10, websitePlan: "PLUS", canAddCustomSections: true, featureRequestLimit: 5 });
     await expectBlocked();
   });
   it("enforces expiry and clamps calendar-month renewals at month end", async () => {
@@ -149,7 +150,7 @@ describe.sequential("disposable subscription lifecycle drill", () => {
     try {
       vi.setSystemTime(stored.periodEnd!);
       await expectBlocked();
-      await expect(domain.getWebsiteEditor(ownerId, businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+      expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ id: businessId, maxImages: 10 });
       const recovered = await domain.simulateSubscription(ownerId, action("PAY_SUCCESS", 7, "CRM"));
       expect(recovered.periodStart).toEqual(stored.periodEnd);
       expect(recovered.periodEnd).toEqual(domain.addCalendarMonth(stored.periodEnd!));

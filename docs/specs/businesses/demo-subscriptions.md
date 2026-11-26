@@ -10,8 +10,8 @@ Other demo workflows are separate increments.
 
 Visitors can demonstrate selecting a service, checking out, renewing, failing
 a payment, changing plans, and cancelling without paying money or connecting
-an external billing provider. The selected active service actually controls
-access to the website editor and CRM.
+an external billing provider. The active service controls CRM and paid support;
+owners retain website editing regardless of subscription state.
 
 ## Where it lives
 
@@ -38,7 +38,7 @@ access to the website editor and CRM.
 - The offerings are Standard website ($39/month), Website + standard CRM
   ($79/month), and Managed service ($149/month). Tailored work continues through
   consultation and developer provisioning, not automatic checkout.
-- Standard provides owner website editing. CRM and Managed also provide
+- All plans and states permit owner website editing. Active CRM and Managed provide
   customers, appointments, booking availability, calendar, services, and notes.
   Managed also includes content-change requests and 30 tracked developer minutes
   per UTC calendar month; see [managed service](managed-service.md).
@@ -46,9 +46,11 @@ access to the website editor and CRM.
   subscription, and initial history atomically, then opens demo checkout.
   A successful simulated payment activates the selected service for one month.
   A failed simulated payment marks it past due without granting paid access.
-- New subscription records use explicit service names; existing website-plan
-  image/section/request limits remain in effect. This increment does not
-  change the stored website-content limits or implement custom-development entitlements.
+- New subscription records use explicit service names. Image allowances follow
+  the current subscription (Standard 10, CRM 20, Managed 50), with stored website
+  tiers as the legacy fallback; see [product photos](product-photos.md). Stored
+  section/request benefits remain separate. Custom-development entitlements
+  are not implemented.
 - Existing businesses without a demo subscription retain their existing
   behavior and stored records. They are labeled legacy demo access, not paid
   subscribers. An owner can explicitly enroll one through the subscription page.
@@ -71,9 +73,11 @@ access to the website editor and CRM.
   the current server time. Calendar-month arithmetic clamps month-end dates.
   Successful same-plan recovery preserves any future paid-through time; a
   successful plan change starts a new month immediately without proration.
-- Failed payment or cancellation blocks subscription-controlled owner editing
-  and CRM access. Successful simulated payment restores access according to
-  the plan. Expired active subscriptions grant no paid access until renewed.
+- Failed payment or cancellation blocks paid CRM/support access. Website
+  editing, within the current image allowance, remains available. Successful
+  simulated payment restores paid access according to
+  the plan. Expired subscriptions retain website editing but grant no paid
+  CRM/support access until renewed.
 - Server-derived membership/grants and entitlement predicates protect direct
   API, action, and domain calls as well as navigation. Hiding a link alone is
   never the access boundary. Public booking is unavailable without an active
@@ -100,7 +104,7 @@ access to the website editor and CRM.
 | Standard owner simulates a successful upgrade to CRM | Existing data is preserved and CRM access becomes available |
 | CRM owner simulates a failed payment | Paid access stops; subscription controls and recovery remain available |
 | Owner simulates successful recovery | Appropriate access returns and one history event is recorded |
-| Owner cancels the demo subscription | Paid access stops; published content and private stored records remain |
+| Owner cancels the demo subscription | Paid CRM/support stops; owner website editing and stored records remain |
 | Business has no subscription record from before this feature | Existing access remains until explicit demo enrollment |
 | User submits another business's ID | 404 and no subscription/history change |
 | Two actions submit the same version | One succeeds; the other returns 409 without a second transition |

@@ -36,8 +36,8 @@ export function DemoControls({ businessId, version, currentPlan }: { businessId:
         <button type="button" onClick={() => simulate("CANCEL")} className="rounded-xl border border-red-300 px-4 py-3 text-red-700">Cancel demo subscription now</button>
       </>}
     </div>
-    <p className="text-sm text-slate-600">Failure and cancellation stop private paid access immediately. Published content and stored records remain. Successful payment restores the selected service. Changing plans starts a new month; renewal extends the paid-through date.</p>
-    {version === -1 && <p className="text-sm text-amber-800">Enrollment replaces legacy access with pending checkout. Activate a service with simulated successful payment to continue editing or using CRM.</p>}
+    <p className="text-sm text-slate-600">Website editing and publishing stay available regardless of subscription state, within your image allowance. Failure and cancellation stop paid CRM and support access. Published content and stored records remain. Changing plans starts a new month; renewal extends the paid-through date.</p>
+    {version === -1 && <p className="text-sm text-amber-800">Enrollment starts pending checkout. Website editing stays available; activate an eligible service with simulated successful payment to use CRM.</p>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
   </fieldset>;
 }

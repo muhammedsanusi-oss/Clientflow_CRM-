@@ -10,7 +10,7 @@
  * Owner credentials, CRM records, and revision authors are not part of this projection. Defined in
  * packages/domain/src/websites.ts.
  */
-import { getPublicWebsite } from "../../../../../packages/domain/src/index";
+import { getPublicWebsite, isPublicBookingReady } from "../../../../../packages/domain/src/index";
 /*
  * Import connection: next/navigation.
  * Next.js navigation helpers: redirect/notFound end server rendering, while useRouter changes browser
@@ -36,5 +36,6 @@ export default async function PublicBusinessWebsite({ params }: { params: Promis
   const { businessId } = await params;
   const site = await getPublicWebsite(businessId);
   if (!site?.websiteTemplate) notFound();
-  return <BusinessWebsite site={{ ...site, websiteTemplate: site.websiteTemplate }} />;
+  const bookingAvailable = await isPublicBookingReady(businessId);
+  return <>{site.websiteTemplate === "BAKERY" && <nav aria-label="Bakery shopping" style={{ padding: "16px 24px", background: "#235d46", color: "white", textAlign: "center", display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}><a style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }} href={`/sites/${encodeURIComponent(businessId)}/shop`}>Shop available products · Open cart</a><a style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }} href={`/sites/${encodeURIComponent(businessId)}/track`}>Order status</a></nav>}<BusinessWebsite site={{ ...site, websiteTemplate: site.websiteTemplate, bookingAvailable }} /></>;
 }

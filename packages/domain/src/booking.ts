@@ -91,6 +91,10 @@ export async function getOwnerBookingSettings(userId: string, businessId: string
       name: true,
       websiteTemplate: true,
       demoSubscription: true,
+      locations: {
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+        select: { id: true, name: true, address: true, email: true, phone_number: true, is_active: true },
+      },
       hoursIntervals: {
         orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
         select: { id: true, dayOfWeek: true, startTime: true, endTime: true },
@@ -259,6 +263,15 @@ export async function setOwnerServiceActive(userId: string, businessId: string, 
     });
   });
   if (!result.count) throw new DomainError("NOT_FOUND", "Service not found");
+}
+
+// Public capability only: return no memberships, subscription records, or CRM data.
+export async function isPublicBookingReady(businessId: string) {
+  return !!await prisma.business.findFirst({ where: {
+    id: businessId, websiteTemplate: { not: null }, ...crmEntitlementWhere(),
+    locations: { some: { is_active: true } }, services: { some: { is_Active: true } },
+    hoursIntervals: { some: {} },
+  }, select: { id: true } });
 }
 
 export async function getPublicBookingOptions(businessId: string) {

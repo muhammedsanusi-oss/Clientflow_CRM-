@@ -38,6 +38,7 @@ import {
  */
 import Link from "../../components/app-link";
 import { OwnerWorkspace } from "../../components/owner-workspace";
+import { BookingSetup } from "../../components/booking-setup";
 
 // Request-time rendering: the page/API is resolved for this request instead of serving one static response
 // for every user.
@@ -120,7 +121,7 @@ export default async function CalendarPage({
   }
 
   const calendar = (
-    <main className="space-y-6">
+    <main className="space-y-6 px-5 py-8">
       <header className="space-y-3">
         {!ownerBusiness && (
           <Link
@@ -145,10 +146,13 @@ export default async function CalendarPage({
           </Link>
         </div>
         {ownerBusiness ? <nav aria-label="Business scheduling" className="flex flex-wrap gap-3">
+          <Link href={`/calendar/locations?businessId=${encodeURIComponent(ownerBusiness.id)}`} className="text-sm text-blue-700 underline">Manage locations</Link>
           <Link href={`/calendar/hours?businessId=${encodeURIComponent(ownerBusiness.id)}`} className="text-sm text-blue-700 underline">Business hours &amp; staff</Link>
           <Link href={`/calendar/services?businessId=${encodeURIComponent(ownerBusiness.id)}`} className="text-sm text-blue-700 underline">Manage services</Link>
         </nav> : null}
       </header>
+
+      {ownerBusiness && <BookingSetup business={ownerBusiness} />}
 
       <nav aria-label="Calendar month" className="flex items-center justify-between">
         <Link

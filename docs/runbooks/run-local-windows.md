@@ -32,6 +32,14 @@
 
 ## If this didn't work
 
+If the page renders but test buttons do nothing, inspect the browser's failed
+`/_next/static/` requests. A second development server can overwrite the first
+server's JavaScript even on a different port. Stop that verification server and
+restart the normal web process with `pnpm dev:web`; preserve the database.
+Give disposable servers a unique `CLIENTFLOW_DEV_INSTANCE` name as shown in
+the [showcase walkthrough](project-walkthrough.md). Refresh the login page after
+restart; the test-account button fills credentials, and Sign in submits them.
+
 1. For port-in-use errors, stop duplicate project terminals; do not reset the database. The default database port is 15432. Remove stale terminal overrides for `DB_PORT` and `DATABASE_URL` if they still select a different local port.
 2. If PostgreSQL reports `could not bind` and `Permission denied`, check Windows port reservations:
 

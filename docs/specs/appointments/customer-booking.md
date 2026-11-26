@@ -9,10 +9,12 @@ Business owners need to manage their services, operating hours, and staff availa
 
 ## Where it lives
 
-- `apps/web/app/owner/page.tsx` - redirects owners to their newest business calendar.
+- `apps/web/app/owner/page.tsx` - owner dashboard with upcoming appointments and calendar links.
 - `apps/web/app/calendar/` - shows the selected business's appointments and links to schedule settings.
 - `apps/web/app/calendar/hours/` - manages the business's recurring weekly hours and named staff availability.
 - `apps/web/app/calendar/services/` - manages the business's bookable service catalog and durations.
+- `apps/web/app/calendar/locations/` - lets an authorized owner add booking locations.
+- `packages/domain/src/owner-locations.ts` - validates and authorizes owner location creation.
 - `apps/web/app/sites/[businessId]/` - public business website with a booking entry point.
 - `apps/web/app/book/[businessId]/` - public customer booking flow and availability display.
 - `apps/web/app/api/sites/[businessId]/booking/` - exposes only public booking choices and accepts a booking.
@@ -26,12 +28,28 @@ Business owners need to manage their services, operating hours, and staff availa
 
 ## Behavior
 
-- The owner dashboard opens the newest business calendar. The shared workspace navigation provides its calendar, customer, and configured website links; calendar pages link to Hours and Services.
+- The owner dashboard lists the next five non-canceled appointments starting
+  today for the selected business when CRM access is available. Each entry
+  links to its calendar month; the shared navigation retains calendar, customer,
+  and website links. Calendar pages link to Hours and Services. See
+  `../businesses/bakery-orders.md` for dashboard visibility and its verification.
 - The owner calendar shows only appointments for the selected business. Selecting a business in the URL is a hint; every read and write verifies the signed-in user's active OWNER membership.
 - The owner can set recurring opening intervals for each weekday and mark a day closed. A day can contain multiple non-overlapping intervals, such as a morning and afternoon shift.
 - The owner can add, rename, deactivate, and set recurring availability for staff display names without creating user accounts. Staff availability must fall within the business's opening intervals.
 - The owner can create, edit, and deactivate bookable services, including each service's name and duration. Existing appointments preserve their service and duration snapshots.
+- The owner can add a location with a required name and address and optional
+  phone/email. Values are trimmed and validated on the server; duplicate names
+  or addresses within the business show a useful error without clearing inputs.
+  Pending submission disables the form and successful creation confirms it.
+- The calendar and dashboard link to location setup. The calendar and location
+  page show a booking checklist for an active location, active service, and
+  opening hours, with links that retain the selected business. A configured
+  website is also required before sharing a public booking link.
 - A configured public business website links to that business's booking page. A customer can also open the booking page directly from its business-specific public URL.
+- The public website offers its booking link only with CRM-capable access,
+  an active location, active service, and at least one opening interval. Other
+  sites retain the contact action. This capability is a public boolean; no
+  membership, private record, or subscription data is exposed by the renderer.
 - The public page shows only bookable services, the business's public location choices, public staff display names when configured, opening dates, and genuinely available appointment times. It never shows notes, customer lists, staff account details, inquiries, or another business's data.
 - The customer enters their name and contact details, chooses a service and location, and selects a date and available time. If the business has schedulable staff, the customer may select a staff member or choose any available staff member.
 - When no staff display names are configured, booking uses one shared business schedule and permits only one appointment at a time for an overlapping interval.
@@ -62,6 +80,9 @@ Business owners need to manage their services, operating hours, and staff availa
 ## Verify
 
 - Run `pnpm test` and the focused appointment/public booking integration tests.
+- Run `pnpm exec vitest run tests/integration/showcase-completion.test.ts` for
+  owner location validation/isolation, duplicates, setup links, and public CTA
+  eligibility. Follow `docs/runbooks/project-walkthrough.md` for the browser drill.
 - Run `pnpm typecheck` and `pnpm build`.
 - Manually set business hours, add a service and optional staff schedule, and complete a public booking; verify it appears only on that business's internal calendar.
 - Verify bookings cannot start outside business or staff hours, exceed an interval, overlap a confirmed booking, or target a foreign service/location.
@@ -87,6 +108,7 @@ Business owners need to manage their services, operating hours, and staff availa
 - Payment collection, deposits, subscriptions, refunds, and checkout.
 - Customer login accounts, self-service appointment cancellation or rescheduling, reminders, and external calendar synchronization.
 - Employee credentials, invitations, access to the private CRM, time-off requests, payroll, or employee-specific service qualifications.
+- Location editing, deactivation, and deletion; this setup increment adds and lists locations only.
 - Time-zone conversion, recurring appointment series, and conflict resolution for legacy appointments that already overlap.
 - Public access to customer notes, contact inquiries, customer lists, owner details, or internal calendar annotations.
 - Replacing or redesigning the existing website editor; its owner access and behavior remain described in [website editing](../businesses/website-editing.md).

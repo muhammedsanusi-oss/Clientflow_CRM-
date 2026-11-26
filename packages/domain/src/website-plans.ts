@@ -4,6 +4,12 @@ import type { WebsiteContent } from "./website-content";
 export const WebsitePlanSchema = z.enum(["FREE", "PLUS", "PREMIUM"]);
 export type WebsitePlanKey = z.infer<typeof WebsitePlanSchema>;
 
+// Current subscription controls photos; stored tiers remain the legacy fallback.
+export function websiteImageLimit(subscription: { plan: "STANDARD" | "CRM" | "MANAGED" } | null | undefined, legacy: WebsitePlanKey | null): number | null {
+  if (subscription) return ({ STANDARD: 10, CRM: 20, MANAGED: 50 } as const)[subscription.plan];
+  return legacy ? WEBSITE_PLANS[legacy].maxImages : null;
+}
+
 export const WEBSITE_PLANS = {
   FREE: {
     label: "Free",

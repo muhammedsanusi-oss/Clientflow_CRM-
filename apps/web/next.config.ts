@@ -17,9 +17,18 @@ import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
  */
 import { fileURLToPath } from "node:url";
 
+function developmentDirectory() {
+  const instance = process.env.CLIENTFLOW_DEV_INSTANCE;
+  if (!instance) return ".next-dev";
+  if (!/^[a-z0-9][a-z0-9-]{0,39}$/.test(instance)) {
+    throw new Error("CLIENTFLOW_DEV_INSTANCE must be 1-40 lowercase letters, digits, or hyphens, starting with a letter or digit.");
+  }
+  return `.next-dev-${instance}`;
+}
+
 const nextConfig = (phase: string): NextConfig => ({
-  // Production builds must not replace the running dev server's files.
-  distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
+  // Production and separately named verification servers must not overwrite demo assets.
+  distDir: phase === PHASE_DEVELOPMENT_SERVER ? developmentDirectory() : ".next",
   // PGlite ships WASM; let Node load it directly instead of bundling.
   serverExternalPackages: ["@electric-sql/pglite", "pglite-prisma-adapter"],
   // The shared client is loaded by Node, so deployment tracing must retain

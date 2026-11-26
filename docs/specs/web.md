@@ -49,8 +49,18 @@ on every branch, for every feature.
   than silently sharing compiled output from another port. Development output
   lives in `.next-dev`, while production build/start use `.next`, so a production
   build cannot overwrite a running development server's routes.
+- Parallel verification servers use a distinct `CLIENTFLOW_DEV_INSTANCE`, a
+  1-40 character lowercase alphanumeric/hyphen name beginning with a letter or
+  digit. Their output is `.next-dev-<name>`; invalid instance names fail
+  configuration. A separate port alone does not isolate compiled assets.
 
 ## Public business websites
+
+- Bakery websites link to a public shop with owner-posted products, stock,
+  cart, simulated checkout, and approximate delivery estimates. Owner product,
+  delivery, and order controls require regular owner sessions and business
+  membership; public tracking exposes only the receipt and progress through a
+  private bearer link. See [bakery orders](businesses/bakery-orders.md).
 
 - /sites/<businessId> renders the saved Bakery, Barbershop, Salon, or Contact template without a session, using only explicitly public business fields. Businesses without website settings return 404.
 - The contact form posts to /api/sites/<businessId>/contact and persists business-bound inquiries; it does not send email or create CRM customers.
@@ -110,6 +120,12 @@ Every route handler and Server Action, in order:
 ## Verify
 
 - The integration suite exercises one happy + one sad path per endpoint.
+- Configuration tests verify separate development instance directories,
+  production output, and rejection of invalid instance names.
+- With the normal demo running, start the disposable showcase server using
+  the walkthrough's isolated instance name. After exercising that instance,
+  verify every login script loads on port 3000, Use test developer fills the
+  fields, and Sign in as developer opens the developer dashboard.
 - `curl` the health endpoint with the db up and down.
 - With `pnpm dev` running, a second `pnpm dev:web` fails with an occupied-port
   error. Run `pnpm build` while development stays up, then verify `/login` and

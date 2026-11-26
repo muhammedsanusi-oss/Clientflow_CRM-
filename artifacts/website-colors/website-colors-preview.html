@@ -1,0 +1,86 @@
+<div id="cf-color-concept" class="viz-dotted-background">
+<style>
+#cf-color-concept{font:14px/1.5 system-ui,sans-serif;color:light-dark(#172b4d,#e5edf9);padding:16px 0;color-scheme:light dark}
+#cf-color-concept *{box-sizing:border-box}
+#cf-color-concept .studio{background:light-dark(#f5f7fb,#132036);border:1px solid light-dark(#dce3ef,#344258);border-radius:18px;overflow:hidden}
+#cf-color-concept .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:20px 24px;border-bottom:1px solid light-dark(#dce3ef,#344258)}
+#cf-color-concept h2,#cf-color-concept h3,#cf-color-concept p{margin:0}
+#cf-color-concept h2{font-size:18px;font-weight:600}#cf-color-concept h3{font-size:16px;font-weight:600}
+#cf-color-concept .caption{font-size:12px;color:light-dark(#53647c,#b0bfd4)}
+#cf-color-concept .layout{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr)}
+#cf-color-concept .controls{padding:22px;display:flex;flex-direction:column;gap:16px;background:light-dark(#fff,#19283e)}
+#cf-color-concept label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+#cf-color-concept select,#cf-color-concept input[type=text]{width:100%;min-width:0;background:light-dark(#fff,#101d30);color:inherit;border:1px solid light-dark(#cfd8e6,#4a5a73);border-radius:9px;padding:10px;font:inherit}
+#cf-color-concept button{font:inherit;color:inherit;background:light-dark(#fff,#22334c);border:1px solid light-dark(#cfd8e6,#4a5a73);border-radius:9px;padding:9px 12px;cursor:pointer}
+#cf-color-concept button:focus-visible,#cf-color-concept .wheel:focus-visible{outline:3px solid #729aff;outline-offset:3px}
+#cf-color-concept .wheel{position:relative;width:min(100%,224px);aspect-ratio:1;border-radius:50%;margin:auto;touch-action:none;background:radial-gradient(circle,white 0%,transparent 70%),conic-gradient(from 90deg,red,#ff0,#0f0,#0ff,#00f,#f0f,red);cursor:crosshair}
+#cf-color-concept .shade{position:absolute;inset:0;border-radius:50%;background:#000;pointer-events:none;opacity:0}
+#cf-color-concept .marker{position:absolute;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 1px #172b4d;transform:translate(-50%,-50%);pointer-events:none}
+#cf-color-concept input[type=range]{width:100%;accent-color:#3659d9}
+#cf-color-concept .pair{display:grid;grid-template-columns:46px minmax(0,1fr);gap:10px;align-items:center}
+#cf-color-concept input[type=color]{width:46px;height:43px;padding:3px;background:transparent;border:1px solid light-dark(#cfd8e6,#4a5a73);border-radius:9px}
+#cf-color-concept .actions{display:flex;gap:8px;flex-wrap:wrap}
+#cf-color-concept .swatches{display:flex;gap:8px;flex-wrap:wrap}
+#cf-color-concept .swatch{width:30px;height:30px;border-radius:50%;padding:0;box-shadow:inset 0 0 0 1px #80808070}
+#cf-color-concept .preview-wrap{padding:22px;display:flex;flex-direction:column;gap:14px}
+#cf-color-concept .site{--page:#F8FAFC;--section:#E8EEF8;--heading:#172B4D;--body:#475569;--link:#3158C9;--button:#3158C9;--buttonText:#FFFFFF;background:var(--page);color:var(--body);border-radius:12px;overflow:hidden;border:1px solid light-dark(#dce3ef,#344258)}
+#cf-color-concept .site header{padding:18px 20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--heading);font-weight:600}
+#cf-color-concept .site .hero{padding:30px 20px 34px;display:flex;flex-direction:column;gap:16px}
+#cf-color-concept .site h3{font-size:30px;line-height:1.15;letter-spacing:-1px;color:var(--heading)}
+#cf-color-concept .site .eyebrow{font-size:11px;letter-spacing:2px;color:var(--heading)}
+#cf-color-concept .site .cta{background:var(--button);color:var(--buttonText);border:0;align-self:flex-start}
+#cf-color-concept .site .section{background:var(--section);padding:22px 20px;display:flex;flex-direction:column;gap:10px}
+#cf-color-concept .site .section strong{color:var(--heading)}
+#cf-color-concept .site .link{color:var(--link);text-decoration:underline}
+#cf-color-concept .warning{font-size:12px;color:light-dark(#8a4b00,#ffcc81);min-height:36px}
+#cf-color-concept .error{color:light-dark(#b42318,#ffb4ac);font-size:12px}
+@media(max-width:580px){#cf-color-concept .layout{grid-template-columns:1fr}#cf-color-concept .wheel{width:224px}#cf-color-concept .top{padding:18px}}
+</style>
+<section class="studio" aria-label="Website color editor concept">
+ <div class="top"><div><h2>Website colors</h2><p class="caption">Developer &amp; business owner</p></div><span class="caption">Unsaved preview</span></div>
+ <div class="layout">
+  <div class="controls">
+   <div><label for="cf-target">Apply color to</label><select id="cf-target"><option value="button">Button background</option><option value="buttonText">Button text</option><option value="heading">Headings</option><option value="body">Body text</option><option value="page">Page background</option><option value="section">Section background</option><option value="link">Links</option></select></div>
+   <div class="wheel" aria-label="Hue and saturation wheel; use HEX or color picker for keyboard input"><div class="shade"></div><span class="marker"></span></div>
+   <div><label for="cf-brightness">Brightness <span id="cf-brightness-value"></span></label><input id="cf-brightness" type="range" min="0" max="100" value="79"></div>
+   <div><label for="cf-hex">HEX color</label><div class="pair"><input id="cf-native" type="color" aria-label="Choose exact color" value="#3158c9"><input id="cf-hex" type="text" value="#3158C9" maxlength="7" spellcheck="false" aria-describedby="cf-hex-error"></div><p id="cf-hex-error" class="error" role="alert"></p></div>
+   <div><label>Reusable colors</label><div class="swatches"></div></div>
+   <div class="actions"><button type="button" id="cf-add">+ Save swatch</button><button type="button" id="cf-undo">Undo</button><button type="button" id="cf-reset">Reset colors</button></div>
+  </div>
+  <div class="preview-wrap"><div class="caption">LIVE WEBSITE PREVIEW</div>
+   <div class="site"><header><span>Northstar Studio</span><span class="link">Contact</span></header><div class="hero"><span class="eyebrow">MADE FOR YOUR NEXT CHAPTER</span><h3>A little space.<br>A fresh perspective.</h3><p>Thoughtful services and personal attention, right in your neighborhood.</p><button class="cta" type="button">Book a visit →</button></div><div class="section"><strong>Good things start here.</strong><p>Meet the people behind the work and find the service that feels right for you.</p><span class="link">Explore our services →</span></div></div>
+   <p class="warning" aria-live="polite"></p>
+   <p class="caption">Concept only · Changes here do not publish to a website.</p>
+  </div>
+ </div>
+</section>
+<script>
+(()=>{
+ const root=document.getElementById('cf-color-concept'),q=s=>root.querySelector(s);
+ const defaults={page:'#F8FAFC',section:'#E8EEF8',heading:'#172B4D',body:'#475569',link:'#3158C9',button:'#3158C9',buttonText:'#FFFFFF'};
+ let colors={...defaults},target='button',swatches=['#172B4D','#3158C9','#18A999','#F4B860','#FFFFFF'],history=[],h=225,s=.756,v=.788;
+ const normalize=x=>{let a=x.trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(a))a=a.split('').map(c=>c+c).join('');return /^[0-9a-f]{6}$/i.test(a)?'#'+a.toUpperCase():null};
+ function hsv(hex){const a=hex.slice(1).match(/../g).map(c=>parseInt(c,16)/255),max=Math.max(...a),min=Math.min(...a),d=max-min;let hue=0;if(d)hue=max===a[0]?((a[1]-a[2])/d)%6:max===a[1]?(a[2]-a[0])/d+2:(a[0]-a[1])/d+4;return[(hue*60+360)%360,max?d/max:0,max]}
+ function rgb(){const c=v*s,x=c*(1-Math.abs(h/60%2-1)),m=v-c;const a=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];return '#'+a.map(z=>Math.round((z+m)*255).toString(16).padStart(2,'0')).join('').toUpperCase()}
+ function luminance(hex){const a=hex.slice(1).match(/../g).map(c=>parseInt(c,16)/255).map(z=>z<=.04045?z/12.92:((z+.055)/1.055)**2.4);return a[0]*.2126+a[1]*.7152+a[2]*.0722}
+ function contrast(a,b){const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
+ function persist(){window.openai?.setWidgetState?.({modelContent:{colors,target,swatches},privateContent:null})?.catch(()=>{})}
+ function render(){for(const[k,c]of Object.entries(colors))q('.site').style.setProperty('--'+k,c);q('#cf-target').value=target;q('#cf-native').value=colors[target];q('#cf-hex').value=colors[target];q('#cf-hex').setAttribute('aria-invalid','false');q('#cf-hex-error').textContent='';q('#cf-brightness').value=Math.round(v*100);q('#cf-brightness-value').textContent=Math.round(v*100)+'%';q('.shade').style.opacity=1-v;const r=h*Math.PI/180;q('.marker').style.left=(50+50*s*Math.cos(r))+'%';q('.marker').style.top=(50+50*s*Math.sin(r))+'%';
+ const pairs=[['Body text','body','page'],['Body on sections','body','section'],['Headings','heading','page'],['Headings on sections','heading','section'],['Links','link','page'],['Links on sections','link','section'],['Button text','buttonText','button']];const bad=pairs.filter(p=>contrast(colors[p[1]],colors[p[2]])<4.5);q('.warning').textContent=bad.length?'Readability warning: '+bad.map(p=>p[0]+' '+contrast(colors[p[1]],colors[p[2]]).toFixed(1)+':1').join(' · '):'Text contrast: all preview pairs meet 4.5:1.';
+ const container=q('.swatches');container.replaceChildren();swatches.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='swatch';b.style.background=c;b.setAttribute('aria-label','Apply '+c);b.title=c;b.onclick=()=>apply(c);container.append(b)});q('#cf-undo').disabled=!history.length;q('#cf-add').disabled=swatches.length>=12||swatches.includes(colors[target]);}
+ function apply(c){history.push({...colors});colors[target]=c;[h,s,v]=hsv(c);render();persist()}
+ q('#cf-target').onchange=e=>{target=e.target.value;[h,s,v]=hsv(colors[target]);render();persist()};
+ q('#cf-native').oninput=e=>apply(e.target.value.toUpperCase());
+ q('#cf-hex').oninput=e=>{const c=normalize(e.target.value);if(c&&e.target.value.replace(/^#/,'').length===6)apply(c);else{e.target.setAttribute('aria-invalid',c?'false':'true');q('#cf-hex-error').textContent=c?'':'Enter a HEX color, such as #2563EB.'}};
+ q('#cf-hex').onchange=e=>{const c=normalize(e.target.value);if(c)apply(c)};
+ q('#cf-brightness').oninput=e=>{v=Number(e.target.value)/100;apply(rgb())};
+ let dragging=false;function point(e){const rect=q('.wheel').getBoundingClientRect(),dx=(e.clientX-rect.left)/rect.width*2-1,dy=(e.clientY-rect.top)/rect.height*2-1;h=(Math.atan2(dy,dx)*180/Math.PI+360)%360;s=Math.min(1,Math.hypot(dx,dy));apply(rgb())}
+ q('.wheel').onpointerdown=e=>{dragging=true;e.currentTarget.setPointerCapture(e.pointerId);point(e)};q('.wheel').onpointermove=e=>{if(dragging)point(e)};q('.wheel').onpointerup=()=>dragging=false;q('.wheel').onpointercancel=()=>dragging=false;
+ q('#cf-add').onclick=()=>{if(swatches.length<12&&!swatches.includes(colors[target]))swatches.push(colors[target]);render();persist()};
+ q('#cf-undo').onclick=()=>{if(history.length){colors=history.pop();[h,s,v]=hsv(colors[target]);render();persist()}};
+ q('#cf-reset').onclick=()=>{history.push({...colors});colors={...defaults};[h,s,v]=hsv(colors[target]);render();persist()};
+ function restore(state){const z=state?.modelContent;if(z?.colors&&Object.keys(defaults).every(k=>normalize(z.colors[k]||''))){colors={...z.colors};target=Object.hasOwn(defaults,z.target)?z.target:'button';if(Array.isArray(z.swatches))swatches=z.swatches.map(normalize).filter(Boolean).slice(0,12);[h,s,v]=hsv(colors[target])}}
+ restore(window.openai?.widgetState);render();window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState){restore(e.detail.globals.widgetState);render()}});
+})();
+</script>
+</div>

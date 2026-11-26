@@ -117,7 +117,8 @@ describe.sequential("local owner self-signup", () => {
     expect(await db.prisma.demoSubscription.findUnique({ where: { businessId } })).toMatchObject({ plan: "CRM", status: "PENDING", version: 0 });
     expect(await db.prisma.demoSubscriptionEvent.count({ where: { businessId } })).toBe(1);
     expect(await db.prisma.demoSubscriptionEvent.findFirst({ where: { businessId } })).toMatchObject({ before: { subscription: null } });
-    await expect(domain.getWebsiteEditor(ownerId, businessId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ id: businessId, maxImages: 20, canSubmitFeatureRequests: false });
+    expect(await domain.getCustomerBusinessForUser(ownerId, businessId)).toBeNull();
     await domain.simulateSubscription(ownerId, { businessId, scenario: "PAY_SUCCESS", plan: "CRM", expectedVersion: 0 });
     expect(await domain.getWebsiteEditor(ownerId, businessId)).toMatchObject({ id: businessId });
   });

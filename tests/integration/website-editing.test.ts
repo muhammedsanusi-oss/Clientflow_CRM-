@@ -136,7 +136,7 @@ describe.sequential("developer website editing", () => {
     const publicContent = (await domain.getPublicWebsite(siteId))!.websiteContent!;
     expect(Object.keys(publicContent).sort()).toEqual([
       "eyebrow", "headline", "sectionTitle", "buttonLabel", "features", "offerings",
-      "fontFamily", "textColor", "textScale", "colors", "colorSwatches", "richText", "sectionStyles", "sectionImages", "additionalSections", "aboutText", "logoImage", "heroImage",
+      "fontFamily", "textColor", "textScale", "colors", "colorSwatches", "richText", "sectionStyles", "sectionImages", "photoDetails", "additionalSections", "aboutText", "logoImage", "heroImage",
     ].sort());
     expect(JSON.stringify(publicContent)).not.toContain(ids.developer);
   });

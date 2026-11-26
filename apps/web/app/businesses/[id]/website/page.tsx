@@ -77,9 +77,9 @@ export default async function WebsiteEditorPage({ params }: { params: Promise<{ 
     demoSubscription,
     ...initial
   } = site;
-  const page = <main className="mx-auto max-w-7xl space-y-6 px-5 py-12">
+  const page = <main className="website-studio space-y-6">
     <Link href={canChangeTemplate ? `/businesses/${businessId}` : `/owner?businessId=${encodeURIComponent(businessId)}`} className="text-sm text-indigo-700 underline">{canChangeTemplate ? "Back to business details" : "Back to owner dashboard"}</Link>
-    <header><p className="text-sm text-slate-500">{site.name}</p><h1 className="mt-2 text-3xl font-semibold">Edit website</h1><p className="mt-3 text-sm text-slate-600">See the website as you edit it. Click a section to change its text or add images, then publish when it looks right.</p></header>
+    <header className="studio-header"><div className="studio-business-pill"><span aria-hidden="true">✦</span> {site.name}</div><h1>Edit website<span aria-hidden="true">.</span></h1><p>A beautiful home for what you do. Make it yours, one little detail at a time.</p></header>
     <WebsiteEditor
       businessId={businessId}
       initial={initial}

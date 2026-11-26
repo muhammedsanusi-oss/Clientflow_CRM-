@@ -1,10 +1,10 @@
-2# Clientflow CRM
+# Clientflow CRM
 
 Clientflow helps small service businesses keep customer details, relationship history, and appointments in one workspace.
 
-The product direction is a subscription SaaS. This repository currently provides a local development MVP; subscription management and hosted operations remain planned work. Appointment-based service businesses are the provisional first audience.
+This repository is a local showcase for a business website, appointment booking, and CRM in one workspace. It includes development-only accounts, local owner signup, and simulated subscriptions; no payment provider or cloud account is needed.
 
-See [MVP scope and SaaS roadmap](MVP.md) for the proposed pilot, launch requirements, and deferred features.
+See [showcase scope](MVP.md) for the demo workflow and deferred production work.
 
 ## Current features
 
@@ -12,6 +12,14 @@ See [MVP scope and SaaS roadmap](MVP.md) for the proposed pilot, launch requirem
 - Add, search, and edit customers ([creation](docs/specs/customers/add-customer.md), [search and editing](docs/specs/customers/search-and-edit.md)).
 - Keep shared customer notes ([spec](docs/specs/customers/customer-notes.md)).
 - Schedule appointments and view a monthly calendar ([spec](docs/specs/appointments/customer-calendar.md)).
+- Configure services, business hours, and staff availability; accept public bookings ([spec](docs/specs/appointments/customer-booking.md)).
+- Publish and customize four reusable business website templates, with a private inquiry inbox ([editing](docs/specs/businesses/website-editing.md)).
+- Place product photos in website sections, move/reorder them, and publish within the current subscription's 10/20/50-photo allowance ([spec](docs/specs/businesses/product-photos.md)).
+- Sell bakery products through a cart with simulated payment, stock checks,
+  approximate delivery estimates, and customer tracking updated by the owner;
+  see upcoming public bookings on the owner dashboard ([spec](docs/specs/businesses/bakery-orders.md)).
+- Demonstrate checkout, upgrades, failed payments, recovery, and cancellation without real charges ([spec](docs/specs/businesses/demo-subscriptions.md)).
+- Demonstrate managed-service requests and tracked developer time ([spec](docs/specs/businesses/managed-service.md)).
 - Manage businesses, employees, and locations through business-scoped APIs ([spec](docs/specs/businesses/management-api.md)).
 
 Owners access CRM records through their active business memberships. Developers access provisioning records through explicit developer grants.
@@ -49,9 +57,9 @@ Open http://localhost:3000/login and choose Developer or Business owner. For loc
 | Developer | developer@clientflow.test | Clientflow-test-2026! |
 | Business owner | owner@clientflow.test | Clientflow-test-2026! |
 
-The developer opens the existing dashboard, selects Create business, and enters the business details plus the owner's login email. The saved business is linked to that owner's account. Share the temporary password displayed after creation; the owner selects Business owner on the login page and must replace that password before opening their linked business portal.
+The developer opens the dashboard, selects Create business, and enters the business details plus the owner's login email. The saved business is linked to that owner's account. Share the single-use setup link displayed after creation; the owner opens it and chooses a private password. Previously issued temporary passwords remain supported through Business owner sign-in.
 
-The sample owner opens the business dashboard at `/owner`, then chooses Customers, Website, or Website inquiries for a linked business. During local development, `/login` also links to a demo owner signup at `/signup`; it creates one owner and business, skips email verification, and continues to the website editor. Use synthetic details only—billing details are not verified. This signup is unavailable outside local development. A second developer can use friend@clientflow.test with the same test password. Fixed test accounts are disabled outside local development. Individual developer credentials can optionally be provisioned using the maintenance command described in [setup](docs/runbooks/developer-owner-setup.md).
+The sample owner opens the business dashboard at `/owner`, then chooses Customers, Website, or Website inquiries for a linked business. During local development, `/login` also links to a demo owner signup at `/signup`; it creates one owner and business, skips email verification, and opens simulated subscription checkout. Use synthetic details only—billing details are not verified. This signup is unavailable outside local development. A second developer can use friend@clientflow.test with the same test password. Fixed test accounts are disabled outside local development. Individual developer credentials can optionally be provisioned using the maintenance command described in [setup](docs/runbooks/developer-owner-setup.md).
 
 See the [feature spec](docs/specs/businesses/developer-provisioning.md). The selected public website is a route within Clientflow; no separate deployment, automated email, or subscription billing is created.
 
@@ -75,7 +83,17 @@ Choose **Edit website** on a configured business in the developer dashboard or b
 
 Owners select **Website** in their business portal to view the published result, edit the site, and open the public site. Removing text sections or image references requires confirmation. Image files remain stored when their website references are removed. See the [website editing specification](docs/specs/businesses/website-editing.md).
 
-## SaaS direction
+## Showcase walkthrough
+
+Owners can edit and publish their own configured website on every plan, even
+when the subscription is pending, overdue, canceled, or expired. Photo allowances
+still apply; CRM and paid support retain their subscription requirements.
+
+Follow [the presenter walkthrough](docs/runbooks/project-walkthrough.md) to show developer provisioning, owner activation, website editing, contact inquiries, public booking, and simulated subscription changes. Use fictional business and customer details throughout.
+
+`pnpm dev` is the showcase runtime: production builds deliberately disable fixed test accounts and local signup. `pnpm build` checks that the app compiles; it is not a replacement for the local demo command.
+
+## Future SaaS direction
 
 The proposed first release focuses on one workflow: the team provisions a business, its owner activates their account, and the owner records customers and schedules visits.
 

@@ -47,7 +47,7 @@ import Link from "../../components/app-link";
  * Combines public business fields with saved content or template defaults and includes ContactForm.
  */
 import { BusinessWebsite } from "../../components/business-sites/business-website";
-import { hasWebsiteAccess, ownerWorkspaceHref } from "../../../../packages/domain/src/subscription-access";
+import { ownerWorkspaceHref } from "../../../../packages/domain/src/subscription-access";
 import { OwnerWorkspace } from "../../components/owner-workspace";
 
 // Request-time rendering: the page/API is resolved for this request instead of serving one static response
@@ -79,7 +79,7 @@ export default async function OwnerWebsitePage({ searchParams }: { searchParams:
         <p className="mt-2 text-sm text-slate-600">{site.websiteContent ? `Last published ${site.websiteContent.publishedAt.toISOString()}` : "Your website uses its original template content."}</p>
       </div>
       <div className="flex flex-wrap gap-3">
-        {hasWebsiteAccess(site.demoSubscription) && <Link href={`/businesses/${site.id}/website`} className="rounded-xl border border-indigo-700 px-5 py-3 text-sm font-semibold text-indigo-700">Edit website</Link>}
+        <Link href={`/businesses/${site.id}/website`} className="rounded-xl border border-indigo-700 px-5 py-3 text-sm font-semibold text-indigo-700">Edit website</Link>
         <a href={`/sites/${site.id}`} target="_blank" rel="noreferrer" className="rounded-xl bg-indigo-700 px-5 py-3 text-sm font-semibold text-white">Open website</a>
       </div>
     </header>

@@ -1,4 +1,4 @@
-import { websiteEntitlementWhere } from "./subscription-access";
+import { hasWebsiteAccess } from "./subscription-access";
 /*
  * Code guide: packages/domain/src/websites.ts
  * Website read/write boundary for public pages, owner views/inquiries, and developer editing. Public queries
@@ -53,6 +53,7 @@ import type { WebsiteTemplateKey } from "./website-templates";
 import {
   countWebsiteImages,
   WEBSITE_PLANS,
+  websiteImageLimit,
   WebsiteFeatureRequest as WebsiteFeatureRequestSchema,
 } from "./website-plans";
 import { notifyBusinessDevelopers } from "./developer-notifications";
@@ -75,7 +76,7 @@ export const publicWebsiteSelection = {
     eyebrow: true, headline: true, sectionTitle: true, buttonLabel: true,
     features: true, offerings: true, fontFamily: true, textColor: true, textScale: true,
     colors: true, colorSwatches: true,
-    richText: true, sectionStyles: true,
+    richText: true, sectionStyles: true, photoDetails: true,
     sectionImages: true, additionalSections: true, aboutText: true, logoImage: true, heroImage: true,
   } },
 } satisfies Prisma.BusinessSelect;
@@ -98,13 +99,11 @@ type OwnerWebsite = Omit<PublicWebsite, "websiteContent"> & {
 
 function validWebsiteImageReference(businessId: string, section: string, imageRef: string | null) {
   if (!imageRef) return true;
-  const uploadedPrefix = `${businessId}/website/${section}-`;
-  const legacyPrefix = section === "header" ? `${businessId}/website/logo-`
-    : section === "hero" ? `${businessId}/website/hero-` : null;
-  const prefix = imageRef.startsWith(uploadedPrefix) ? uploadedPrefix
-    : legacyPrefix && imageRef.startsWith(legacyPrefix) ? legacyPrefix : null;
-  return prefix !== null
-    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/i.test(imageRef.slice(prefix.length));
+  // The upload's section need not match its current placement, but ownership does.
+  const prefix = `${businessId}/website/`;
+  return /^(header|hero|features|about|offerings|contact|custom)$/.test(section)
+    && imageRef.startsWith(prefix)
+    && /^(header|hero|features|about|offerings|contact|custom|logo)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/i.test(imageRef.slice(prefix.length));
 }
 
 function validSectionImageReferences(businessId: string, sectionImages: WebsiteContent["sectionImages"], additionalSections: WebsiteContent["additionalSections"]) {
@@ -128,6 +127,7 @@ type StoredWebsiteContent = {
   colors: unknown;
   richText: unknown;
   sectionStyles: unknown;
+  photoDetails?: unknown;
   colorSwatches: string[];
   sectionImages: unknown;
   additionalSections: unknown;
@@ -150,6 +150,7 @@ function parseStoredWebsiteContent(content: StoredWebsiteContent): WebsiteConten
     colors: content.colors,
     richText: content.richText,
     sectionStyles: content.sectionStyles,
+    photoDetails: content.photoDetails ?? {},
     colorSwatches: content.colorSwatches,
     sectionImages: content.sectionImages,
     additionalSections: content.additionalSections,
@@ -251,8 +252,6 @@ async function editableBusiness(tx: Prisma.TransactionClient, userId: string, bu
       AND u."mustChangePassword" = false
     FOR SHARE OF e, u`;
   if (!owner.length) throw new DomainError("NOT_FOUND", "Website not found");
-  const entitled = await tx.business.findFirst({ where: { id: businessId, ...websiteEntitlementWhere() }, select: { id: true } });
-  if (!entitled) throw new DomainError("NOT_FOUND", "Website not found");
   return { role: "owner" as const, site: await tx.business.findUniqueOrThrow({ where: { id: businessId }, select: {
     ...publicWebsiteSelection, websiteContent: true, websitePlan: true, demoSubscription: true,
   } }) };
@@ -268,16 +267,16 @@ export async function assertWebsiteEditorAccess(userId: string, businessId: stri
 export async function assertWebsiteImageUploadAllowed(userId: string, businessId: string, section: string) {
   return prisma.$transaction(async tx => {
     const { site } = await editableBusiness(tx, userId, businessId);
-    if (!site.websitePlan) return;
-    const plan = WEBSITE_PLANS[site.websitePlan];
-    if (section === "custom" && !plan.canAddSections) {
+    const plan = site.websitePlan ? WEBSITE_PLANS[site.websitePlan] : null;
+    const maxImages = websiteImageLimit(site.demoSubscription, site.websitePlan);
+    if (section === "custom" && plan && !plan.canAddSections) {
       throw new DomainError("FORBIDDEN", "Custom sections are available on Plus and Premium plans.");
     }
     const content = site.websiteContent
       ? parseStoredWebsiteContent(site.websiteContent)
       : defaultWebsiteContent(site.websiteTemplate!, site.description);
-    if (countWebsiteImages(content) >= plan.maxImages) {
-      throw new DomainError("CONFLICT", `This website has reached its ${plan.maxImages}-image plan limit. Remove an image and publish before uploading another.`);
+    if (maxImages !== null && countWebsiteImages(content) >= maxImages) {
+      throw new DomainError("CONFLICT", `This website has reached its ${maxImages}-image plan limit. Remove an image and publish before uploading another.`);
     }
   });
 }
@@ -287,6 +286,7 @@ export async function submitWebsiteFeatureRequest(userId: string, businessId: st
   return prisma.$transaction(async tx => {
     const { site, role } = await editableBusiness(tx, userId, businessId);
     if (role !== "owner") throw new DomainError("NOT_FOUND", "Website not found");
+    if (!hasWebsiteAccess(site.demoSubscription)) throw new DomainError("NOT_FOUND", "Website not found");
     if (!site.websitePlan || site.websitePlan === "FREE") {
       throw new DomainError("FORBIDDEN", "Feature requests are available on Plus and Premium plans.");
     }
@@ -323,7 +323,7 @@ export async function getWebsiteEditor(userId: string, businessId: string) {
     const { websiteContent, websitePlan, ...publicFields } = site;
     const savedContent = websiteContent ? parseStoredWebsiteContent(websiteContent) : null;
     const content = savedContent ?? defaultWebsiteContent(site.websiteTemplate!, site.description);
-    const canSubmitFeatureRequests = role === "owner" && websitePlan !== null && websitePlan !== "FREE";
+    const canSubmitFeatureRequests = role === "owner" && hasWebsiteAccess(site.demoSubscription) && websitePlan !== null && websitePlan !== "FREE";
     const featureRequestCount = canSubmitFeatureRequests
       ? await tx.websiteFeatureRequest.count({ where: { businessId } })
       : 0;
@@ -334,7 +334,7 @@ export async function getWebsiteEditor(userId: string, businessId: string) {
       logoImage: content.logoImage ?? "",
       heroImage: content.heroImage ?? "",
       websitePlan,
-      maxImages: plan?.maxImages ?? null,
+      maxImages: websiteImageLimit(site.demoSubscription, websitePlan),
       imageCount: countWebsiteImages(content),
       canAddCustomSections: plan?.canAddSections ?? true,
       canSubmitFeatureRequests,
@@ -361,18 +361,19 @@ export async function publishWebsite(userId: string, businessId: string, input: 
       throw new DomainError("FORBIDDEN", "Only developers can change the website template.");
     }
     const { version, eyebrow, headline, sectionTitle, buttonLabel, features, offerings, aboutText,
-      fontFamily, textColor, textScale, colors, colorSwatches, richText, sectionStyles, sectionImages, additionalSections, logoImage, heroImage, ...businessFields } = values;
+      fontFamily, textColor, textScale, colors, colorSwatches, richText, sectionStyles, photoDetails, sectionImages, additionalSections, logoImage, heroImage, ...businessFields } = values;
     const content = { eyebrow, headline, sectionTitle, buttonLabel, features, offerings, aboutText,
-      fontFamily, textColor, textScale, colors, colorSwatches, richText, sectionStyles, sectionImages, additionalSections,
+      fontFamily, textColor, textScale, colors, colorSwatches, richText, sectionStyles, photoDetails, sectionImages, additionalSections,
       logoImage: logoImage || null, heroImage: heroImage || null };
     if (site.websitePlan) {
       const plan = WEBSITE_PLANS[site.websitePlan];
       if (!plan.canAddSections && additionalSections.length > 0) {
         throw new DomainError("FORBIDDEN", "Custom sections are available on Plus and Premium plans.");
       }
-      if (countWebsiteImages(content) > plan.maxImages) {
-        throw new DomainError("CONFLICT", `This website is limited to ${plan.maxImages} images on its current plan.`);
-      }
+    }
+    const maxImages = websiteImageLimit(site.demoSubscription, site.websitePlan);
+    if (maxImages !== null && countWebsiteImages(content) > maxImages) {
+      throw new DomainError("CONFLICT", `This website is limited to ${maxImages} images on its current plan. Remove photos to publish.`);
     }
     if (!validSectionImageReferences(businessId, sectionImages, additionalSections)
       || (content.logoImage && !validWebsiteImageReference(businessId, "header", content.logoImage))
@@ -394,7 +395,9 @@ export async function publishWebsite(userId: string, businessId: string, input: 
       fontFamily: beforeContent.fontFamily, textColor: beforeContent.textColor, textScale: beforeContent.textScale,
       colors: beforeContent.colors, colorSwatches: beforeContent.colorSwatches,
       richText: beforeContent.richText, sectionStyles: beforeContent.sectionStyles,
+      photoDetails: beforeContent.photoDetails,
       additionalSections: beforeContent.additionalSections,
+      sectionImages: beforeContent.sectionImages,
       aboutText: beforeContent.aboutText,
       logoImage: beforeContent.logoImage, heroImage: beforeContent.heroImage,
     };

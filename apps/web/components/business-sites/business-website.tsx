@@ -26,7 +26,7 @@ import { ContactForm } from "./contact-form";
  * offerings into an editable content object. Does not read or write the database.
  * Type WebsiteContent: Type for editable website headings, button text, feature labels, and offering titles.
  */
-import { defaultWebsiteContent, type WebsiteContent } from "../../../../packages/domain/src/website-content";
+import { defaultWebsiteContent, websiteImageUrl, type WebsiteContent } from "../../../../packages/domain/src/website-content";
 import { resolvedWebsiteColors } from "../../../../packages/domain/src/website-colors";
 /*
  * Import connection: ./website.css -> apps/web/components/business-sites/website.css.
@@ -40,6 +40,7 @@ export type PublicSiteDetails = {
   id?: string; name: string; description: string; websiteTemplate: WebsiteTemplateKey;
   email: string; phone_number: string; publicAddress: string; openingHours: string;
   websiteContent?: WebsiteContent | null;
+  bookingAvailable?: boolean;
 };
 type EditableSection = string;
 
@@ -149,14 +150,22 @@ export function BusinessWebsite({ site, preview = false, draftImagePreviews = {}
   const imageLocator = (section: string, index: number) => `${section}-${index}`;
   const imageSource = (section: string, index: number) => {
     const locator = imageLocator(section, index);
-    return draftImagePreviews[locator] ?? (site.id ? `/api/sites/${encodeURIComponent(site.id)}/image/${locator}` : undefined);
+    const ref = section.startsWith("custom-") ? content.additionalSections[Number(section.slice(7))]?.images[index]
+      : imageSections[section as keyof typeof imageSections]?.[index];
+    return draftImagePreviews[locator] ?? (site.id && ref ? websiteImageUrl(site.id, section, index, ref) : undefined);
   };
   const imageGallery = (section: string, refs: string[], label: string, className = "", startIndex = 0) => refs.length > 0
     ? <div className={`site-image-gallery ${className}`} aria-label={`${label} images`}>
-        {refs.map((_, offset) => {
+        {refs.map((ref, offset) => {
           const index = startIndex + offset;
           const src = imageSource(section, index);
-          return src ? <img key={`${section}-${index}`} src={src} alt={`${site.name} ${label} image ${index + 1}`} /> : null;
+          const details = content.photoDetails?.[ref];
+          if (!src) return null;
+          if (!details) return <img key={`${section}-${index}`} src={src} alt={`${site.name} ${label} image ${index + 1}`} />;
+          return <figure key={`${section}-${index}`} className="site-product-photo" data-photo-ref={ref}>
+            <img src={src} alt={details.name || `${site.name} ${label} image ${index + 1}`} style={details.widthPercent ? { width: `${details.widthPercent}%`, height: "auto", maxHeight: "none", aspectRatio: "auto", marginInline: "auto", objectFit: "contain" } : undefined} />
+            {(details.name || details.priceCents !== undefined) && <figcaption><span>{details.name}</span>{details.priceCents !== undefined && <strong>{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(details.priceCents / 100)}</strong>}</figcaption>}
+          </figure>;
         })}
       </div>
     : null;
@@ -188,7 +197,7 @@ export function BusinessWebsite({ site, preview = false, draftImagePreviews = {}
     {preview && <div className="site-preview-banner">Preview · contact messages are disabled.</div>}
     <div className="site-shell">
       <header className={`site-nav${editorClass("header")}`} {...sectionProps("header", "header")}>{controls("header")}<a href="#home" className="site-brand">{imageSections.header[0] ? <img src={imageSource("header", 0)} alt="" className="site-logo" /> : <span className="site-brand-mark" aria-hidden="true">{site.name.slice(0,1)}</span>}{text("name", site.name)}</a>
-        <nav aria-label="Business website"><a href="#about">Our story</a>{!preview && site.id ? <a href={`/book/${encodeURIComponent(site.id)}`} className="site-nav-contact">Book online <span aria-hidden="true">↗</span></a> : null}<a href="#contact" className="site-nav-contact">Get in touch <span aria-hidden="true">↗</span></a></nav>
+        <nav aria-label="Business website"><a href="#about">Our story</a>{!preview && site.id && site.bookingAvailable ? <a href={`/book/${encodeURIComponent(site.id)}`} className="site-nav-contact">Book online <span aria-hidden="true">↗</span></a> : null}<a href="#contact" className="site-nav-contact">Get in touch <span aria-hidden="true">↗</span></a></nav>
       </header>
       {imageGallery("header", imageSections.header.slice(1), "header", "site-header-gallery", 1)}
       <main>

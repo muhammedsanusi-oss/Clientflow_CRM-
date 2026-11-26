@@ -1,0 +1,2604 @@
+[
+  {
+    "role": "developer",
+    "path": "/",
+    "width": 1440,
+    "status": 200,
+    "url": "/",
+    "title": "Welcome back, Test developer.",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 26,
+    "headings": [
+      "Your businesses"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "clientflow",
+        "href": "/"
+      },
+      {
+        "label": "Overview",
+        "href": "#overview"
+      },
+      {
+        "label": "Businesses",
+        "href": "#businesses"
+      },
+      {
+        "label": "clientflow",
+        "href": "#overview"
+      },
+      {
+        "label": "Notifications",
+        "href": "/notifications"
+      },
+      {
+        "label": "Set up client portal",
+        "href": "/businesses/new"
+      },
+      {
+        "label": "Northside Studio",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Bloom & Co. Salon",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "The Corner Chair",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Golden Crumb Bakery",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Sample business",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/local-test-business/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/",
+    "width": 390,
+    "status": 200,
+    "url": "/",
+    "title": "Welcome back, Test developer.",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 27,
+    "headings": [
+      "Your businesses"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "clientflow",
+        "href": "/"
+      },
+      {
+        "label": "Overview",
+        "href": "#overview"
+      },
+      {
+        "label": "Businesses",
+        "href": "#businesses"
+      },
+      {
+        "label": "clientflow",
+        "href": "#overview"
+      },
+      {
+        "label": "Notifications",
+        "href": "/notifications"
+      },
+      {
+        "label": "Set up client portal",
+        "href": "/businesses/new"
+      },
+      {
+        "label": "Northside Studio",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icsgx000dews1p49umijf/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Bloom & Co. Salon",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icrlt0009ews176sk68gr/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "The Corner Chair",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icqqv0005ews1hrx2dhoi/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Golden Crumb Bakery",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/cmw1icnu50001ews1hlxeh65q/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Sample business",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Managed content changes",
+        "href": "/businesses/local-test-business/managed-service"
+      },
+      {
+        "label": "Business details",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/businesses/local-test-business",
+    "title": "Sample business",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Website",
+      "Business contact",
+      "Owner access",
+      "Manage this business"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "← Back to dashboard",
+        "href": "/"
+      },
+      {
+        "label": "Edit website →",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Open website ↗",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "✉Owner inquiries & requestsReview website messages and requested changes.→",
+        "href": "/businesses/local-test-business/requests"
+      },
+      {
+        "label": "≡Managed content changesHandle content updates and ongoing website care.→",
+        "href": "/businesses/local-test-business/managed-service"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/businesses/local-test-business",
+    "title": "Sample business",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Website",
+      "Business contact",
+      "Owner access",
+      "Manage this business"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "← Back to dashboard",
+        "href": "/"
+      },
+      {
+        "label": "Edit website →",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Open website ↗",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "✉Owner inquiries & requestsReview website messages and requested changes.→",
+        "href": "/businesses/local-test-business/requests"
+      },
+      {
+        "label": "≡Managed content changesHandle content updates and ongoing website care.→",
+        "href": "/businesses/local-test-business/managed-service"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/new",
+    "width": 1440,
+    "status": 200,
+    "url": "/businesses/new",
+    "title": "Set up client portal",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 4,
+    "headings": [
+      "Business & owner details",
+      "Room for your next idea.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to dashboard",
+        "href": "/"
+      },
+      {
+        "label": "Cancel",
+        "href": "/"
+      },
+      {
+        "label": "NNorthside Studio",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Start a conversation↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@northside.example",
+        "href": "mailto:hello@northside.example"
+      },
+      {
+        "label": "2125550145",
+        "href": "tel:2125550145"
+      },
+      {
+        "label": "Northside Studio",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/new",
+    "width": 390,
+    "status": 200,
+    "url": "/businesses/new",
+    "title": "Set up client portal",
+    "overflow": -15,
+    "headerOverlaps": [
+      "Back to dashboard"
+    ],
+    "smallTargets": 4,
+    "headings": [
+      "Business & owner details",
+      "Room for your next idea.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to dashboard",
+        "href": "/"
+      },
+      {
+        "label": "Cancel",
+        "href": "/"
+      },
+      {
+        "label": "NNorthside Studio",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Start a conversation↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@northside.example",
+        "href": "mailto:hello@northside.example"
+      },
+      {
+        "label": "2125550145",
+        "href": "tel:2125550145"
+      },
+      {
+        "label": "Northside Studio",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business/website",
+    "width": 1440,
+    "status": 200,
+    "url": "/businesses/local-test-business/website",
+    "title": "Edit website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 22,
+    "headings": [
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to business details",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Cancel",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Open published website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "SSample business",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "Sample business",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business/website",
+    "width": 390,
+    "status": 200,
+    "url": "/businesses/local-test-business/website",
+    "title": "Edit website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 21,
+    "headings": [
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to business details",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Cancel",
+        "href": "/businesses/local-test-business"
+      },
+      {
+        "label": "Open published website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "SSample business",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "Sample business",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business/requests",
+    "width": 1440,
+    "status": 200,
+    "url": "/businesses/local-test-business/requests",
+    "title": "Owner inquiries and requests",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [
+      "Website inquiries",
+      "Website change requests"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to business",
+        "href": "/businesses/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business/requests",
+    "width": 390,
+    "status": 200,
+    "url": "/businesses/local-test-business/requests",
+    "title": "Owner inquiries and requests",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [
+      "Website inquiries",
+      "Website change requests"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to business",
+        "href": "/businesses/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business/managed-service",
+    "width": 1440,
+    "status": 200,
+    "url": "/businesses/local-test-business/managed-service",
+    "title": "Managed content changes",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 2,
+    "headings": [
+      "2026-11 · UTC monthly allowance",
+      "Content requests"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Manage demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      },
+      {
+        "label": "website editor",
+        "href": "/businesses/local-test-business/website"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/businesses/local-test-business/managed-service",
+    "width": 390,
+    "status": 200,
+    "url": "/businesses/local-test-business/managed-service",
+    "title": "Managed content changes",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 2,
+    "headings": [
+      "2026-11 · UTC monthly allowance",
+      "Content requests"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Manage demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      },
+      {
+        "label": "website editor",
+        "href": "/businesses/local-test-business/website"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/notifications",
+    "width": 1440,
+    "status": 200,
+    "url": "/notifications",
+    "title": "Notifications",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "External monitor status",
+      "Recent activity"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to developer dashboard",
+        "href": "/"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/notifications",
+    "width": 390,
+    "status": 200,
+    "url": "/notifications",
+    "title": "Notifications",
+    "overflow": 0,
+    "headerOverlaps": [
+      "Back to developer dashboard"
+    ],
+    "smallTargets": 0,
+    "headings": [
+      "External monitor status",
+      "Recent activity"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to developer dashboard",
+        "href": "/"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/custom-crm-requests",
+    "width": 1440,
+    "status": 200,
+    "url": "/custom-crm-requests",
+    "title": "Custom CRM requests",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to notifications",
+        "href": "/notifications"
+      },
+      {
+        "label": "Set up client portal",
+        "href": "/businesses/new"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/custom-crm-requests",
+    "width": 390,
+    "status": 200,
+    "url": "/custom-crm-requests",
+    "title": "Custom CRM requests",
+    "overflow": 0,
+    "headerOverlaps": [
+      "Back to notifications"
+    ],
+    "smallTargets": 1,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to notifications",
+        "href": "/notifications"
+      },
+      {
+        "label": "Set up client portal",
+        "href": "/businesses/new"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/subscription?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/subscription?businessId=local-test-business",
+    "title": "Demo subscription",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Sample business",
+      "Simulated event history"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Northside Studio",
+        "href": "/subscription?businessId=cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Bloom & Co. Salon",
+        "href": "/subscription?businessId=cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "The Corner Chair",
+        "href": "/subscription?businessId=cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Golden Crumb Bakery",
+        "href": "/subscription?businessId=cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Sample business",
+        "href": "/subscription?businessId=local-test-business"
+      },
+      {
+        "label": "Open website editor",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Back to workspace",
+        "href": "/owner"
+      }
+    ]
+  },
+  {
+    "role": "developer",
+    "path": "/subscription?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/subscription?businessId=local-test-business",
+    "title": "Demo subscription",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Sample business",
+      "Simulated event history"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Northside Studio",
+        "href": "/subscription?businessId=cmw1icsgx000dews1p49umijf"
+      },
+      {
+        "label": "Bloom & Co. Salon",
+        "href": "/subscription?businessId=cmw1icrlt0009ews176sk68gr"
+      },
+      {
+        "label": "The Corner Chair",
+        "href": "/subscription?businessId=cmw1icqqv0005ews1hrx2dhoi"
+      },
+      {
+        "label": "Golden Crumb Bakery",
+        "href": "/subscription?businessId=cmw1icnu50001ews1hlxeh65q"
+      },
+      {
+        "label": "Sample business",
+        "href": "/subscription?businessId=local-test-business"
+      },
+      {
+        "label": "Open website editor",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Back to workspace",
+        "href": "/owner"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/owner",
+    "width": 1440,
+    "status": 200,
+    "url": "/calendar?businessId=local-test-business",
+    "title": "Calendar",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 5,
+    "headings": [
+      "November 2026"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Choose customer",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Business hours & staff",
+        "href": "/calendar/hours?businessId=local-test-business"
+      },
+      {
+        "label": "Manage services",
+        "href": "/calendar/services?businessId=local-test-business"
+      },
+      {
+        "label": "Previous month",
+        "href": "/calendar?businessId=local-test-business&month=2026-10"
+      },
+      {
+        "label": "Next month",
+        "href": "/calendar?businessId=local-test-business&month=2026-12"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/owner",
+    "width": 390,
+    "status": 200,
+    "url": "/calendar?businessId=local-test-business",
+    "title": "Calendar",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 4,
+    "headings": [
+      "November 2026"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Choose customer",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Business hours & staff",
+        "href": "/calendar/hours?businessId=local-test-business"
+      },
+      {
+        "label": "Manage services",
+        "href": "/calendar/services?businessId=local-test-business"
+      },
+      {
+        "label": "Previous month",
+        "href": "/calendar?businessId=local-test-business&month=2026-10"
+      },
+      {
+        "label": "Next month",
+        "href": "/calendar?businessId=local-test-business&month=2026-12"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/calendar?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/calendar?businessId=local-test-business",
+    "title": "Calendar",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 5,
+    "headings": [
+      "November 2026"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Choose customer",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Business hours & staff",
+        "href": "/calendar/hours?businessId=local-test-business"
+      },
+      {
+        "label": "Manage services",
+        "href": "/calendar/services?businessId=local-test-business"
+      },
+      {
+        "label": "Previous month",
+        "href": "/calendar?businessId=local-test-business&month=2026-10"
+      },
+      {
+        "label": "Next month",
+        "href": "/calendar?businessId=local-test-business&month=2026-12"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/calendar?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/calendar?businessId=local-test-business",
+    "title": "Calendar",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 4,
+    "headings": [
+      "November 2026"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Choose customer",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Business hours & staff",
+        "href": "/calendar/hours?businessId=local-test-business"
+      },
+      {
+        "label": "Manage services",
+        "href": "/calendar/services?businessId=local-test-business"
+      },
+      {
+        "label": "Previous month",
+        "href": "/calendar?businessId=local-test-business&month=2026-10"
+      },
+      {
+        "label": "Next month",
+        "href": "/calendar?businessId=local-test-business&month=2026-12"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/calendar/hours?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/calendar/hours?businessId=local-test-business",
+    "title": "Business hours & staff",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 14,
+    "headings": [
+      "Opening hours",
+      "Schedulable staff names"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to Sample business calendar",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Manage services",
+        "href": "/calendar/services?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/calendar/hours?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/calendar/hours?businessId=local-test-business",
+    "title": "Business hours & staff",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 14,
+    "headings": [
+      "Opening hours",
+      "Schedulable staff names"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to Sample business calendar",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Manage services",
+        "href": "/calendar/services?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/calendar/services?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/calendar/services?businessId=local-test-business",
+    "title": "Bookable services",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 4,
+    "headings": [
+      "Add a service",
+      "Your services"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to Sample business calendar",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Manage hours & staff",
+        "href": "/calendar/hours?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/calendar/services?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/calendar/services?businessId=local-test-business",
+    "title": "Bookable services",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 3,
+    "headings": [
+      "Add a service",
+      "Your services"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to Sample business calendar",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Manage hours & staff",
+        "href": "/calendar/hours?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/customers?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/customers?businessId=local-test-business",
+    "title": "Sample business",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 10,
+    "headings": [
+      "No customers found"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "← Dashboard",
+        "href": "/"
+      },
+      {
+        "label": "Add customer",
+        "href": "/customers/new?businessId=local-test-business"
+      },
+      {
+        "label": "Calendar",
+        "href": "/calendar"
+      },
+      {
+        "label": "Website inquiries",
+        "href": "/inquiries?businessId=local-test-business"
+      },
+      {
+        "label": "Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "Clear search",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Refresh customer list",
+        "href": "/customers?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/customers?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/customers?businessId=local-test-business",
+    "title": "Sample business",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 10,
+    "headings": [
+      "No customers found"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "← Dashboard",
+        "href": "/"
+      },
+      {
+        "label": "Add customer",
+        "href": "/customers/new?businessId=local-test-business"
+      },
+      {
+        "label": "Calendar",
+        "href": "/calendar"
+      },
+      {
+        "label": "Website inquiries",
+        "href": "/inquiries?businessId=local-test-business"
+      },
+      {
+        "label": "Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "Clear search",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Refresh customer list",
+        "href": "/customers?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/customers/new?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/customers/new?businessId=local-test-business",
+    "title": "Add customer",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 3,
+    "headings": [],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Create another business",
+        "href": "/businesses/new"
+      },
+      {
+        "label": "Cancel",
+        "href": "/customers?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/customers/new?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/customers/new?businessId=local-test-business",
+    "title": "Add customer",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 3,
+    "headings": [],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Create another business",
+        "href": "/businesses/new"
+      },
+      {
+        "label": "Cancel",
+        "href": "/customers?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/notes?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/notes?businessId=local-test-business",
+    "title": "Sample business notes",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 3,
+    "headings": [
+      "No notes yet"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Business dashboard",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "View customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Go to customers",
+        "href": "/customers?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/notes?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/notes?businessId=local-test-business",
+    "title": "Sample business notes",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 3,
+    "headings": [
+      "No notes yet"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Business dashboard",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "View customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Go to customers",
+        "href": "/customers?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/inquiries?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/inquiries?businessId=local-test-business",
+    "title": "Website inquiries",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 2,
+    "headings": [
+      "No messages yet"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to business portal",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Open website ↗",
+        "href": "/sites/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/inquiries?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/inquiries?businessId=local-test-business",
+    "title": "Website inquiries",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 2,
+    "headings": [
+      "No messages yet"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to business portal",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Open website ↗",
+        "href": "/sites/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/website?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/website?businessId=local-test-business",
+    "title": "Your website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 11,
+    "headings": [
+      "Customize your website",
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to business portal",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "SSample business",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "Sample business",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/website?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/website?businessId=local-test-business",
+    "title": "Your website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 10,
+    "headings": [
+      "Customize your website",
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to business portal",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Open website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "SSample business",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "Sample business",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/businesses/local-test-business/website",
+    "width": 1440,
+    "status": 200,
+    "url": "/businesses/local-test-business/website",
+    "title": "Edit website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 21,
+    "headings": [
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to business portal",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Cancel",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Open published website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "SSample business",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "Sample business",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/businesses/local-test-business/website",
+    "width": 390,
+    "status": 200,
+    "url": "/businesses/local-test-business/website",
+    "title": "Edit website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 20,
+    "headings": [
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Back to business portal",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Cancel",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Open published website",
+        "href": "/sites/local-test-business"
+      },
+      {
+        "label": "SSample business",
+        "href": "#home"
+      },
+      {
+        "label": "Our story",
+        "href": "#about"
+      },
+      {
+        "label": "Get in touch ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      },
+      {
+        "label": "Sample business",
+        "href": "#home"
+      },
+      {
+        "label": "Let's connect ↗",
+        "href": "#contact"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/managed-service?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/managed-service?businessId=local-test-business",
+    "title": "Managed content changes",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [
+      "2026-11 · UTC monthly allowance",
+      "Content requests"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Manage demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/managed-service?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/managed-service?businessId=local-test-business",
+    "title": "Managed content changes",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [
+      "2026-11 · UTC monthly allowance",
+      "Content requests"
+    ],
+    "ownerNav": [
+      {
+        "label": "Appointments",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Customers",
+        "href": "/customers?businessId=local-test-business"
+      },
+      {
+        "label": "Edit Website",
+        "href": "/businesses/local-test-business/website"
+      },
+      {
+        "label": "Preview Website",
+        "href": "/website?businessId=local-test-business"
+      },
+      {
+        "label": "Demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ],
+    "links": [
+      {
+        "label": "Manage demo subscription",
+        "href": "/subscription?businessId=local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/subscription?businessId=local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/subscription?businessId=local-test-business",
+    "title": "Demo subscription",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Sample business",
+      "Simulated event history"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Sample business",
+        "href": "/subscription?businessId=local-test-business"
+      },
+      {
+        "label": "Open owner workspace",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Back to workspace",
+        "href": "/owner"
+      }
+    ]
+  },
+  {
+    "role": "owner",
+    "path": "/subscription?businessId=local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/subscription?businessId=local-test-business",
+    "title": "Demo subscription",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Sample business",
+      "Simulated event history"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Sample business",
+        "href": "/subscription?businessId=local-test-business"
+      },
+      {
+        "label": "Open owner workspace",
+        "href": "/calendar?businessId=local-test-business"
+      },
+      {
+        "label": "Back to workspace",
+        "href": "/owner"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/login",
+    "width": 1440,
+    "status": 200,
+    "url": "/login",
+    "title": "Good work starts with a better connection.",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 2,
+    "headings": [
+      "Sign in to Clientflow"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "clientflow",
+        "href": "/"
+      },
+      {
+        "label": "Sign up here!",
+        "href": "/signup"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/login",
+    "width": 390,
+    "status": 200,
+    "url": "/login",
+    "title": "Good work starts with a better connection.",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 2,
+    "headings": [
+      "Sign in to Clientflow"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "clientflow",
+        "href": "/"
+      },
+      {
+        "label": "Sign up here!",
+        "href": "/signup"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/signup",
+    "width": 1440,
+    "status": 200,
+    "url": "/signup",
+    "title": "Create your business website",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to sign in",
+        "href": "/login"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/signup",
+    "width": 390,
+    "status": 200,
+    "url": "/signup",
+    "title": "Create your business website",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to sign in",
+        "href": "/login"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/signup?option=tailored",
+    "width": 1440,
+    "status": 200,
+    "url": "/signup?option=tailored",
+    "title": "Create your business website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Let’s talk about your business"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to sign in",
+        "href": "/login"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/signup?option=tailored",
+    "width": 390,
+    "status": 200,
+    "url": "/signup?option=tailored",
+    "title": "Create your business website",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 0,
+    "headings": [
+      "Let’s talk about your business"
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to sign in",
+        "href": "/login"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/setup-password",
+    "width": 1440,
+    "status": 200,
+    "url": "/setup-password",
+    "title": "Set your portal password",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to sign in",
+        "href": "/login"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/setup-password",
+    "width": 390,
+    "status": 200,
+    "url": "/setup-password",
+    "title": "Set your portal password",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to sign in",
+        "href": "/login"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/sites/local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/sites/local-test-business",
+    "title": "Sharp cuts.\nGood company.",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 5,
+    "headings": [
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/sites/local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/sites/local-test-business",
+    "title": "Sharp cuts.\nGood company.",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 5,
+    "headings": [
+      "Find your signature.",
+      "A taste of what's possible.",
+      "Good things start\nwith a hello."
+    ],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Say hello↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "Let's talk ↗",
+        "href": "#contact"
+      },
+      {
+        "label": "hello@sample-business.test",
+        "href": "mailto:hello@sample-business.test"
+      },
+      {
+        "label": "2125550142",
+        "href": "tel:2125550142"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/book/local-test-business",
+    "width": 1440,
+    "status": 200,
+    "url": "/book/local-test-business",
+    "title": "Sample business",
+    "overflow": 0,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to Sample business",
+        "href": "/sites/local-test-business"
+      }
+    ]
+  },
+  {
+    "role": "public",
+    "path": "/book/local-test-business",
+    "width": 390,
+    "status": 200,
+    "url": "/book/local-test-business",
+    "title": "Sample business",
+    "overflow": -15,
+    "headerOverlaps": [],
+    "smallTargets": 1,
+    "headings": [],
+    "ownerNav": [],
+    "links": [
+      {
+        "label": "Back to Sample business",
+        "href": "/sites/local-test-business"
+      }
+    ]
+  }
+]

@@ -34,6 +34,18 @@ publish it to the private owner view and public website.
 
 ## Behavior
 
+- Editor presentation and per-photo size/name/price controls are described in
+  `website-editor-photo-sizing.md`; their changes use the same draft,
+  publication, authorization, and revision rules as other website content.
+
+- The editor shows whether changes are unpublished. A refresh/close or ordinary
+  link departure warns while a draft is dirty; cancelling a link departure keeps
+  the draft. Same-page anchors and new-tab links do not discard it. Browser
+  history navigation is outside this warning mechanism.
+- Successful publication marks the submitted snapshot clean; edits made during
+  an in-flight publication remain dirty. Failed or stale publication retains
+  the current draft and its unpublished status. No local autosave is implied.
+
 ### Open the right website
 
 - Each configured business card on the developer dashboard offers Edit website
@@ -46,6 +58,11 @@ publish it to the private owner view and public website.
   tab. After publication it reflects the newly published content.
 - A regular session and an active OWNER membership authorize an owner to read,
   upload images for, and publish changes to that owner's business website.
+- Editing is available on every subscription plan and state, including pending,
+  past due, canceled, expired, and legacy access. Dashboard and published-preview
+  pages always offer Edit website for an owner's configured site. Image quotas,
+  section benefits, and permissions still apply; editing does not activate CRM
+  access or paid support/feature requests.
 - A regular session, developer role, and that developer's explicit
   DeveloperBusinessAccess grant authorize a developer to read, upload images
   for, and publish changes to that business website. Developer status alone
@@ -95,6 +112,12 @@ publish it to the private owner view and public website.
 - Section options & images expands inside the selected toolbar for image
   management, feature/offering lists, and custom-section ordering/removal.
   Developer-only template selection stays in a compact separate disclosure.
+- A Product photos panel also exposes uploads, a destination selector, thumbnails
+  grouped by section, section movement, gallery ordering, and confirmed removal.
+  It uses the existing galleries and publication flow; see [product photos](product-photos.md).
+  Draft movement previews the original published image until publication, and
+  image URLs vary with their reference so reordered positions do not show a
+  previously cached photo.
 - It allows up to six additional plain-text sections. Each section has a
   heading of 1-100 characters and body of 1-2,000 characters, can be reordered,
   edited, or removed, and is included in preview and publication. Removing a
@@ -108,12 +131,19 @@ publish it to the private owner view and public website.
   animated images, and arbitrary files are rejected. New image uploads are
   scoped to the authorized business. The website image API reads only image
   references configured for the requested business.
-- For self-signup businesses with a saved website plan, the editor additionally
-  enforces a site-wide cap of 10 images for Free, 20 for Plus, or 50 for Premium.
+- Enrolled businesses have a site-wide cap of 10 images for Standard website,
+  20 for Website + standard CRM, or 50 for Managed service, selected from the
+  current server-owned subscription. Legacy businesses fall back to their saved
+  website plan: 10 images for Free, 20 for Plus, or 50 for Premium.
   It counts distinct references across fixed and additional sections, counting
   the same logo or hero reference only once. The existing limit of 10 images
   within any one section also remains in effect. The upload API and publication
   validation enforce the plan cap; client-side checks are only for feedback.
+- Photo movement between sections retains the same business-owned image
+  reference. Validation accepts known website upload namespaces for that
+  business, regardless of the current presentation section; arbitrary or foreign
+  blob paths remain rejected. A downgrade retains published images but requires
+  reducing the draft to the new allowance before publication.
 - Free-plan owners can edit existing sections but cannot add custom sections or
   submit feature requests. Plus and Premium owners can add up to six custom
   sections, matching the existing editor maximum. Businesses without a saved
@@ -249,8 +279,9 @@ publish it to the private owner view and public website.
   record. Any separately arranged customization fees remain outside this flow.
 
 Subscription-controlled access follows [demo subscriptions](demo-subscriptions.md). Legacy businesses retain existing access.
-Owner editing requires active demo access after enrollment. Explicit developer
-grants continue to authorize editing; published public content stays readable.
+Owner editing requires a regular session and active owner membership, regardless
+of subscription state. Explicit developer grants continue to authorize editing;
+published public content stays readable. Image limits follow the current plan.
 
 ## Examples
 
@@ -280,6 +311,15 @@ grants continue to authorize editing; published public content stays readable.
 | Developer publishes colors for business A | A's views and history show them; business B is unchanged |
 
 ## Verify
+
+- `tests/integration/owner-website-editing-access.test.ts` covers all three plans
+  in pending, active, overdue, canceled, and expired states: editor access,
+  uploads within the image cap, publication/history, unchanged billing state,
+  foreign/staff rejection, and retained CRM/paid-support restrictions.
+- On a disposable local instance, `tests/browser/owner-website-editing.mjs`
+  exercises dashboard and preview editing links, real uploads before checkout,
+  and publication in pending, active, overdue, and canceled states for every
+  plan. Inspect the 390px canceled-dashboard screenshots it produces.
 
 - Change Page background in the inline toolbar for both roles. Check that the
   canvas and top preview notice match the chosen HEX while section overrides

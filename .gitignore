@@ -3,6 +3,9 @@ node_modules/
 .pnpm-store/
 .next/
 .next-dev/
+.next-dev-*/
+# Generated PNG fixtures for the product-photo browser drill.
+tmp/product-photos/
 .pglite/
 .env*
 !.env.example
